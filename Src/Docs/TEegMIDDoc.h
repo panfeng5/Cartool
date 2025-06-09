@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ struct      TDFileHeader
     UINT32      nsamp;                  /* number of samples         */
     UCHAR       d_val;                  /* data validation mark      */
     UCHAR       unit;                   /* æV/bin                    */
-    short       zero;                   /* value ÷ 0 uV              */
+    short       zero;                   /* value ?0 uV              */
     UINT16      data_org;               /* data sect offset (para)   */
     UINT16      xhdr_org;               /* extheader offset (para)   */
 };                                      /*               Total:  32  */

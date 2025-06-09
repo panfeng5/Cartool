@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -251,7 +251,7 @@ bool    TCartoolVersionInfo::GetMKL ( LPCTSTR& s )   const
 {
                                         // or _MKL_SERVICE_H_
 #if defined (_MKL_TYPES_H_)
-s   = "Intel® MKL";
+s   = "Intel?MKL";
 return  true;
 #else
 return  false;

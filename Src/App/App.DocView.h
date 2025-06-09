@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ namespace owl {
                                         // Adding response table macro and event handler signature for WM_DPICHANGED message
                                         // Note: WM_DPICHANGED message returns an X and Y dpi, but as they are identical, we return only one in our handler
 
-                                        // Define macro à la "windowsx.h"
+                                        // Define macro ?la "windowsx.h"
 #define HANDLE_WM_DPICHANGED(hwnd, wParam, lParam, fn) \
     ((fn)((hwnd), (int)LOWORD(wParam), ::owl::TRect ( *reinterpret_cast<LPRECT> (p2) )), 0L)
 

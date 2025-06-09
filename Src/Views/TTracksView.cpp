@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -1941,7 +1941,7 @@ if ( renderingmode == LayoutOneTrackOneBox
 
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // layout "à la page"
+                                        // layout "?la page"
 else if ( renderingmode == LayoutFourPages
        || renderingmode == LayoutTwoPages
        || renderingmode == LayoutOnePage   ) {

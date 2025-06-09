@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -186,7 +186,7 @@ SagAbs_to_MriRel    = gomri.NormToMRI;
                                         // save new center
 center              = gomri.Center;
 
-                                        // check for a null transform (less than 0.10 voxel shift & less than 0.10° rotations)
+                                        // check for a null transform (less than 0.10 voxel shift & less than 0.10?rotations)
 if ( fabs ( originalcenter[ gomri.LeftRightIndex ] - center[ gomri.LeftRightIndex ] ) < 0.10
   && fabs ( gomri.GetValue ( RotationY ) ) < 0.10 
   && fabs ( gomri.GetValue ( RotationZ ) ) < 0.10 ) {
@@ -344,7 +344,7 @@ double              deltamaxy       = gomri.Bound.GetRadius ( gomri.FrontBackInd
 //double            deltamaxy       = gomri.Bound.GetRadius ( 1 ) * 0.80;
 
                                         // rotations are exclusively found to be > 0, heads are rather tilted backward than inward
-                                        // also, some heads are tilted A LOT (>20°), so give it some room here
+                                        // also, some heads are tilted A LOT (>20?, so give it some room here
 double              rotxmiddle      =  0;   // !could be already oriented to MNI, so start around 0 just in case!
 double              rotxdelta       = 60;   // but then with even more room for non-aligned MRIs!
 
@@ -529,7 +529,7 @@ center.RoundTo ( 0.1 );
                                         // if SliceExtent is skipped, call this
 //gomri.CenterSlice ();
 
-                                        // check for a null transform (less than 0.10 voxel shift & less than 0.10° rotations)
+                                        // check for a null transform (less than 0.10 voxel shift & less than 0.10?rotations)
 if ( fabs ( originalcenter[ gomri.UpDownIndex    ] - center[ gomri.UpDownIndex    ] ) < 0.10
   && fabs ( originalcenter[ gomri.FrontBackIndex ] - center[ gomri.FrontBackIndex ] ) < 0.10
   && fabs ( gomri.GetValue ( RotationX ) ) < 0.10 

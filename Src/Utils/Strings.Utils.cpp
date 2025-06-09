@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -1211,7 +1211,7 @@ return  0;
                                         //      Duration specifiers:
                                         // time frames:     "Time Frame" "Time Frames" "TimeFrame" "TimeFrames" "TF" or nothing
                                         // hours:           h hour hours
-                                        // minutes:         m min minute minutes ' ´
+                                        // minutes:         m min minute minutes ' ?
                                         // seconds:         s sec second seconds '' ´´ "
                                         // milliseconds:    ms msec millisec millisecond milliseconds
 
@@ -1280,7 +1280,7 @@ StringReplace ( buff, "MINUTES",          "M"     );
 StringReplace ( buff, "MINUTE",           "M"     );
 StringReplace ( buff, "MIN",              "M"     );
 StringReplace ( buff, "'",                "M"     );
-StringReplace ( buff, "´",                "M"     );
+StringReplace ( buff, "?",                "M"     );
 
 StringReplace ( buff, "HOURS",            "H"     );
 StringReplace ( buff, "HOUR",             "H"     );

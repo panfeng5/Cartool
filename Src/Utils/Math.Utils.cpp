@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -742,7 +742,7 @@ return  Gaussian ( x, center, x < center ? widthleft : widthright, height );
 
                                         // Gaussian CDF
 // Implementation with 16 bits precision, as in:
-// West, Graeme (2009), "Better approximations to cumulative normal functions", Wilmott Magazine: 70–76. (www.wilmott.com/pdfs/090721_west.pdf)
+// West, Graeme (2009), "Better approximations to cumulative normal functions", Wilmott Magazine: 70?6. (www.wilmott.com/pdfs/090721_west.pdf)
 double      GaussianCDF ( double x, double center, double width )
 {
 if ( width == 0 )

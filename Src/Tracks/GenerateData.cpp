@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -305,7 +305,7 @@ for ( int    filei   = 0;                filei   <  numfiles;        filei++ ) {
                 else if ( typesegment == HanningSegments ) {
                                         // increasing then decreasing the same map
                     for ( int tfseg0 = 0, tfseg = tf0; tfseg0 < segduration && tfseg < duration; tfseg0++, tfseg++ ) {
-                                        // increase then decrease, à la Hanning
+                                        // increase then decrease, ?la Hanning
                                         // there is no overlap between the maps
                                         // points are carefully chosen to never reach actual 0, and to be symmetrical
                         double  w   = Hanning ( ( tfseg0 + 0.5 ) / (double) segduration );

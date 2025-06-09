@@ -88,7 +88,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <Optimization>Full</Optimization>
-      <DisableSpecificWarnings>26812;6031;6993</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;6031;6993;4819</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -135,7 +135,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>26812;6031;6993</DisableSpecificWarnings>
+      <DisableSpecificWarnings>26812;6031;6993;4819</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>OWL_EV_SIGNATURE_CHECK;ARMA_DONT_ZERO_INIT</UndefinePreprocessorDefinitions>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>

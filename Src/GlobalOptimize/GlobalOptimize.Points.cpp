@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -657,7 +657,7 @@ if ( HasValue( TopLateralBumpY )
 /*                                        // "jaws" inflates on the sides, simpler case
 if ( p.Z < 0 && HasValue( InflateLowZtoX ) ) {
 
-                                        // up to which "vertical" angle do we spread the cosine (90° being the vertical / max )
+                                        // up to which "vertical" angle do we spread the cosine (90?being the vertical / max )
     #define             lowinflatemaxx      80.0
     #define             lowinflatemaxy      80.0
 

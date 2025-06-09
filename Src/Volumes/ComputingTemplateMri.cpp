@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -614,7 +614,7 @@ for ( int li = 0; li <= numiterations; li++ ) {
 //              p ( FilterParamDiameter )     = 3.47;
 //              mridata.Filter ( FilterTypeMedian, p, false );
 
-//                                      // Histogram Equalization, "à la" Brain style:
+//                                      // Histogram Equalization, "?la" Brain style:
 //              mridata.Filter ( FilterTypeHistoEqualBrain, p, false );
 
                                         // Ranking, brain tissues looking-style

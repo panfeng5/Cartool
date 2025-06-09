@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -445,14 +445,14 @@ if      ( (int) xyz > (int) xyzref )    // reference does not have enough points
                                         // Here xyzref COULD have more electrodes than the input xyz
                                         // Output will complement the missing points as best as it could...
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Coregistering to a given model, in current orientation then turned 180°
+                                        // Coregistering to a given model, in current orientation then turned 180?
                                         // then picking the one with the best fit to solve the front-back ambiguity
 TPoints             xyz000 ( xyz );
 TPoints             xyz180 ( xyz );
 TMatrix44           mat;
 
 mat.RotateZ ( 180, MultiplyLeft );
-                                        // turning whole thing 180°
+                                        // turning whole thing 180?
 mat.Apply   ( xyz180 );
 
                                         // run twice the coregistration, with 2 versions of the xyz

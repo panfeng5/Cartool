@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -920,7 +920,7 @@ TriggerUSB      = StringIsNotEmpty ( buff ); // if no string here, it should be 
 //ReadString ( ToFile, buff, sessionstring ); // after that string, you can find useful information as Session info, subject stuff...
 ReadString ( ToFile, buff, idstr[ 0 ].Address + 49 );
 
-//DBGM ( buff, "trigger info" );        // can be: Net Amps Digital Inputs / Net Amps² USB / Multi-Port ECI
+//DBGM ( buff, "trigger info" );        // can be: Net Amps Digital Inputs / Net Amps?USB / Multi-Port ECI
 
 
 StringToLowercase ( buff );

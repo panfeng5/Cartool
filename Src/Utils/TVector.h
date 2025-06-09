@@ -1,5 +1,5 @@
 /************************************************************************\
-© 2024-2025 Denis Brunet, University of Geneva, Switzerland.
+?2024-2025 Denis Brunet, University of Geneva, Switzerland.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -3137,7 +3137,7 @@ for ( int i = 0; i < Dim1; i++ )
     toel        = points[ i ] - TPointFloat ( centerx, centery, centerz );
 
     d           = toel.Norm ();
-                                               // normalize ScalarProduct & divide by distance²
+                                               // normalize ScalarProduct & divide by distance?
     Array[ i ]  = toel.ScalarProduct ( dipole ) / NonNull ( Cube ( d ) );
     }
     
