@@ -16,39 +16,37 @@ limitations under the License.
 
 #pragma once
 
-#include    "TBaseDoc.h"
-#include    "TRois.h"
+#include "TBaseDoc.h"
+#include "TRois.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Basically encapsulates a TRois
-class	TRoisDoc    :   public  TBaseDoc
+namespace crtl
 {
-public:
-                    TRoisDoc        ( owl::TDocument *parent = 0 );
-                   ~TRoisDoc        ();
 
-                                        // owl::TDocument
-    bool            InitDoc         ()                                  final;
-    bool            Open 	        ( int mode, const char* path = 0 )  final;
-    bool            Close	        ()                                  final;
-    bool            IsOpen	        ()                                  final       { return  ROIs; }
-    bool            Commit	        ( bool force = false )              final;
-    bool            Revert	        ( bool force = false )              final;
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // Basically encapsulates a TRois
+   class TRoisDoc : public TBaseDoc
+   {
+   public:
+      TRoisDoc(owl::TDocument *parent = 0);
+      ~TRoisDoc();
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
+      // owl::TDocument
+      bool InitDoc() final;
+      bool Open(int mode, const char *path = 0) final;
+      bool Close() final;
+      bool IsOpen() final { return ROIs; }
+      bool Commit(bool force = false) final;
+      bool Revert(bool force = false) final;
 
+      static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
 
-    TRois*          ROIs;
+      TRois *ROIs;
 
+   protected:
+   };
 
-protected:
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

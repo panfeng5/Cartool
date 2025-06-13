@@ -16,94 +16,87 @@ limitations under the License.
 
 #pragma once
 
-#include    "Math.Armadillo.h"
+#include "Math.Armadillo.h"
 
-#include    "Strings.TStrings.h"
-#include    "TArray1.h"
-#include    "TArray2.h"
+#include "Strings.TStrings.h"
+#include "TArray1.h"
+#include "TArray2.h"
 
-#include    "TBaseDoc.h"
-#include    "TInverseResults.h"
+#include "TBaseDoc.h"
+#include "TInverseResults.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Base class for any inverse matrix
-
-class   TInverseMatrixDoc   :   public  TBaseDoc,
-                                public  TInverseResults // can produce Inverse Solution results
+namespace crtl
 {
-public:
-                    TInverseMatrixDoc ( owl::TDocument *parent = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Base class for any inverse matrix
 
-    bool            Close	();
-    bool            Commit	( bool force = false )  final;
-    bool            Revert	( bool force = false )  final;
-    bool            IsOpen	()                      final   { return  NumSolPoints > 0; }
-    bool            InitDoc ()                      final;
+    class TInverseMatrixDoc : public TBaseDoc,
+                              public TInverseResults // can produce Inverse Solution results
+    {
+    public:
+        TInverseMatrixDoc(owl::TDocument *parent = 0);
 
+        bool Close();
+        bool Commit(bool force = false) final;
+        bool Revert(bool force = false) final;
+        bool IsOpen() final { return NumSolPoints > 0; }
+        bool InitDoc() final;
 
-    size_t          AtomSize ()                     const   { return sizeof ( AReal ); }
-    size_t          SingleMatrixMemorySize()        const   { return GetNumLines () * NumElectrodes * AtomSize (); }
+        size_t AtomSize() const { return sizeof(AReal); }
+        size_t SingleMatrixMemorySize() const { return GetNumLines() * NumElectrodes * AtomSize(); }
 
-    int             GetNumElectrodes      ()        const   { return    NumElectrodes; }
-    int             GetNumSolPoints       ()        const   { return    NumSolPoints; }
-    int             GetNumLines           ()        const   { return    IsVector ( AtomTypeUseOriginal ) ? 3 * NumSolPoints : NumSolPoints; }
+        int GetNumElectrodes() const { return NumElectrodes; }
+        int GetNumSolPoints() const { return NumSolPoints; }
+        int GetNumLines() const { return IsVector(AtomTypeUseOriginal) ? 3 * NumSolPoints : NumSolPoints; }
 
-    bool            IsStackMatrices       ()        const   { return    (bool) NumRegularizations; }
-    int             GetNumRegularizations ()        const   { return    NumRegularizations; }
-    int             GetMaxRegularization  ()        const   { return    IsStackMatrices () ? NumRegularizations : 1; }  // returns 1 for 0 or 1 regularization, NumRegularizations otherwise
-    int             GetRegularizationIndex ( const char *regstring )    const;
-    const TStrings* GetRegularizationsNames ()      const   { return   &RegularizationsNames; }
+        bool IsStackMatrices() const { return (bool)NumRegularizations; }
+        int GetNumRegularizations() const { return NumRegularizations; }
+        int GetMaxRegularization() const { return IsStackMatrices() ? NumRegularizations : 1; } // returns 1 for 0 or 1 regularization, NumRegularizations otherwise
+        int GetRegularizationIndex(const char *regstring) const;
+        const TStrings *GetRegularizationsNames() const { return &RegularizationsNames; }
 
-    int             GetBestRegularization       ( const TMap* map, TTracksView* eegview, long tf )  const;                                  // either map or eegview + tf
-    int             GetGlobalRegularization     ( const TMaps* maps, TTracksView* eegview, long fromtf, long totf, long steptf )    const;  // either from maps or range of tf from eegview
+        int GetBestRegularization(const TMap *map, TTracksView *eegview, long tf) const;                                 // either map or eegview + tf
+        int GetGlobalRegularization(const TMaps *maps, TTracksView *eegview, long fromtf, long totf, long steptf) const; // either from maps or range of tf from eegview
 
+        void SetAveragingBefore(TAveragingPrecedence ap) { AveragingPrecedence = ap; }
+        TAveragingPrecedence GetAveragingBefore() { return AveragingPrecedence; }
 
-    void                    SetAveragingBefore ( TAveragingPrecedence ap )  { AveragingPrecedence = ap; }
-    TAveragingPrecedence    GetAveragingBefore ()                           { return  AveragingPrecedence; }
+        const char *GetInverseTitle() const { return GetTitle(); }
+        const char *GetInverseName(char *isname) const; // short version within a list of known names
 
+        // does all the job to fetch the EEG and returns the resulting multiplication
+        void GetInvSol(int reg, long tf1, long tf2, TArray1<float> &inv, TTracksView *eegview, TRois *rois = 0) const;
+        void GetInvSol(int reg, long tf1, long tf2, TArray1<TVector3Float> &inv, TTracksView *eegview, TRois *rois = 0) const;
 
-    const char*     GetInverseTitle ()                  const   { return GetTitle(); }
-    const char*     GetInverseName  ( char* isname )    const;   // short version within a list of known names
+        // provide also these functions, if the caller provides an EEG buffer
+        void MultiplyMatrix(int reg, const TMap &map, TArray1<float> &inv) const;
+        void MultiplyMatrix(int reg, const TMap &map, TArray1<TVector3Float> &inv) const;
+        //  void            MultiplyMatrix ( int reg, const AVector&                map,            AVector&                   inv )    const;
+        void MultiplyMatrix(int reg, const TArray2<float> &eeg, int tf, TArray1<float> &inv) const;
+        void MultiplyMatrix(int reg, const TArray2<float> &eeg, int tf, TArray1<TVector3Float> &inv) const;
+        void MultiplyMatrix(int reg, const AMatrix &eeg, int tf, TArray1<TVector3Float> &inv) const;
 
-                                        // does all the job to fetch the EEG and returns the resulting multiplication
-    void            GetInvSol      ( int reg, long tf1, long tf2, TArray1< float >         &inv, TTracksView *eegview, TRois *rois = 0 )    const;
-    void            GetInvSol      ( int reg, long tf1, long tf2, TArray1< TVector3Float > &inv, TTracksView *eegview, TRois *rois = 0 )    const;
+    protected:
+        // Set of (at least 1) matrices, with increasing regularization if more than 1
+        //  std::vector<AMatrix>            M;  // using an Armadillo matrix - problem is it is column-major ordering (FORTRAN / Matlab style) and it would need all MultiplyMatrix to rewritten
+        std::vector<TArray2<AReal>> M; // using a simpler 2D array, which is row-major as expected by current methods
 
-                                        // provide also these functions, if the caller provides an EEG buffer
-    void            MultiplyMatrix ( int reg, const TMap&                   map,            TArray1<float>&            inv )    const;
-    void            MultiplyMatrix ( int reg, const TMap&                   map,            TArray1<TVector3Float>&    inv )    const;
-//  void            MultiplyMatrix ( int reg, const AVector&                map,            AVector&                   inv )    const;
-    void            MultiplyMatrix ( int reg, const TArray2<float>&         eeg,    int tf, TArray1<float>&            inv )    const; 
-    void            MultiplyMatrix ( int reg, const TArray2<float>&         eeg,    int tf, TArray1<TVector3Float>&    inv )    const; 
-    void            MultiplyMatrix ( int reg, const AMatrix&                eeg,    int tf, TArray1<TVector3Float>&    inv )    const; 
+        int NumElectrodes;
+        int NumSolPoints;
+        int NumRegularizations;
+        TAveragingPrecedence AveragingPrecedence;
 
+        TStrings ElectrodesNames;
+        TStrings SolutionPointsNames;
+        TArray1<double> RegularizationsValues;
+        TStrings RegularizationsNames;
 
-protected:
-                                        // Set of (at least 1) matrices, with increasing regularization if more than 1
-//  std::vector<AMatrix>            M;  // using an Armadillo matrix - problem is it is column-major ordering (FORTRAN / Matlab style) and it would need all MultiplyMatrix to rewritten
-    std::vector<TArray2<AReal>>     M;  // using a simpler 2D array, which is row-major as expected by current methods
+        void SetDefaultVariables();
+    };
 
-    int             NumElectrodes;
-    int             NumSolPoints;
-    int             NumRegularizations;
-    TAveragingPrecedence    AveragingPrecedence;
-
-    TStrings        ElectrodesNames;
-    TStrings        SolutionPointsNames;
-    TArray1<double> RegularizationsValues;
-    TStrings        RegularizationsNames;
-
-
-    void            SetDefaultVariables ();
-
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

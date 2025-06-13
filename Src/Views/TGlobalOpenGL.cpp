@@ -16,147 +16,136 @@ limitations under the License.
 
 #pragma once
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TGlobalOpenGL.h"
-#include    "TBaseView.h"
+#include "TGlobalOpenGL.h"
+#include "TBaseView.h"
 
-#include    "Math.Utils.h"
+#include "Math.Utils.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Objects that need only to be allocated once, for all windows and for all time
-TGLPixelFormat      TGlobalOpenGL::GLpfd;
-//TGLRenderingContext TGlobalOpenGL::GLrc;  // static
-
-TGLBitmapFont*      TGlobalOpenGL::SFont                = 0;
-TGLBitmapFont*      TGlobalOpenGL::BFont                = 0;
-
-TGLBillboardSphere  TGlobalOpenGL::BbLowSphere  ( BbSphereLowNumRounds,  BbSphereLowNumSlices );
-TGLBillboardSphere  TGlobalOpenGL::BbHighSphere ( BbSphereHighNumRounds, BbSphereHighNumSlices );
-
-GLfloat             TGlobalOpenGL::GLLineWidthMin       = 0;
-GLfloat             TGlobalOpenGL::GLLineWidthMax       = 0;
-GLfloat             TGlobalOpenGL::GLLineWidthStep      = 0;
-
-GLint               TGlobalOpenGL::ViewportMaxSize[ 2 ] = { 0, 0 };
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Application windows should have been created and alive at that point
-    TGlobalOpenGL::TGlobalOpenGL ()
+namespace crtl
 {
-                                        // Although this class can be inherited from multiple windows, it needs this initialization only once
-if ( IsOpen () )
-    return;
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Objects that need only to be allocated once, for all windows and for all time
+    TGLPixelFormat TGlobalOpenGL::GLpfd;
+    // TGLRenderingContext TGlobalOpenGL::GLrc;  // static
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    TGLBitmapFont *TGlobalOpenGL::SFont = 0;
+    TGLBitmapFont *TGlobalOpenGL::BFont = 0;
 
-CreateFonts ();
+    TGLBillboardSphere TGlobalOpenGL::BbLowSphere(BbSphereLowNumRounds, BbSphereLowNumSlices);
+    TGLBillboardSphere TGlobalOpenGL::BbHighSphere(BbSphereHighNumRounds, BbSphereHighNumSlices);
 
+    GLfloat TGlobalOpenGL::GLLineWidthMin = 0;
+    GLfloat TGlobalOpenGL::GLLineWidthMax = 0;
+    GLfloat TGlobalOpenGL::GLLineWidthStep = 0;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // using MDI Client window, which should exist when a child window is created
-UseThisDC           pdc  ( CartoolObjects.CartoolMdiClient->GetHandle () ); 
+    GLint TGlobalOpenGL::ViewportMaxSize[2] = {0, 0};
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Application windows should have been created and alive at that point
+    TGlobalOpenGL::TGlobalOpenGL()
+    {
+        // Although this class can be inherited from multiple windows, it needs this initialization only once
+        if (IsOpen())
+            return;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // rendering context might have already set this...
-//if ( ! GLpfd.IsDetected () ) {
-                                        // handle to dc
-    HDC             hdc ( pdc );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        CreateFonts();
 
-    FormatWish      colorbits       = ValueToFormatWish ( 32 );     // at least
-    FormatWish      depthbits       = ValueToFormatWish ( 24 );     // at least
-    FormatWish      stencilbits     = ValueToFormatWish (  1 );     // at least
-    FormatWish      accumbits       = ValueToFormatWish ( 32 );     // at least
-    FormatWish      doublebuff      = FormatUse;                    // request double-buffering
-//  FormatWish      accel           = FormatUseBest;                // will go first for hardware if available, software otherwise, without failing
-    FormatWish      accel           = CartoolObjects.CartoolApplication->PrefGraphicAccel;
-//  FormatWish      accel           = GetValue ( "Request Acceleration (-1:don't care, 0:off, 1:on):", "OpenGL" );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // using MDI Client window, which should exist when a child window is created
+        UseThisDC pdc(CartoolObjects.CartoolMdiClient->GetHandle());
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // rendering context might have already set this...
+        // if ( ! GLpfd.IsDetected () ) {
+        //  handle to dc
+        HDC hdc(pdc);
 
-    GLpfd.ChooseBestPixelFormat ( hdc, colorbits, depthbits, stencilbits, accumbits, doublebuff, accel );
-//  }
+        FormatWish colorbits = ValueToFormatWish(32);  // at least
+        FormatWish depthbits = ValueToFormatWish(24);  // at least
+        FormatWish stencilbits = ValueToFormatWish(1); // at least
+        FormatWish accumbits = ValueToFormatWish(32);  // at least
+        FormatWish doublebuff = FormatUse;             // request double-buffering
+                                                       //  FormatWish      accel           = FormatUseBest;                // will go first for hardware if available, software otherwise, without failing
+        FormatWish accel = CartoolObjects.CartoolApplication->PrefGraphicAccel;
+        //  FormatWish      accel           = GetValue ( "Request Acceleration (-1:don't care, 0:off, 1:on):", "OpenGL" );
 
+        GLpfd.ChooseBestPixelFormat(hdc, colorbits, depthbits, stencilbits, accumbits, doublebuff, accel);
+        //  }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Let's initialize all these guys
-GLrc.Set ( pdc, GLpfd );                // non-static
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Let's initialize all these guys
+        GLrc.Set(pdc, GLpfd); // non-static
 
+        GLfloat linewidthminmax[2];
 
-GLfloat             linewidthminmax[ 2 ];
+        glGetFloatv(GL_LINE_WIDTH_RANGE, linewidthminmax);
 
-glGetFloatv ( GL_LINE_WIDTH_RANGE,       linewidthminmax  );
+        GLLineWidthMin = linewidthminmax[0] > 0 ? linewidthminmax[0] : DefaultLineWidthMin;
+        GLLineWidthMax = linewidthminmax[1] > 0 ? linewidthminmax[1] : DefaultLineWidthMax;
 
-GLLineWidthMin  = linewidthminmax[ 0 ] > 0 ? linewidthminmax[ 0 ] : DefaultLineWidthMin;
-GLLineWidthMax  = linewidthminmax[ 1 ] > 0 ? linewidthminmax[ 1 ] : DefaultLineWidthMax;
+        Clipped(GLLineWidthMin, GLLineWidthMax, DefaultLineWidthMin, DefaultLineWidthMax);
 
-Clipped ( GLLineWidthMin, GLLineWidthMax, DefaultLineWidthMin, DefaultLineWidthMax );
+        glGetFloatv(GL_LINE_WIDTH_GRANULARITY, &GLLineWidthStep);
 
+        if (GLLineWidthStep <= 0)
+            GLLineWidthStep = 1;
 
-glGetFloatv ( GL_LINE_WIDTH_GRANULARITY, &GLLineWidthStep );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Viewport max size
+        glGetIntegerv(GL_MAX_VIEWPORT_DIMS, ViewportMaxSize);
 
-if      ( GLLineWidthStep <= 0   )  GLLineWidthStep = 1;
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Viewport max size
-glGetIntegerv ( GL_MAX_VIEWPORT_DIMS, ViewportMaxSize );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-GLrc.Reset ();                          // non-static
-}
-
-
-//----------------------------------------------------------------------------
-    TGlobalOpenGL::~TGlobalOpenGL ()
-{
-GLrc.Reset ();                          // non-static
-
-if ( ! CartoolObjects.CartoolApplication->Closing )
-    return;
-
-
-//GLrc.Reset ();                        // static
-
-                                        // delete only when leaving the app
-if ( SFont ) {
-    delete SFont;
-    SFont = 0;
+        GLrc.Reset(); // non-static
     }
 
-if ( BFont ) {
-    delete BFont;
-    BFont = 0;
+    //----------------------------------------------------------------------------
+    TGlobalOpenGL::~TGlobalOpenGL()
+    {
+        GLrc.Reset(); // non-static
+
+        if (!CartoolObjects.CartoolApplication->Closing)
+            return;
+
+        // GLrc.Reset ();                        // static
+
+        // delete only when leaving the app
+        if (SFont)
+        {
+            delete SFont;
+            SFont = 0;
+        }
+
+        if (BFont)
+        {
+            delete BFont;
+            BFont = 0;
+        }
     }
-}
 
+    //----------------------------------------------------------------------------
+    void TGlobalOpenGL::CreateFonts()
+    {
+        // Will nicely dispose off of already existing font
+        if (SFont)
+            delete SFont;
 
-//----------------------------------------------------------------------------
-void    TGlobalOpenGL::CreateFonts ()
-{
-                                        // Will nicely dispose off of already existing font
-if ( SFont )
-    delete  SFont;
+        if (BFont)
+            delete BFont;
 
-if ( BFont )
-    delete  BFont;
+        // Macros hide the fact that the font sizes depend on the current screen DPI
+        SFont = new TGLBitmapFont(SmallFontParameters);
+        BFont = new TGLBitmapFont(BigFontParameters);
+    }
 
-                                        // Macros hide the fact that the font sizes depend on the current screen DPI
-SFont   = new TGLBitmapFont ( SmallFontParameters );
-BFont   = new TGLBitmapFont ( BigFontParameters   );
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

@@ -16,110 +16,99 @@ limitations under the License.
 
 #pragma once
 
-#include    "TTracksDoc.h"
+#include "TTracksDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*     EEG128DOC_FILEVERSION       = "2.0";
-constexpr int       EEG128DOC_TFPERRECORD       = 128;
-constexpr int       EEG128DOC_NUMCHANNELS       = 128;
-constexpr double    EEG128DOC_SAMPLFREQUENCY    = 200;
-constexpr double    EEG128DOC_ZERO              = 128;
-constexpr double    EEG128DOC_SCALE             =  15;
-constexpr char*     EEG128DOC_TAGNAME           = "event";
-constexpr int       EEG128DOC_BPCHANNEL         = 127;
-
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-struct  TModeSet                        /* for tagging type of disk-save */
+namespace crtl
 {
-    UINT16          keybd_sav   : 1;
-    UINT16          pbtn_sav    : 1;
-    UINT16          autosz_sav  : 1;
-    UINT16          dummy0      : 1;
-    UINT16          dummy1      : 1;
-    UINT16          dummy2      : 1;
-    UINT16          dummy3      : 1;
-    UINT16          dummy4      : 1;
-    UINT16          dummy5      : 1;
-};
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-struct  TDate128
-{
-    short           da_year;
-    char            da_day;
-    char            da_mon;
-};
+    constexpr char *EEG128DOC_FILEVERSION = "2.0";
+    constexpr int EEG128DOC_TFPERRECORD = 128;
+    constexpr int EEG128DOC_NUMCHANNELS = 128;
+    constexpr double EEG128DOC_SAMPLFREQUENCY = 200;
+    constexpr double EEG128DOC_ZERO = 128;
+    constexpr double EEG128DOC_SCALE = 15;
+    constexpr char *EEG128DOC_TAGNAME = "event";
+    constexpr int EEG128DOC_BPCHANNEL = 127;
 
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-struct  TTimeVal
-{
-    UCHAR           hundredths;
-    UCHAR           seconds;
-    UCHAR           minutes;
-    UCHAR           hours;
-};
+        struct TModeSet /* for tagging type of disk-save */
+    {
+        UINT16 keybd_sav : 1;
+        UINT16 pbtn_sav : 1;
+        UINT16 autosz_sav : 1;
+        UINT16 dummy0 : 1;
+        UINT16 dummy1 : 1;
+        UINT16 dummy2 : 1;
+        UINT16 dummy3 : 1;
+        UINT16 dummy4 : 1;
+        UINT16 dummy5 : 1;
+    };
 
+    struct TDate128
+    {
+        short da_year;
+        char da_day;
+        char da_mon;
+    };
 
-struct  T128FileRec                     /* records to be written or read from file */
-{
-	TTimeVal        time;               /* 4 bytes */
-	TDate128        date;               /* 4 bytes */
-	TModeSet        mode;               /* 2 bytes */
-	short           gain;               /* 2 bytes    X1, X2, X4 eeg signal gain factors */
-	short           id;                 /* 2 bytes */
-	short           pbutt_marker;       /* 2 bytes, boolean */
-	char            d1, d2, d3, d4;     /* 4 bytes    ='s  20 bytes  */
-	UCHAR           data[ EEG128DOC_TFPERRECORD ][ EEG128DOC_NUMCHANNELS ]; /* eeg data */
-};
+    struct TTimeVal
+    {
+        UCHAR hundredths;
+        UCHAR seconds;
+        UCHAR minutes;
+        UCHAR hours;
+    };
 
+    struct T128FileRec /* records to be written or read from file */
+    {
+        TTimeVal time;                                            /* 4 bytes */
+        TDate128 date;                                            /* 4 bytes */
+        TModeSet mode;                                            /* 2 bytes */
+        short gain;                                               /* 2 bytes    X1, X2, X4 eeg signal gain factors */
+        short id;                                                 /* 2 bytes */
+        short pbutt_marker;                                       /* 2 bytes, boolean */
+        char d1, d2, d3, d4;                                      /* 4 bytes    ='s  20 bytes  */
+        UCHAR data[EEG128DOC_TFPERRECORD][EEG128DOC_NUMCHANNELS]; /* eeg data */
+    };
 
-EndBytePacking
+    EndBytePacking
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Beth Israel Deaconess Medical Center (BIDMC) file format
-class   TEegBIDMC128Doc :   public  TTracksDoc
-{
-public:
-                    TEegBIDMC128Doc ( owl::TDocument *parent = 0 );
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        // Beth Israel Deaconess Medical Center (BIDMC) file format
+        class TEegBIDMC128Doc : public TTracksDoc
+    {
+    public:
+        TEegBIDMC128Doc(owl::TDocument *parent = 0);
 
-                   
-    bool            CanClose        ()                                  final;
-    bool            Close           ()                                  final;
-    bool            IsOpen          ()                                  final       { return InputStream != 0; }
-    bool            Open            ( int mode, const char *path = 0 )  final;
+        bool CanClose() final;
+        bool Close() final;
+        bool IsOpen() final { return InputStream != 0; }
+        bool Open(int mode, const char *path = 0) final;
 
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+        void ReadRawTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0) final;
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-    void            ReadRawTracks   ( long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0 )  final;
+    protected:
+        owl::TInStream *InputStream;
 
+        T128FileRec FileBuff;
+        LONGLONG Block;
+        int Offset;
+        TSelection ValidElectrodes; // some channels are turned off
+        int MarkerIndex;
 
-protected:
+        bool SetArrays() final;
+        void ReadNativeMarkers() final;
+        inline void TfToBlockOffset(const int &tf, LONGLONG &block, int &offset) const;
+    };
 
-    owl::TInStream* InputStream;
-
-    T128FileRec     FileBuff;
-    LONGLONG        Block;
-    int             Offset;
-    TSelection      ValidElectrodes;    // some channels are turned off
-    int             MarkerIndex;
-
-
-    bool            SetArrays           ()  final;
-    void            ReadNativeMarkers   ()  final;
-    inline void     TfToBlockOffset     ( const int& tf, LONGLONG& block, int& offset )  const;
-
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

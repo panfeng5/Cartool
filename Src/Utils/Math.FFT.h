@@ -16,32 +16,25 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Handy function that returns the max legal frequency
-                                        // It handles the S-Transform, which has a lower max frequency than a regular FFT
-                                        // This formula works for both Hz or relative integer frequency bins
-                                        // (Note that this is the formula I end up to with, the article is not very precise on that part...)
-inline  double  GetNyquist              ( double samplingfrequency, bool /*stransform*/ )
+namespace crtl
 {
-return  samplingfrequency / 2;
 
-                  // truncation is to make it less weird for these big windows
-//return  stransform ? TruncateTo ( samplingfrequency / 2 * ( M_PI / ( M_PI + 1 ) ), 0.5 )
-//                   :              samplingfrequency / 2;
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // Handy function that returns the max legal frequency
+   // It handles the S-Transform, which has a lower max frequency than a regular FFT
+   // This formula works for both Hz or relative integer frequency bins
+   // (Note that this is the formula I end up to with, the article is not very precise on that part...)
+   inline double GetNyquist(double samplingfrequency, bool /*stransform*/)
+   {
+      return samplingfrequency / 2;
+
+      // truncation is to make it less weird for these big windows
+      // return  stransform ? TruncateTo ( samplingfrequency / 2 * ( M_PI / ( M_PI + 1 ) ), 0.5 )
+      //                    :              samplingfrequency / 2;
+   }
+
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+
 }
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-}
-
-
-
-
-
-
-

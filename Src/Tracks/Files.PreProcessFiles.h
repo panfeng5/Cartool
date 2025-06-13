@@ -16,73 +16,68 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-enum        RegularizationType;
-enum        AtomType;
-class       TInverseMatrixDoc;
+   enum RegularizationType;
+   enum AtomType;
+   class TInverseMatrixDoc;
 
-                                        // A few processings can work faster, without any loss, by using some downsampling technique:
-constexpr int   DownsamplingTargetSizeGfp       = 10000;
-constexpr int   DownsamplingTargetSizeReg       =  1000;
-                                        // Results start looking good past 5'000, and improve up to 15'000 - let's settle to 10'000, which is already quite long to compute
-constexpr int   DownsamplingTargetSizeZScore    = 10000;
+   // A few processings can work faster, without any loss, by using some downsampling technique:
+   constexpr int DownsamplingTargetSizeGfp = 10000;
+   constexpr int DownsamplingTargetSizeReg = 1000;
+   // Results start looking good past 5'000, and improve up to 15'000 - let's settle to 10'000, which is already quite long to compute
+   constexpr int DownsamplingTargetSizeZScore = 10000;
 
-                                        // Centralizing the inverse solution-to-infix string generation, so as to be consistent across code
-char*       GetInverseInfix (   const TInverseMatrixDoc*    ISDoc,  RegularizationType  regularization, AtomType            datatype,
-                                char*                       infix 
-                            );
+   // Centralizing the inverse solution-to-infix string generation, so as to be consistent across code
+   char *GetInverseInfix(const TInverseMatrixDoc *ISDoc, RegularizationType regularization, AtomType datatype,
+                         char *infix);
 
+   //----------------------------------------------------------------------------
+   // Converts a group of files to another one (on disk)
+   // according to a bunch of parameters relevant for segmentation/fitting
+   enum DualDataType;
+   enum SpatialFilterType;
+   enum BackgroundNormalization;
+   enum ZScoreType;
+   enum FilterTypes;
+   enum EpochsType;
+   enum GfpPeaksDetectType;
+   enum SkippingEpochsType;
+   class TGoF;
+   class TGoGoF;
+   class TRois;
+   class TStrings;
+   class TSuperGauge;
 
-//----------------------------------------------------------------------------
-                                        // Converts a group of files to another one (on disk)
-                                        // according to a bunch of parameters relevant for segmentation/fitting
-enum        DualDataType;
-enum        SpatialFilterType;
-enum        BackgroundNormalization;
-enum        ZScoreType;
-enum        FilterTypes;
-enum        EpochsType;
-enum        GfpPeaksDetectType;
-enum        SkippingEpochsType;
-class       TGoF;
-class       TGoGoF;
-class       TRois;
-class       TStrings;
-class       TSuperGauge;
+   void PreProcessFiles(const TGoF &gofin, AtomType datatypeout,
+                        DualDataType dualdata, const TGoF *dualgofin,
+                        SpatialFilterType spatialfilter, const char *xyzfile,
+                        bool computeesi, TInverseMatrixDoc *ISDoc, RegularizationType regularization, RegularizationType *usedregularization,
+                        bool mergecomplex,
+                        bool gfpnormalize,
+                        BackgroundNormalization backnorm, ZScoreType zscoremethod, const char *zscorefile,
+                        bool ranking,
+                        bool thresholding, double threshold,
+                        FilterTypes envelope, double envelopeduration,
+                        const TRois *rois, FilterTypes roimethod,
+                        EpochsType epochs, const TStrings *epochfrom, const TStrings *epochto,
+                        GfpPeaksDetectType gfppeaks, const char *listgfppeaks,
+                        SkippingEpochsType badepochs, const char *listbadepochs, double badepochstolerance,
+                        const char *baselist, const char *fileprefix,
+                        int clipfromname, int cliptoname,
+                        bool createtempdir, char *temppath,
+                        bool savemainfiles, TGoGoF &gogofout, TGoGoF *dualgogofout, TGoF &outbaselist, bool &newfiles,
+                        bool savezscore, TGoF *zscoregof,
+                        TSuperGauge *gauge = 0);
 
+   // Centralizing corresponding progress bar's number of steps
+   int PreProcessFilesGaugeSize(int numconditions);
 
-void        PreProcessFiles (   const TGoF&             gofin,              AtomType                datatypeout,
-                                DualDataType            dualdata,           const TGoF*             dualgofin,
-                                SpatialFilterType       spatialfilter,      const char*             xyzfile,
-                                bool                    computeesi,         TInverseMatrixDoc*      ISDoc,          RegularizationType  regularization,     RegularizationType* usedregularization,
-                                bool                    mergecomplex,
-                                bool                    gfpnormalize,
-                                BackgroundNormalization backnorm,           ZScoreType              zscoremethod,   const char*         zscorefile,
-                                bool                    ranking,
-                                bool                    thresholding,       double                  threshold,
-                                FilterTypes             envelope,           double                  envelopeduration,
-                                const TRois*            rois,               FilterTypes             roimethod,
-                                EpochsType              epochs,             const TStrings*         epochfrom,      const TStrings*     epochto,
-                                GfpPeaksDetectType      gfppeaks,           const char*             listgfppeaks,
-                                SkippingEpochsType      badepochs,          const char*             listbadepochs,  double              badepochstolerance,
-                                const char*             baselist,           const char*             fileprefix,
-                                int                     clipfromname,       int                     cliptoname,
-                                bool                    createtempdir,      char*                   temppath,
-                                bool                    savemainfiles,      TGoGoF&                 gogofout,       TGoGoF*             dualgogofout,       TGoF&               outbaselist,    bool&       newfiles,
-                                bool                    savezscore,         TGoF*                   zscoregof,
-                                TSuperGauge*            gauge = 0 
-                            );
-
-
-                                        // Centralizing corresponding progress bar's number of steps
-int         PreProcessFilesGaugeSize    ( int numconditions );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

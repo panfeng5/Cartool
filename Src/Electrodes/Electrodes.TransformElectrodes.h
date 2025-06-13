@@ -16,37 +16,35 @@ limitations under the License.
 
 #pragma once
 
-#include    "Geometry.TPoint.h"
+#include "Geometry.TPoint.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-enum    CoregistrationType;
-class   TCoregistrationTransform;
-class   TMatrix44;
+   enum CoregistrationType;
+   class TCoregistrationTransform;
+   class TMatrix44;
 
+   bool TransformElectrodes(const char *xyzsourcefile,
+                            const char *mritargetfile, // not actually needed for computation
 
-bool    TransformElectrodes (   const char*             xyzsourcefile,
-                                const char*             mritargetfile,      // not actually needed for computation
+                            const TCoregistrationTransform &transform,
+                            CoregistrationType processing,
 
-                                const TCoregistrationTransform& transform,
-                                CoregistrationType      processing,
+                            const Volume &mask, const Volume &gradient,
+                            const TPointDouble &origin,
+                            const TMatrix44 &mriabstoguillotine,
+                            double inflating,
 
-                                const Volume&           mask,                   const Volume&           gradient,
-                                const TPointDouble&     origin, 
-                                const TMatrix44&        mriabstoguillotine,
-                                double                  inflating,
+                            const char *basefilename,
+                            char *xyztransfile,
+                            char *altxyztransfile, const char *altelectrodes,
+                            TMatrix44 *xyzcoregtonorm);
 
-                                const char*             basefilename,
-                                char*                   xyztransfile,
-                                char*                   altxyztransfile,        const char*             altelectrodes,
-                                TMatrix44*              xyzcoregtonorm
-                            );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

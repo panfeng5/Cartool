@@ -14,892 +14,837 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TRisToVolumeDialog.h"
-#include    "ESI.RisToVolume.h"         // RisToVolume
+#include "TRisToVolumeDialog.h"
+#include "ESI.RisToVolume.h" // RisToVolume
 
-#include    "Strings.Grep.h"
-#include    "Files.Utils.h"
-#include    "Dialogs.Input.h"
-#include    "Dialogs.TSuperGauge.h"
+#include "Strings.Grep.h"
+#include "Files.Utils.h"
+#include "Dialogs.Input.h"
+#include "Dialogs.TSuperGauge.h"
 
-#include    "TTracksDoc.h"
-#include    "TVolumeDoc.h"
-#include    "TSolutionPointsDoc.h"
+#include "TTracksDoc.h"
+#include "TVolumeDoc.h"
+#include "TSolutionPointsDoc.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace owl;
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // declare this global variable
-TRisToVolumeStructEx    RisToVolumeTransfer;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // declare this global variable
+    TRisToVolumeStructEx RisToVolumeTransfer;
 
-
-const char  RisToVolumePresetString[ NumRisToVolumePreset ][ 16 ] =
-            {
+    const char RisToVolumePresetString[NumRisToVolumePreset][16] =
+        {
             "Nifti files",
-//          "Nifti files       / Rescaled values to 255      - for display",
+            //          "Nifti files       / Rescaled values to 255      - for display",
             "Analyze files",
-//          "Analyze files / Rescaled values to 255      - for display",
-            };
+            //          "Analyze files / Rescaled values to 255      - for display",
+    };
 
-
-const char  VolumeInterpolationPresetString[ NumVolumeInterpolationPreset ][ 128 ] =
-            {
+    const char VolumeInterpolationPresetString[NumVolumeInterpolationPreset][128] =
+        {
             "1 Nearest Neighbor    - Constant cubes, no interpolation",
             "4 Nearest Neighbors  - Similar to display, not recommended",
             "Linear                      - A classic",
-//          "Trilinear smooth",
-//          "Fast Quadratic Kernels- Oooh so smooth!",
+            //          "Trilinear smooth",
+            //          "Fast Quadratic Kernels- Oooh so smooth!",
             "Fast Cubic Kernels     - So smooth, NO maxima artifacts",
-            };
+    };
 
-
-const char  VolumeFileTypeString[ NumVolumeFileTypes ][ 64 ] =
-            {
+    const char VolumeFileTypeString[NumVolumeFileTypes][64] =
+        {
             "Nifti 2 (nii),                 n x 3D volumes",
             "Nifti 2 (nii),                 1 x 4D volume",
             "Analyze 7.5 (hdr+img), n x 3D volumes",
             "Analyze 7.5 (hdr+img), 1 x 4D volume",
-            };
+    };
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    TRisToVolumeStruct::TRisToVolumeStruct()
+    {
+        Presets.Clear();
+        for (int i = 0; i < NumRisToVolumePreset; i++)
+            Presets.AddString(RisToVolumePresetString[i], i == RisToVolumePresetDefault);
 
-        TRisToVolumeStruct::TRisToVolumeStruct ()
-{
-Presets.Clear ();
-for ( int i = 0; i < NumRisToVolumePreset; i++ )
-    Presets.AddString ( RisToVolumePresetString[ i ], i == RisToVolumePresetDefault );
+        ClearString(GreyMaskFile);
+        ClearString(SpFile);
 
-ClearString     ( GreyMaskFile );
-ClearString     ( SpFile       );
+        InterpolationPresets.Clear();
+        for (int i = 0; i < NumVolumeInterpolationPreset; i++)
+            InterpolationPresets.AddString(VolumeInterpolationPresetString[i], i == VolumeInterpolationPresetDefault);
 
-InterpolationPresets.Clear ();
-for ( int i = 0; i < NumVolumeInterpolationPreset; i++ )
-    InterpolationPresets.AddString ( VolumeInterpolationPresetString[ i ], i == VolumeInterpolationPresetDefault );
+        TimeAll = BoolToCheck(false);
+        TimeInterval = BoolToCheck(true);
+        StringCopy(TimeMin, "0");
+        StringCopy(TimeMax, "10000");
+        StringCopy(StepTF, "25");
 
-TimeAll             = BoolToCheck ( false );
-TimeInterval        = BoolToCheck ( true  );
-StringCopy      ( TimeMin,  "0" );
-StringCopy      ( TimeMax,  "10000" );
-StringCopy      ( StepTF,   "25" );
+        ClearString(BaseFileName);
+        TypeUnsignedByte = BoolToCheck(false);
+        TypeFloat = BoolToCheck(true);
 
-ClearString     ( BaseFileName );
-TypeUnsignedByte    = BoolToCheck ( false );
-TypeFloat           = BoolToCheck ( true  );
+        FileTypes.Clear();
+        for (int i = 0; i < NumVolumeFileTypes; i++)
+            FileTypes.AddString(VolumeFileTypeString[i], i == VolumeTypeDefault);
 
-FileTypes.Clear ();
-for ( int i = 0; i < NumVolumeFileTypes; i++ )
-    FileTypes.AddString ( VolumeFileTypeString[ i ], i == VolumeTypeDefault );
+        OpenAuto = BoolToCheck(true);
+    }
 
-OpenAuto            = BoolToCheck ( true  );
-}
+    TRisToVolumeStructEx::TRisToVolumeStructEx()
+    {
+        // Storing all checks across all dimensions
+        CompatRis.Reset();
+        CompatSp.Reset();
 
+        IsSpOK =
+            IsGreyMaskOK =
+                IsSpAndGreyMaskOK =
+                    IsRisOK =
+                        IsRisAndSpOK = false;
+    }
 
-        TRisToVolumeStructEx::TRisToVolumeStructEx ()
-{
-                                        // Storing all checks across all dimensions
-CompatRis       .Reset ();
-CompatSp        .Reset ();
-
-IsSpOK                  =
-IsGreyMaskOK            =
-IsSpAndGreyMaskOK       =
-IsRisOK                 =
-IsRisAndSpOK            = false;
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-DEFINE_RESPONSE_TABLE1 ( TRisToVolumeDialog, TBaseDialog )
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    DEFINE_RESPONSE_TABLE1(TRisToVolumeDialog, TBaseDialog)
 
     EV_WM_DROPFILES,
 
-    EV_COMMAND                  ( IDC_BROWSESPFILE,             CmBrowseSpFile ),
-    EV_COMMAND                  ( IDC_BROWSEGREYMASKFILE,       CmBrowseGreyMaskFile ),
+        EV_COMMAND(IDC_BROWSESPFILE, CmBrowseSpFile),
+        EV_COMMAND(IDC_BROWSEGREYMASKFILE, CmBrowseGreyMaskFile),
 
-    EV_CBN_SELCHANGE            ( IDC_RISTOVOLPRESETS,          EvPresetsChange ),
+        EV_CBN_SELCHANGE(IDC_RISTOVOLPRESETS, EvPresetsChange),
 
-    EV_COMMAND_ENABLE           ( IDC_TIMEMIN,                  CmTimeIntervalEnable ),
-    EV_COMMAND_ENABLE           ( IDC_TIMEMAX,                  CmTimeIntervalEnable ),
-    EV_COMMAND_ENABLE           ( IDC_STEPTF,                   CmTimeIntervalEnable ),
+        EV_COMMAND_ENABLE(IDC_TIMEMIN, CmTimeIntervalEnable),
+        EV_COMMAND_ENABLE(IDC_TIMEMAX, CmTimeIntervalEnable),
+        EV_COMMAND_ENABLE(IDC_STEPTF, CmTimeIntervalEnable),
 
-    EV_COMMAND_ENABLE           ( IDC_PROCESSCURRENT,           CmProcessCurrentEnable ),
-    EV_COMMAND_ENABLE           ( IDC_PROCESSBATCH,             CmProcessBatchEnable ),
+        EV_COMMAND_ENABLE(IDC_PROCESSCURRENT, CmProcessCurrentEnable),
+        EV_COMMAND_ENABLE(IDC_PROCESSBATCH, CmProcessBatchEnable),
 
-END_RESPONSE_TABLE;
+        END_RESPONSE_TABLE;
 
+    TRisToVolumeDialog::TRisToVolumeDialog(TWindow *parent, TResId resId, TTracksDoc *doc)
+        : TBaseDialog(parent, resId, doc)
+    {
+        StringCopy(BatchFilesExt, AllRisFilesExt);
 
+        Presets = new TComboBox(this, IDC_RISTOVOLPRESETS);
 
-        TRisToVolumeDialog::TRisToVolumeDialog ( TWindow* parent, TResId resId, TTracksDoc* doc )
-      : TBaseDialog ( parent, resId, doc )
-{
-StringCopy ( BatchFilesExt, AllRisFilesExt );
+        GreyMaskFile = new TEdit(this, IDC_GREYMASKFILE, EditSizeText);
+        SpFile = new TEdit(this, IDC_SPFILE, EditSizeText);
+        InterpolationPresets = new TComboBox(this, IDC_INTERPOLATIONPRESETS);
 
+        TimeAll = new TRadioButton(this, IDC_TIMEALL);
+        TimeInterval = new TRadioButton(this, IDC_TIMEINTERVAL);
+        TimeMin = new TEdit(this, IDC_TIMEMIN, EditSizeValue);
+        TimeMax = new TEdit(this, IDC_TIMEMAX, EditSizeValue);
+        StepTF = new TEdit(this, IDC_STEPTF, EditSizeValue);
 
-Presets             = new TComboBox     ( this, IDC_RISTOVOLPRESETS );
+        BaseFileName = new TEdit(this, IDC_BASEFILENAME, EditSizeText);
+        TypeUnsignedByte = new TRadioButton(this, IDC_UNSIGNEDBYTE);
+        TypeFloat = new TRadioButton(this, IDC_FLOAT);
+        FileTypes = new TComboBox(this, IDC_FILETYPES);
+        OpenAuto = new TCheckBox(this, IDC_OPENAUTO);
 
-GreyMaskFile        = new TEdit         ( this, IDC_GREYMASKFILE, EditSizeText );
-SpFile              = new TEdit         ( this, IDC_SPFILE, EditSizeText );
-InterpolationPresets= new TComboBox     ( this, IDC_INTERPOLATIONPRESETS );
+        // are we entering batch?
+        BatchProcessing = doc == 0;
 
-TimeAll             = new TRadioButton  ( this, IDC_TIMEALL );
-TimeInterval        = new TRadioButton  ( this, IDC_TIMEINTERVAL   );
-TimeMin             = new TEdit         ( this, IDC_TIMEMIN, EditSizeValue );
-TimeMax             = new TEdit         ( this, IDC_TIMEMAX, EditSizeValue );
-StepTF              = new TEdit         ( this, IDC_STEPTF, EditSizeValue );
+        SetTransferBuffer(dynamic_cast<TRisToVolumeStruct *>(&RisToVolumeTransfer));
 
-BaseFileName        = new TEdit         ( this, IDC_BASEFILENAME, EditSizeText );
-TypeUnsignedByte    = new TRadioButton  ( this, IDC_UNSIGNEDBYTE   );
-TypeFloat           = new TRadioButton  ( this, IDC_FLOAT   );
-FileTypes           = new TComboBox     ( this, IDC_FILETYPES );
-OpenAuto            = new TCheckBox     ( this, IDC_OPENAUTO );
+        bool oldav = CartoolApplication->AnimateViews;
+        CartoolApplication->AnimateViews = false;
 
-                                        // are we entering batch?
-BatchProcessing = doc == 0;
+        if (RisToVolumeTransfer.IsGreyMaskOK)
+            GreyMaskDoc.Open(RisToVolumeTransfer.GreyMaskFile, DefaultOpeningMode);
+        if (RisToVolumeTransfer.IsSpOK)
+            SPDoc.Open(RisToVolumeTransfer.SpFile, DefaultOpeningMode);
 
+        CartoolApplication->AnimateViews = oldav;
 
-SetTransferBuffer ( dynamic_cast <TRisToVolumeStruct*> ( &RisToVolumeTransfer ) );
-
-
-bool                oldav           = CartoolApplication->AnimateViews;
-CartoolApplication->AnimateViews    = false;
-
-if ( RisToVolumeTransfer.IsGreyMaskOK   )   GreyMaskDoc.Open ( RisToVolumeTransfer.GreyMaskFile, DefaultOpeningMode );
-if ( RisToVolumeTransfer.IsSpOK         )   SPDoc      .Open ( RisToVolumeTransfer.SpFile,       DefaultOpeningMode );
-
-CartoolApplication->AnimateViews    = oldav;
-
-                                        // force setting auto-opening according to interactive or batch mode
-//RisToVolumeTransfer.OpenAuto     = BoolToCheck ( ! BatchProcessing );
-}
-
-
-        TRisToVolumeDialog::~TRisToVolumeDialog ()
-{
-delete  Presets;
-delete  GreyMaskFile;           delete  SpFile;
-delete  InterpolationPresets;
-delete  TimeAll;                delete  TimeInterval;         
-delete  TimeMin;                delete  TimeMax;                delete  StepTF;
-delete  BaseFileName;
-delete  TypeUnsignedByte;       delete  TypeFloat;
-delete  FileTypes;              delete  OpenAuto;
-}
-
-
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::EvPresetsChange ()
-{
-RisToVolumePreset   preset          = (RisToVolumePreset) Presets->GetSelIndex ();
-
-
-//InterpolationPresets->SetSelIndex   ( VolumeInterpolationPresetDefault );
-TypeFloat           ->SetCheck      ( BoolToCheck ( false ) );
-TypeUnsignedByte    ->SetCheck      ( BoolToCheck ( false ) );
-
-
-switch ( preset ) {
-
-    case RisToVolumeNiftiFloat:
-        TypeFloat       ->SetCheck ( BoolToCheck ( true  ) );
-        FileTypes->SetSelIndex ( VolumeNifti24D );
-        break;
-
-//  case RisToVolumeNiftiByte:
-//      TypeUnsignedByte->SetCheck ( BoolToCheck ( true  ) );
-//      FileTypes->SetSelIndex ( VolumeNifti2 );
-//      break;
-
-    case RisToVolumeAnalyzeFloat:
-        TypeFloat       ->SetCheck ( BoolToCheck ( true  ) );
-        FileTypes->SetSelIndex ( VolumeAnalyze4D );
-        break;
-
-//  case RisToVolumeAnalyzeByte:
-//      TypeUnsignedByte->SetCheck ( BoolToCheck ( true  ) );
-//      FileTypes->SetSelIndex ( VolumeAnalyze );
-//      break;
-
+        // force setting auto-opening according to interactive or batch mode
+        // RisToVolumeTransfer.OpenAuto     = BoolToCheck ( ! BatchProcessing );
     }
 
-                                        // update transfer buffer
-TransferData ( tdGetData );
-}
+    TRisToVolumeDialog::~TRisToVolumeDialog()
+    {
+        delete Presets;
+        delete GreyMaskFile;
+        delete SpFile;
+        delete InterpolationPresets;
+        delete TimeAll;
+        delete TimeInterval;
+        delete TimeMin;
+        delete TimeMax;
+        delete StepTF;
+        delete BaseFileName;
+        delete TypeUnsignedByte;
+        delete TypeFloat;
+        delete FileTypes;
+        delete OpenAuto;
+    }
 
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::EvPresetsChange()
+    {
+        RisToVolumePreset preset = (RisToVolumePreset)Presets->GetSelIndex();
 
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::EvDropFiles ( TDropInfo drop )
-{
-TGoF                spfiles         ( drop, AllSolPointsFilesExt    );
-TGoF                mrifiles        ( drop, AllMriFilesExt          );
-TGoF                risfiles        ( drop, AllRisFilesExt          );
-TGoF                remainingfiles  ( drop, AllSolPointsFilesExt " " AllMriFilesExt " " AllRisFilesExt, 0, true );
+        // InterpolationPresets->SetSelIndex   ( VolumeInterpolationPresetDefault );
+        TypeFloat->SetCheck(BoolToCheck(false));
+        TypeUnsignedByte->SetCheck(BoolToCheck(false));
 
-drop.DragFinish ();
+        switch (preset)
+        {
 
+        case RisToVolumeNiftiFloat:
+            TypeFloat->SetCheck(BoolToCheck(true));
+            FileTypes->SetSelIndex(VolumeNifti24D);
+            break;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            //  case RisToVolumeNiftiByte:
+            //      TypeUnsignedByte->SetCheck ( BoolToCheck ( true  ) );
+            //      FileTypes->SetSelIndex ( VolumeNifti2 );
+            //      break;
 
-for ( int i = 0; i < (int) mrifiles; i++ )
+        case RisToVolumeAnalyzeFloat:
+            TypeFloat->SetCheck(BoolToCheck(true));
+            FileTypes->SetSelIndex(VolumeAnalyze4D);
+            break;
 
-    SetGreyMaskFile ( mrifiles[ i ] );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-for ( int i = 0; i < (int) spfiles; i++ )
-
-    SetSpFile ( spfiles[ i ] );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if ( (bool) risfiles )
-
-    if ( BatchProcessing ) {
-        
-        CheckRis            ( risfiles );
-
-        CheckRisAndSp       ( risfiles );
-
-        BatchProcessDropped ( risfiles );
+            //  case RisToVolumeAnalyzeByte:
+            //      TypeUnsignedByte->SetCheck ( BoolToCheck ( true  ) );
+            //      FileTypes->SetSelIndex ( VolumeAnalyze );
+            //      break;
         }
-    else                    
-        ShowMessage ( BatchNotAvailMessage, "Export Tracks", ShowMessageWarning );
 
+        // update transfer buffer
+        TransferData(tdGetData);
+    }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Let's be nice and try to load D&D Directories
-                                        // For the moment, retrieving only the .ep files
-for ( int i = 0; i < (int) remainingfiles; i++ ) {
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::EvDropFiles(TDropInfo drop)
+    {
+        TGoF spfiles(drop, AllSolPointsFilesExt);
+        TGoF mrifiles(drop, AllMriFilesExt);
+        TGoF risfiles(drop, AllRisFilesExt);
+        TGoF remainingfiles(drop, AllSolPointsFilesExt " " AllMriFilesExt " " AllRisFilesExt, 0, true);
 
-    if ( ! IsDirectory ( remainingfiles[ i ] ) )
-        continue;
+        drop.DragFinish();
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    TGoF                    subgof;
+        for (int i = 0; i < (int)mrifiles; i++)
 
-    subgof.GrepFiles    ( remainingfiles[ i ], AllRisFilesGrep, GrepOptionDefaultFiles, true );
+            SetGreyMaskFile(mrifiles[i]);
 
-//  subgof.Show ( "found eeg" );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-                                    // process if found some files, otherwise, complain
-    if ( (bool) subgof ) {
+        for (int i = 0; i < (int)spfiles; i++)
 
-        if ( BatchProcessing ) {
-        
-            CheckRis            ( subgof );
+            SetSpFile(spfiles[i]);
 
-            CheckRisAndSp       ( subgof );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-            BatchProcessDropped ( subgof );
+        if ((bool)risfiles)
+
+            if (BatchProcessing)
+            {
+
+                CheckRis(risfiles);
+
+                CheckRisAndSp(risfiles);
+
+                BatchProcessDropped(risfiles);
             }
-        else                    
-            ShowMessage ( BatchNotAvailMessage, "Export Tracks", ShowMessageWarning );
+            else
+                ShowMessage(BatchNotAvailMessage, "Export Tracks", ShowMessageWarning);
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Let's be nice and try to load D&D Directories
+        // For the moment, retrieving only the .ep files
+        for (int i = 0; i < (int)remainingfiles; i++)
+        {
 
-        remainingfiles.RemoveRef ( remainingfiles[ i ] );
-        i--;
+            if (!IsDirectory(remainingfiles[i]))
+                continue;
+
+            TGoF subgof;
+
+            subgof.GrepFiles(remainingfiles[i], AllRisFilesGrep, GrepOptionDefaultFiles, true);
+
+            //  subgof.Show ( "found eeg" );
+
+            // process if found some files, otherwise, complain
+            if ((bool)subgof)
+            {
+
+                if (BatchProcessing)
+                {
+
+                    CheckRis(subgof);
+
+                    CheckRisAndSp(subgof);
+
+                    BatchProcessDropped(subgof);
+                }
+                else
+                    ShowMessage(BatchNotAvailMessage, "Export Tracks", ShowMessageWarning);
+
+                remainingfiles.RemoveRef(remainingfiles[i]);
+                i--;
+            }
+        }
+
+        if ((bool)remainingfiles)
+            remainingfiles.Show(IrrelevantErrorMessage);
+    }
+
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::CmBrowseSpFile()
+    {
+        SetSpFile(0);
+    }
+
+    void TRisToVolumeDialog::SetSpFile(char *file)
+    {
+        static GetFileFromUser getfile("Solution Points File:", AllSolPointsFilesFilter, 1, GetFileRead);
+
+        TransferData(tdGetData);
+
+        if (StringIsEmpty(file))
+        {
+
+            if (!getfile.Execute(RisToVolumeTransfer.SpFile))
+                return;
+
+            TransferData(tdSetData);
+        }
+        else
+        {
+            StringCopy(RisToVolumeTransfer.SpFile, file);
+
+            getfile.SetOnly(file);
+        }
+
+        TransferData(tdSetData);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        RisToVolumeTransfer.CheckSp();
+
+        RisToVolumeTransfer.CheckSpAndGreyMask();
+
+        if (RisToVolumeTransfer.IsSpOK)
+
+            SPDoc.Open(RisToVolumeTransfer.SpFile, DefaultOpeningMode);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        if (!(RisToVolumeTransfer.IsSpOK && SPDoc.IsOpen()))
+        {
+
+            SPDoc.Close();
+            SpFile->SetText("");
+
+            RisToVolumeTransfer.IsSpOK = false;
+            RisToVolumeTransfer.IsSpAndGreyMaskOK = false;
+            RisToVolumeTransfer.IsRisAndSpOK = false;
+        }
+
+        GreyMaskFile->ResetCaret;
+        SpFile->ResetCaret;
+    }
+
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::CmBrowseGreyMaskFile()
+    {
+        SetGreyMaskFile(0);
+    }
+
+    void TRisToVolumeDialog::SetGreyMaskFile(char *file)
+    {
+        static GetFileFromUser getfile("Grey Mask MRI File:", AllMriFilesFilter, 1, GetFileRead);
+
+        TransferData(tdGetData);
+
+        if (StringIsEmpty(file))
+        {
+
+            if (!getfile.Execute(RisToVolumeTransfer.GreyMaskFile))
+                return;
+
+            TransferData(tdSetData);
+        }
+        else
+        {
+            StringCopy(RisToVolumeTransfer.GreyMaskFile, file);
+
+            getfile.SetOnly(file);
+        }
+
+        TransferData(tdSetData);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        RisToVolumeTransfer.CheckGreyMask();
+
+        RisToVolumeTransfer.CheckSpAndGreyMask();
+
+        if (RisToVolumeTransfer.IsGreyMaskOK)
+
+            GreyMaskDoc.Open(RisToVolumeTransfer.GreyMaskFile, DefaultOpeningMode);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        if (!(RisToVolumeTransfer.IsGreyMaskOK && GreyMaskDoc.IsOpen()))
+        {
+
+            GreyMaskDoc.Close();
+            GreyMaskFile->SetText("");
+
+            RisToVolumeTransfer.IsGreyMaskOK = false;
+            RisToVolumeTransfer.IsSpAndGreyMaskOK = false;
+        }
+
+        GreyMaskFile->ResetCaret;
+        SpFile->ResetCaret;
+    }
+
+    //----------------------------------------------------------------------------
+    // Testing EEG / Freqs across themselves - A lot of testing ahead
+    void TRisToVolumeDialog::CheckRis(const TGoF &gofris) const
+    {
+
+        RisToVolumeTransfer.IsRisOK = false;
+
+        RisToVolumeTransfer.CompatRis.Reset();
+
+        if (gofris.IsEmpty())
+            return;
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Check first the last group's own coherence, as tracks files
+        gofris.AllTracksAreCompatible(RisToVolumeTransfer.CompatRis);
+
+        if (RisToVolumeTransfer.CompatRis.NumTracks == CompatibilityNotConsistent)
+        {
+            ShowMessage("Files don't seem to have the same number of tracks!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
+        else if (RisToVolumeTransfer.CompatRis.NumTracks == CompatibilityIrrelevant)
+        {
+            ShowMessage("Files don't seem to have any tracks at all!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
+
+        // this test is quite weak, as ReadFromHeader does a lousy job at retrieving the aux tracks (it needs the strings, so opening the whole file)
+        if (RisToVolumeTransfer.CompatRis.NumAuxTracks > 0)
+        {
+            ShowMessage("It is not allowed to have RIS tracks with auxiliary tracks!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
+
+        // if      ( RisToVolumeTransfer.CompatRis.SamplingFrequency == CompatibilityNotConsistent ) {
+        ////  ShowMessage ( "Files don't seem to have the same sampling frequencies!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
+        //    if ( ! GetAnswerFromUser ( "Files don't seem to have the same sampling frequencies!\nDo you want to proceed anyway (not recommended)?", RisToVolumeTitle ) ) {
+        //        return;
+        //        }
+        //    }
+
+        if (RisToVolumeTransfer.CompatRis.NumTF == CompatibilityIrrelevant)
+        {
+            ShowMessage("Files don't seem to have any samples or time at all!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
+        // else if ( RisToVolumeTransfer.CompatRis.NumTF == CompatibilityNotConsistent ) {
+        //                                     // we need all files from a group to have the same length!
+        ////  ShowMessage ( "Files don't seem to have the same number of samples/time range!\nProcessing will proceed anyway...", RisToVolumeTitle, ShowMessageWarning );
+        //    ShowMessage ( "Files don't seem to have the same number of samples/time range!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
+        //    return;
+        //    }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Group is coherent regarding file types? (doing this first, maybe?)
+        TracksGroupClass tg;
+
+        if (gofris.AnyTracksGroup(tg))
+        {
+
+            if (tg.noneofthese)
+            {
+                ShowMessage("Oops, files don't really look like tracks,\nare you trying to fool me?!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning);
+                return;
+            }
+            else if (!tg.allris)
+            {
+                ShowMessage("Files don't seem to be consistently of the RIS type!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning);
+                return;
+            }
+        }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // We did it!
+        RisToVolumeTransfer.IsRisOK = true;
+    }
+
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::CheckRisAndSp(TGoF &gofris) const
+    {
+        if (!RisToVolumeTransfer.IsRisOK)
+        {
+
+            gofris.Reset();
+
+            return;
+        }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        RisToVolumeTransfer.CheckRisAndSp();
+
+        // in case user dropped EEG files which are incompatible, clear-up matrix?
+        if (RisToVolumeTransfer.IsRisOK && !RisToVolumeTransfer.IsRisAndSpOK)
+        {
+
+            RisToVolumeTransfer.IsRisAndSpOK = false;
+
+            gofris.Reset();
         }
     }
 
+    //----------------------------------------------------------------------------
+    // Testing SP file(s) by itself/themselves
+    void TRisToVolumeStructEx::CheckSp()
+    {
+        CompatSp.Reset();
+        IsSpOK = false;
 
-if ( (bool) remainingfiles )
-    remainingfiles.Show ( IrrelevantErrorMessage );
-}
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Make a local copy of the file name, and preemptively clearing up the dialog's one
+        TFileName spfile;
 
+        StringCopy(spfile, SpFile);
 
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::CmBrowseSpFile ()
-{
-SetSpFile ( 0 );
-}
+        if (StringIsEmpty(spfile))
+            return;
 
+        ClearString(SpFile);
 
-void    TRisToVolumeDialog::SetSpFile ( char *file )
-{
-static GetFileFromUser  getfile ( "Solution Points File:", AllSolPointsFilesFilter, 1, GetFileRead );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // getting number of tracks is also possible with xyz file
+        TGoF spgof;
 
-TransferData ( tdGetData );
+        spgof.Add(spfile);
 
-
-if ( StringIsEmpty ( file ) ) {
-
-    if ( ! getfile.Execute ( RisToVolumeTransfer.SpFile ) )
-        return;
-
-    TransferData ( tdSetData );
-    }
-else {
-    StringCopy ( RisToVolumeTransfer.SpFile, file );
-
-    getfile.SetOnly ( file );
-    }
-
-
-TransferData ( tdSetData );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-RisToVolumeTransfer.CheckSp             ();
-
-RisToVolumeTransfer.CheckSpAndGreyMask  ();
-
-
-if ( RisToVolumeTransfer.IsSpOK )
-
-    SPDoc.Open ( RisToVolumeTransfer.SpFile, DefaultOpeningMode );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if ( ! ( RisToVolumeTransfer.IsSpOK && SPDoc.IsOpen () ) ) {
-
-    SPDoc.Close ();
-    SpFile->SetText ( "" );
-
-    RisToVolumeTransfer.IsSpOK              = false;
-    RisToVolumeTransfer.IsSpAndGreyMaskOK   = false;
-    RisToVolumeTransfer.IsRisAndSpOK        = false;
-    }
-
-
-GreyMaskFile->ResetCaret;
-SpFile      ->ResetCaret;
-}
-
-
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::CmBrowseGreyMaskFile ()
-{
-SetGreyMaskFile ( 0 );
-}
-
-
-void    TRisToVolumeDialog::SetGreyMaskFile ( char *file )
-{
-static GetFileFromUser  getfile ( "Grey Mask MRI File:", AllMriFilesFilter, 1, GetFileRead );
-
-TransferData ( tdGetData );
-
-
-if ( StringIsEmpty ( file ) ) {
-
-    if ( ! getfile.Execute ( RisToVolumeTransfer.GreyMaskFile ) )
-        return;
-
-    TransferData ( tdSetData );
-    }
-else {
-    StringCopy ( RisToVolumeTransfer.GreyMaskFile, file );
-
-    getfile.SetOnly ( file );
-    }
-
-
-TransferData ( tdSetData );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-RisToVolumeTransfer.CheckGreyMask       ();
-
-RisToVolumeTransfer.CheckSpAndGreyMask  ();
-
-
-if ( RisToVolumeTransfer.IsGreyMaskOK )
-
-    GreyMaskDoc.Open ( RisToVolumeTransfer.GreyMaskFile, DefaultOpeningMode );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if ( ! ( RisToVolumeTransfer.IsGreyMaskOK && GreyMaskDoc.IsOpen () ) ) {
-
-    GreyMaskDoc.Close ();
-    GreyMaskFile->SetText ( "" );
-
-    RisToVolumeTransfer.IsGreyMaskOK        = false;
-    RisToVolumeTransfer.IsSpAndGreyMaskOK   = false;
-    }
-
-
-GreyMaskFile->ResetCaret;
-SpFile      ->ResetCaret;
-}
-
-
-//----------------------------------------------------------------------------
-                                        // Testing EEG / Freqs across themselves - A lot of testing ahead
-void    TRisToVolumeDialog::CheckRis ( const TGoF& gofris )    const
-{
-
-RisToVolumeTransfer.IsRisOK         = false;
-
-RisToVolumeTransfer.CompatRis.Reset ();
-
-if ( gofris.IsEmpty () )
-    return;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Check first the last group's own coherence, as tracks files
-gofris.AllTracksAreCompatible ( RisToVolumeTransfer.CompatRis );
-
-
-if      ( RisToVolumeTransfer.CompatRis.NumTracks == CompatibilityNotConsistent ) {
-    ShowMessage ( "Files don't seem to have the same number of tracks!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-else if ( RisToVolumeTransfer.CompatRis.NumTracks == CompatibilityIrrelevant ) {
-    ShowMessage ( "Files don't seem to have any tracks at all!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-                                        // this test is quite weak, as ReadFromHeader does a lousy job at retrieving the aux tracks (it needs the strings, so opening the whole file)
-if      ( RisToVolumeTransfer.CompatRis.NumAuxTracks > 0 ) {
-    ShowMessage ( "It is not allowed to have RIS tracks with auxiliary tracks!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-
-//if      ( RisToVolumeTransfer.CompatRis.SamplingFrequency == CompatibilityNotConsistent ) {
-////  ShowMessage ( "Files don't seem to have the same sampling frequencies!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
-//    if ( ! GetAnswerFromUser ( "Files don't seem to have the same sampling frequencies!\nDo you want to proceed anyway (not recommended)?", RisToVolumeTitle ) ) {
-//        return;
-//        }
-//    }
-
-
-if      ( RisToVolumeTransfer.CompatRis.NumTF == CompatibilityIrrelevant ) {
-    ShowMessage ( "Files don't seem to have any samples or time at all!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-//else if ( RisToVolumeTransfer.CompatRis.NumTF == CompatibilityNotConsistent ) {
-//                                    // we need all files from a group to have the same length!
-////  ShowMessage ( "Files don't seem to have the same number of samples/time range!\nProcessing will proceed anyway...", RisToVolumeTitle, ShowMessageWarning );
-//    ShowMessage ( "Files don't seem to have the same number of samples/time range!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );
-//    return;
-//    }
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Group is coherent regarding file types? (doing this first, maybe?)
-TracksGroupClass        tg;
-
-if ( gofris.AnyTracksGroup ( tg ) ) {
-
-    if      (   tg.noneofthese  ) { ShowMessage ( "Oops, files don't really look like tracks,\nare you trying to fool me?!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );   return; }
-    else if ( ! tg.allris       ) { ShowMessage ( "Files don't seem to be consistently of the RIS type!\nCheck again your input files...", RisToVolumeTitle, ShowMessageWarning );                      return; }
-    }
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // We did it!
-RisToVolumeTransfer.IsRisOK             = true;
-
-}
-
-
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::CheckRisAndSp ( TGoF& gofris ) const
-{
-if ( ! RisToVolumeTransfer.IsRisOK  ) {
-
-    gofris.Reset ();
-
-    return;
-    }
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-RisToVolumeTransfer.CheckRisAndSp  ();
-
-
-                                        // in case user dropped EEG files which are incompatible, clear-up matrix?
-if ( RisToVolumeTransfer.IsRisOK && ! RisToVolumeTransfer.IsRisAndSpOK ) {
-
-    RisToVolumeTransfer.IsRisAndSpOK    = false;
-
-    gofris.Reset ();
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-                                        // Testing SP file(s) by itself/themselves
-void    TRisToVolumeStructEx::CheckSp ()
-{
-CompatSp.Reset ();
-IsSpOK              = false;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Make a local copy of the file name, and preemptively clearing up the dialog's one
-TFileName           spfile;
-
-StringCopy  ( spfile, SpFile );
-
-if ( StringIsEmpty ( spfile ) )
-    return;
-
-ClearString ( SpFile );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // getting number of tracks is also possible with xyz file
-TGoF                spgof;
-
-spgof.Add ( spfile );
-
-
-if ( ! spgof.AllExtensionsAre ( AllSolPointsFilesExt ) ) {
-    ShowMessage ( "Please provide some legal Solution Points data!", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-
-spgof.AllInverseAreCompatible ( CompatSp );
-
-
-if      ( CompatSp.NumSolPoints == CompatibilityNotConsistent ) {
-    ShowMessage ( "Solution Points don't seem to have the same number of electrodes!", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-else if ( CompatSp.NumSolPoints == CompatibilityIrrelevant ) {
-    ShowMessage ( "Solution Points don't seem to have any coordinates at all!", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Here solution points are OK by themselves
-IsSpOK              = true;
-                                        // restore file name, now it that it has been checked
-StringCopy  (  SpFile, spfile );
-}
-
-
-//----------------------------------------------------------------------------
-                                        // Testing Grey Mask file(s) by itself/themselves
-void    TRisToVolumeStructEx::CheckGreyMask ()
-{
-IsGreyMaskOK        = false;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Make a local copy of the file name, and preemptively clearing up the dialog's one
-TFileName           greymaskfile;
-
-StringCopy  ( greymaskfile, GreyMaskFile );
-
-if ( StringIsEmpty ( greymaskfile ) )
-    return;
-
-ClearString ( SpFile );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // 
-TGoF                gof;
-
-gof.Add ( greymaskfile );
-
-
-if ( ! gof.AllExtensionsAre ( AllMriFilesExt ) ) {
-    ShowMessage ( "Please provide some legal MRI data!", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-
-TOpenDoc< TVolumeDoc >      mridoc ( greymaskfile, OpenDocHidden /*OpenDocVisible*/ );
-
-
-if ( ! mridoc.IsOpen () ) {
-    ShowMessage ( "Can not open this MRI!", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-
-if ( ! mridoc->IsMask () ) {
-    ShowMessage ( "Are you sure you really provided a Grey Mask?\nDialog will resume, but check your input again...", RisToVolumeTitle, ShowMessageWarning );
-//    return;
-    }
-
-
-//mridoc.Close ( CloseDocLetOpen );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Here grey masks are OK by themselves
-IsGreyMaskOK        = true;
-                                        // restore file name, now it that it has been checked
-StringCopy  ( GreyMaskFile, greymaskfile );
-}
-
-
-//----------------------------------------------------------------------------
-                                        // Testing the joint between SP and Grey Mask
-void    TRisToVolumeStructEx::CheckSpAndGreyMask ()
-{
-
-IsSpAndGreyMaskOK   = false;
-
-
-if ( ! ( IsSpOK && IsGreyMaskOK ) )
-    return;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-// Here could somehow check the strict / reasonable inclusion of the SPs into the Grey Mask
-
-
-IsSpAndGreyMaskOK   = true;
-}
-
-
-//----------------------------------------------------------------------------
-                                        // Testing the joint between RIS and SP
-void    TRisToVolumeStructEx::CheckRisAndSp ()
-{
-
-IsRisAndSpOK        = false;
-
-
-if ( ! ( IsRisOK && IsSpOK ) )
-    return;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if ( CompatRis.NumSolPoints != CompatSp.NumSolPoints ) {
-    ShowMessage ( "RIS file(s) doesn't seem to have the same number of Solution Points as the Solution Points file!", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-
-
-IsRisAndSpOK        = true;
-}
-
-
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::CmTimeIntervalEnable ( TCommandEnabler &tce )
-{
-TransferData ( tdGetData );
-
-tce.Enable ( CheckToBool ( RisToVolumeTransfer.TimeInterval ) );
-}
-
-
-//----------------------------------------------------------------------------
-bool    TRisToVolumeDialog::CmProcessEnable ()
-{
-TransferData ( tdGetData );
-
-
-if ( ! ( SPDoc.IsOpen () && GreyMaskDoc.IsOpen () ) )
-
-    return  false;
-
-
-int                 timemin         = StringToInteger ( RisToVolumeTransfer.TimeMin );
-int                 timemax         = StringToInteger ( RisToVolumeTransfer.TimeMax );
-int                 steptf          = StringToInteger ( RisToVolumeTransfer.StepTF  );
-
-if ( CheckToBool ( RisToVolumeTransfer.TimeInterval )
-  && ! ( IsInsideLimits ( timemin, timemax, (int) 0, (int) INT_MAX )
-      && steptf  >= 1 ) )
-
-    return  false;
-
-
-return  true;
-}
-
-
-void    TRisToVolumeDialog::CmProcessCurrentEnable ( TCommandEnabler &tce )
-{
-TransferData ( tdGetData );
-
-if ( BatchProcessing ) {
-    tce.Enable ( false );
-    return;
-    }
-
-tce.Enable ( CmProcessEnable () );
-}
-
-
-void    TRisToVolumeDialog::CmProcessBatchEnable ( TCommandEnabler &tce )
-{
-TransferData ( tdGetData );
-
-if ( ! BatchProcessing ) {
-    tce.Enable ( false );
-    return;
-    }
-
-tce.Enable ( CmProcessEnable () );
-}
-
-
-//----------------------------------------------------------------------------
-void    TRisToVolumeDialog::ProcessCurrent ( void* /*usetransfer*/, const char* /*moreinfix*/ )
-{
-if ( ! ( EEGDoc && SPDoc.IsOpen () && GreyMaskDoc.IsOpen () ) )
-    return;
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-if ( IsBatchFirstCall () && (int) BatchFileNames > 10 )
-                                        // batch can be long, hide Cartool until we are done
-    WindowMinimize ( CartoolMainWindow );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Volume parameters
-RisToVolumeInterpolationType    interpol    = (RisToVolumeInterpolationType) RisToVolumeTransfer.InterpolationPresets.GetSelIndex ();
-
-                                        // Some volume interpolation needs the SP interpolation
-SPInterpolationType             spinterpol  = interpol == VolumeInterpolation1NN        ?   SPInterpolation1NN
-                                            : interpol == VolumeInterpolation4NN        ?   SPInterpolation4NN
-                                            :                                               SPInterpolationNone;
-
-                                        // Initialize the requested SP interpolation
-if ( ! SPDoc->BuildInterpolation ( spinterpol, GreyMaskDoc ) ) {
-
-    ShowMessage ( "Error while trying to compute the Solution Points Interpolation", RisToVolumeTitle, ShowMessageWarning );
-    return;
-    }
-    
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Time parameters
-bool                timeall         = CheckToBool ( RisToVolumeTransfer.TimeAll );
-
-int                 timemin         = StringToInteger ( RisToVolumeTransfer.TimeMin );
-int                 timemax         = StringToInteger ( RisToVolumeTransfer.TimeMax );
-int                 lasttimeframes  = EEGDoc->GetNumTimeFrames () - 1;
-int                 steptf          = AtLeast ( 1, StringToInteger ( RisToVolumeTransfer.StepTF ) );
-
-                                        // make sure the given limits are within current time range
-Clipped ( timemin, timemax, 0, lasttimeframes );
-
-                                        // extract an appropriate interval from user wishes
-int                 fromtf          = timeall   ?   0               : timemin;
-int                 totf            = timeall   ?   lasttimeframes  : timemax;
-                    steptf          = timeall   ?   1               : steptf;
-
-                                        // at least writing 1 data point; also rounding the number of saved data points up
-int                 numsavedblocks  = AtLeast ( 1, RoundAbove ( ( totf - fromtf + 1 ) / (double) steptf ) );
-
-                                        // update the upper bound, using multiples of steptf
-                    totf            = fromtf + numsavedblocks * steptf - 1;
-
-
-if ( totf > lasttimeframes ) {
-                                        // new upper bound does not fit in data range
-    if ( numsavedblocks > 1 ) {
-                                        // just decrease the number of blocks by 1
-        numsavedblocks--;
-        totf       -= steptf;
+        if (!spgof.AllExtensionsAre(AllSolPointsFilesExt))
+        {
+            ShowMessage("Please provide some legal Solution Points data!", RisToVolumeTitle, ShowMessageWarning);
+            return;
         }
-    else { // numsavedblocks == 1
-                                        // nope, can not go any lower, so we adjust the limits instead
-        totf        = lasttimeframes;   // >= fromtf
-        steptf      = totf - fromtf + 1;// >= 1
+
+        spgof.AllInverseAreCompatible(CompatSp);
+
+        if (CompatSp.NumSolPoints == CompatibilityNotConsistent)
+        {
+            ShowMessage("Solution Points don't seem to have the same number of electrodes!", RisToVolumeTitle, ShowMessageWarning);
+            return;
         }
+        else if (CompatSp.NumSolPoints == CompatibilityIrrelevant)
+        {
+            ShowMessage("Solution Points don't seem to have any coordinates at all!", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Here solution points are OK by themselves
+        IsSpOK = true;
+        // restore file name, now it that it has been checked
+        StringCopy(SpFile, spfile);
     }
 
+    //----------------------------------------------------------------------------
+    // Testing Grey Mask file(s) by itself/themselves
+    void TRisToVolumeStructEx::CheckGreyMask()
+    {
+        IsGreyMaskOK = false;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Make a local copy of the file name, and preemptively clearing up the dialog's one
+        TFileName greymaskfile;
 
-FilterTypes         merging         = steptf > 1 ? FilterTypeMedian : FilterTypeNone;
+        StringCopy(greymaskfile, GreyMaskFile);
 
+        if (StringIsEmpty(greymaskfile))
+            return;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Output parameters
+        ClearString(SpFile);
 
-AtomFormatType      atomformat      = CheckToBool ( RisToVolumeTransfer.TypeUnsignedByte )  ?   AtomFormatByte
-                                    : CheckToBool ( RisToVolumeTransfer.TypeFloat        )  ?   AtomFormatFloat
-                                    :                                                           RisToVolumeDefaultAtomFormat;
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        //
+        TGoF gof;
 
-RisToVolumeFileType filetype        = (RisToVolumeFileType) RisToVolumeTransfer.FileTypes.GetSelIndex ();
+        gof.Add(greymaskfile);
 
+        if (!gof.AllExtensionsAre(AllMriFilesExt))
+        {
+            ShowMessage("Please provide some legal MRI data!", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
 
-bool                openauto        = CheckToBool ( RisToVolumeTransfer.OpenAuto );
+        TOpenDoc<TVolumeDoc> mridoc(greymaskfile, OpenDocHidden /*OpenDocVisible*/);
 
+        if (!mridoc.IsOpen())
+        {
+            ShowMessage("Can not open this MRI!", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        if (!mridoc->IsMask())
+        {
+            ShowMessage("Are you sure you really provided a Grey Mask?\nDialog will resume, but check your input again...", RisToVolumeTitle, ShowMessageWarning);
+            //    return;
+        }
 
-TFileName           fileprefix;
+        // mridoc.Close ( CloseDocLetOpen );
 
-StringCopy      ( fileprefix, RisToVolumeTransfer.BaseFileName );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Here grey masks are OK by themselves
+        IsGreyMaskOK = true;
+        // restore file name, now it that it has been checked
+        StringCopy(GreyMaskFile, greymaskfile);
+    }
 
+    //----------------------------------------------------------------------------
+    // Testing the joint between SP and Grey Mask
+    void TRisToVolumeStructEx::CheckSpAndGreyMask()
+    {
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // silencing in these cases
-bool                silent              = false; // NumBatchFiles () > 1;
+        IsSpAndGreyMaskOK = false;
 
+        if (!(IsSpOK && IsGreyMaskOK))
+            return;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-                                        // Changing priority
-SetProcessPriority ( BatchProcessingPriority );
+        // Here could somehow check the strict / reasonable inclusion of the SPs into the Grey Mask
 
-TGoF                volgof;
+        IsSpAndGreyMaskOK = true;
+    }
 
+    //----------------------------------------------------------------------------
+    // Testing the joint between RIS and SP
+    void TRisToVolumeStructEx::CheckRisAndSp()
+    {
 
-RisToVolume (   EEGDoc->GetDocPath (),
-                SPDoc,              interpol, 
-                GreyMaskDoc, 
-                fromtf,             totf,           steptf,
-                merging,
-                atomformat,             
-                filetype,           fileprefix,
-                volgof,
-                silent
-            );
+        IsRisAndSpOK = false;
 
+        if (!(IsRisOK && IsSpOK))
+            return;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // complimentary opening the file for the user
-if ( openauto && ( ! BatchProcessing || (int) BatchFileNames <= 10 ) )
-    volgof.OpenFiles ();
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        if (CompatRis.NumSolPoints != CompatSp.NumSolPoints)
+        {
+            ShowMessage("RIS file(s) doesn't seem to have the same number of Solution Points as the Solution Points file!", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        IsRisAndSpOK = true;
+    }
 
-SetProcessPriority ();
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::CmTimeIntervalEnable(TCommandEnabler &tce)
+    {
+        TransferData(tdGetData);
 
-UpdateApplication;
+        tce.Enable(CheckToBool(RisToVolumeTransfer.TimeInterval));
+    }
 
+    //----------------------------------------------------------------------------
+    bool TRisToVolumeDialog::CmProcessEnable()
+    {
+        TransferData(tdGetData);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        if (!(SPDoc.IsOpen() && GreyMaskDoc.IsOpen()))
 
-if ( IsBatchLastCall () )
+            return false;
 
-    WindowMaximize ( CartoolMainWindow );
+        int timemin = StringToInteger(RisToVolumeTransfer.TimeMin);
+        int timemax = StringToInteger(RisToVolumeTransfer.TimeMax);
+        int steptf = StringToInteger(RisToVolumeTransfer.StepTF);
 
-}
+        if (CheckToBool(RisToVolumeTransfer.TimeInterval) && !(IsInsideLimits(timemin, timemax, (int)0, (int)INT_MAX) && steptf >= 1))
 
+            return false;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        return true;
+    }
+
+    void TRisToVolumeDialog::CmProcessCurrentEnable(TCommandEnabler &tce)
+    {
+        TransferData(tdGetData);
+
+        if (BatchProcessing)
+        {
+            tce.Enable(false);
+            return;
+        }
+
+        tce.Enable(CmProcessEnable());
+    }
+
+    void TRisToVolumeDialog::CmProcessBatchEnable(TCommandEnabler &tce)
+    {
+        TransferData(tdGetData);
+
+        if (!BatchProcessing)
+        {
+            tce.Enable(false);
+            return;
+        }
+
+        tce.Enable(CmProcessEnable());
+    }
+
+    //----------------------------------------------------------------------------
+    void TRisToVolumeDialog::ProcessCurrent(void * /*usetransfer*/, const char * /*moreinfix*/)
+    {
+        if (!(EEGDoc && SPDoc.IsOpen() && GreyMaskDoc.IsOpen()))
+            return;
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        if (IsBatchFirstCall() && (int)BatchFileNames > 10)
+            // batch can be long, hide Cartool until we are done
+            WindowMinimize(CartoolMainWindow);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Volume parameters
+        RisToVolumeInterpolationType interpol = (RisToVolumeInterpolationType)RisToVolumeTransfer.InterpolationPresets.GetSelIndex();
+
+        // Some volume interpolation needs the SP interpolation
+        SPInterpolationType spinterpol = interpol == VolumeInterpolation1NN   ? SPInterpolation1NN
+                                         : interpol == VolumeInterpolation4NN ? SPInterpolation4NN
+                                                                              : SPInterpolationNone;
+
+        // Initialize the requested SP interpolation
+        if (!SPDoc->BuildInterpolation(spinterpol, GreyMaskDoc))
+        {
+
+            ShowMessage("Error while trying to compute the Solution Points Interpolation", RisToVolumeTitle, ShowMessageWarning);
+            return;
+        }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Time parameters
+        bool timeall = CheckToBool(RisToVolumeTransfer.TimeAll);
+
+        int timemin = StringToInteger(RisToVolumeTransfer.TimeMin);
+        int timemax = StringToInteger(RisToVolumeTransfer.TimeMax);
+        int lasttimeframes = EEGDoc->GetNumTimeFrames() - 1;
+        int steptf = AtLeast(1, StringToInteger(RisToVolumeTransfer.StepTF));
+
+        // make sure the given limits are within current time range
+        Clipped(timemin, timemax, 0, lasttimeframes);
+
+        // extract an appropriate interval from user wishes
+        int fromtf = timeall ? 0 : timemin;
+        int totf = timeall ? lasttimeframes : timemax;
+        steptf = timeall ? 1 : steptf;
+
+        // at least writing 1 data point; also rounding the number of saved data points up
+        int numsavedblocks = AtLeast(1, RoundAbove((totf - fromtf + 1) / (double)steptf));
+
+        // update the upper bound, using multiples of steptf
+        totf = fromtf + numsavedblocks * steptf - 1;
+
+        if (totf > lasttimeframes)
+        {
+            // new upper bound does not fit in data range
+            if (numsavedblocks > 1)
+            {
+                // just decrease the number of blocks by 1
+                numsavedblocks--;
+                totf -= steptf;
+            }
+            else
+            {                               // numsavedblocks == 1
+                                            // nope, can not go any lower, so we adjust the limits instead
+                totf = lasttimeframes;      // >= fromtf
+                steptf = totf - fromtf + 1; // >= 1
+            }
+        }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        FilterTypes merging = steptf > 1 ? FilterTypeMedian : FilterTypeNone;
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Output parameters
+
+        AtomFormatType atomformat = CheckToBool(RisToVolumeTransfer.TypeUnsignedByte) ? AtomFormatByte
+                                    : CheckToBool(RisToVolumeTransfer.TypeFloat)      ? AtomFormatFloat
+                                                                                      : RisToVolumeDefaultAtomFormat;
+
+        RisToVolumeFileType filetype = (RisToVolumeFileType)RisToVolumeTransfer.FileTypes.GetSelIndex();
+
+        bool openauto = CheckToBool(RisToVolumeTransfer.OpenAuto);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        TFileName fileprefix;
+
+        StringCopy(fileprefix, RisToVolumeTransfer.BaseFileName);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // silencing in these cases
+        bool silent = false; // NumBatchFiles () > 1;
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        // Changing priority
+        SetProcessPriority(BatchProcessingPriority);
+
+        TGoF volgof;
+
+        RisToVolume(EEGDoc->GetDocPath(),
+                    SPDoc, interpol,
+                    GreyMaskDoc,
+                    fromtf, totf, steptf,
+                    merging,
+                    atomformat,
+                    filetype, fileprefix,
+                    volgof,
+                    silent);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // complimentary opening the file for the user
+        if (openauto && (!BatchProcessing || (int)BatchFileNames <= 10))
+            volgof.OpenFiles();
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        SetProcessPriority();
+
+        UpdateApplication;
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        if (IsBatchLastCall())
+
+            WindowMaximize(CartoolMainWindow);
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

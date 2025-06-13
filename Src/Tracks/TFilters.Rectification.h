@@ -16,109 +16,98 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-                                        // Non-temporal filter
-//----------------------------------------------------------------------------
-
-enum            FilterRectificationdEnum
-                {
-                FilterRectifyAbs,
-                FilterRectifySquare,
-                };
-
-
-template <class TypeD>
-class   TFilterRectification    : public TFilter<TypeD>
+namespace crtl
 {
-public:
-                    TFilterRectification ();
-                    TFilterRectification ( FilterRectificationdEnum how );
 
+    //----------------------------------------------------------------------------
+    // Non-temporal filter
+    //----------------------------------------------------------------------------
 
-    void            Reset   ();
-    void            Set     ( FilterRectificationdEnum how );
+    enum FilterRectificationdEnum
+    {
+        FilterRectifyAbs,
+        FilterRectifySquare,
+    };
 
-    void            Apply                   ( TypeD* data, int numpts );
+    template <class TypeD>
+    class TFilterRectification : public TFilter<TypeD>
+    {
+    public:
+        TFilterRectification();
+        TFilterRectification(FilterRectificationdEnum how);
 
+        void Reset();
+        void Set(FilterRectificationdEnum how);
 
-                            TFilterRectification    ( const TFilterRectification& op  );
-    TFilterRectification&   operator    =           ( const TFilterRectification& op2 );
+        void Apply(TypeD *data, int numpts);
 
+        TFilterRectification(const TFilterRectification &op);
+        TFilterRectification &operator=(const TFilterRectification &op2);
 
-protected:
+    protected:
+        FilterRectificationdEnum How;
+    };
 
-    FilterRectificationdEnum    How;
+    //----------------------------------------------------------------------------
+    // Implementation
+    //----------------------------------------------------------------------------
 
-};
+    template <class TypeD>
+    TFilterRectification<TypeD>::TFilterRectification()
+        : TFilter<TypeD>()
+    {
+        Reset();
+    }
 
+    template <class TypeD>
+    TFilterRectification<TypeD>::TFilterRectification(FilterRectificationdEnum how)
+    {
+        Set(how);
+    }
 
-//----------------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------------
+    template <class TypeD>
+    void TFilterRectification<TypeD>::Reset()
+    {
+        How = FilterRectifyAbs;
+    }
 
-template <class TypeD>
-        TFilterRectification<TypeD>::TFilterRectification ()
-      : TFilter<TypeD> ()
-{
-Reset ();
-}
+    template <class TypeD>
+    TFilterRectification<TypeD>::TFilterRectification(const TFilterRectification &op)
+    {
+        How = op.How;
+    }
 
+    template <class TypeD>
+    TFilterRectification<TypeD> &TFilterRectification<TypeD>::operator=(const TFilterRectification &op2)
+    {
+        if (&op2 == this)
+            return *this;
 
-template <class TypeD>
-        TFilterRectification<TypeD>::TFilterRectification ( FilterRectificationdEnum how )
-{
-Set ( how );
-}
+        How = op2.How;
 
+        return *this;
+    }
 
-template <class TypeD>
-void    TFilterRectification<TypeD>::Reset ()
-{
-How                 = FilterRectifyAbs;
-}
+    template <class TypeD>
+    void TFilterRectification<TypeD>::Set(FilterRectificationdEnum how)
+    {
+        Reset();
 
+        How = how;
+    }
 
-template <class TypeD>
-            TFilterRectification<TypeD>::TFilterRectification ( const TFilterRectification& op )
-{
-How                 = op.How;
-}
+    template <class TypeD>
+    void TFilterRectification<TypeD>::Apply(TypeD *data, int numpts)
+    {
+        for (int tf = 0; tf < numpts; tf++)
+            // filter action is removal
+            if (How == FilterRectifyAbs)
+                data[tf] = fabs(data[tf]);
+            else /*if( How == FilterRectifySquare    )*/
+                data[tf] = Square(data[tf]);
+    }
 
-
-template <class TypeD>
-TFilterRectification<TypeD>& TFilterRectification<TypeD>::operator= ( const TFilterRectification& op2 )
-{
-if ( &op2 == this )
-    return  *this;
-
-How                 = op2.How;
-
-return  *this;
-}
-
-
-template <class TypeD>
-void    TFilterRectification<TypeD>::Set ( FilterRectificationdEnum how )
-{
-Reset ();
-
-How                 = how;
-}
-
-
-template <class TypeD>
-void    TFilterRectification<TypeD>::Apply ( TypeD* data, int numpts )
-{
-for ( int tf = 0; tf < numpts; tf++ )
-                                        // filter action is removal
-    if      ( How == FilterRectifyAbs       )   data[ tf ]  = fabs   ( data[ tf ] );
-    else/*if( How == FilterRectifySquare    )*/ data[ tf ]  = Square ( data[ tf ] );
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

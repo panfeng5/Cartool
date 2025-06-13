@@ -14,166 +14,150 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    "Electrodes.TransformElectrodes.h"
+#include "Electrodes.TransformElectrodes.h"
 
-#include    "Strings.Utils.h"
-#include    "Strings.TFixedString.h"
-#include    "Geometry.TPoints.h"
-#include    "Math.TMatrix44.h"
-#include    "Files.TVerboseFile.h"
-#include    "TCoregistrationTransform.h"
-#include    "TCoregistrationDialog.h"       // CoregitrationTypeString
+#include "Strings.Utils.h"
+#include "Strings.TFixedString.h"
+#include "Geometry.TPoints.h"
+#include "Math.TMatrix44.h"
+#include "Files.TVerboseFile.h"
+#include "TCoregistrationTransform.h"
+#include "TCoregistrationDialog.h" // CoregitrationTypeString
 
-#include    "TElectrodesDoc.h"
+#include "TElectrodesDoc.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 OptimizeOff
 
-using namespace owl;
+    using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-bool    TransformElectrodes (   const char*             xyzsourcefile,
-                                const char*             mritargetfile,      // not actually needed for computation
-
-                                const TCoregistrationTransform& transform,
-                                CoregistrationType      processing,
-
-                                const Volume&           mask,                   const Volume&           gradient,
-                                const TPointDouble&     origin, 
-                                const TMatrix44&        mriabstoguillotine,
-                                double                  inflating,
-
-                                const char*             basefilename,
-                                char*                   xyztransfile,
-                                char*                   altxyztransfile,        const char*             altelectrodes,
-                                TMatrix44*              xyzcoregtonorm
-                            )
+namespace crtl
 {
-ClearString ( xyztransfile    );
-ClearString ( altxyztransfile );
 
-if ( xyzcoregtonorm != 0 )
-    xyzcoregtonorm->Reset ();
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    bool TransformElectrodes(const char *xyzsourcefile,
+                             const char *mritargetfile, // not actually needed for computation
 
-if ( mask    .IsNotAllocated ()
-  || gradient.IsNotAllocated ()
-  || StringIsEmpty ( xyzsourcefile )
-  || StringIsEmpty ( basefilename  ) )
-    return  false;
+                             const TCoregistrationTransform &transform,
+                             CoregistrationType processing,
 
+                             const Volume &mask, const Volume &gradient,
+                             const TPointDouble &origin,
+                             const TMatrix44 &mriabstoguillotine,
+                             double inflating,
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                             const char *basefilename,
+                             char *xyztransfile,
+                             char *altxyztransfile, const char *altelectrodes,
+                             TMatrix44 *xyzcoregtonorm)
+    {
+        ClearString(xyztransfile);
+        ClearString(altxyztransfile);
 
-TFileName           fileverbose;
+        if (xyzcoregtonorm != 0)
+            xyzcoregtonorm->Reset();
 
-StringCopy          ( fileverbose,      basefilename,       "." FILEEXT_VRB       );
-StringCopy          ( xyztransfile,     basefilename,       "." FILEEXT_XYZ       );
+        if (mask.IsNotAllocated() || gradient.IsNotAllocated() || StringIsEmpty(xyzsourcefile) || StringIsEmpty(basefilename))
+            return false;
 
-CheckNoOverwrite ( fileverbose  );
-CheckNoOverwrite ( xyztransfile );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        TFileName fileverbose;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        StringCopy(fileverbose, basefilename, "." FILEEXT_VRB);
+        StringCopy(xyztransfile, basefilename, "." FILEEXT_XYZ);
 
-TStrings            pointsnames;
-TPoints             points ( xyzsourcefile, &pointsnames );
-                                        // 4x4 transform + optional non-linear gluing operation
-transform.Apply (   points, 
-                    mask,       gradient, 
-                    origin, 
-                    mriabstoguillotine,
-                    inflating
-                );
+        CheckNoOverwrite(fileverbose);
+        CheckNoOverwrite(xyztransfile);
 
-points.WriteFile ( xyztransfile, &pointsnames );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        TStrings pointsnames;
+        TPoints points(xyzsourcefile, &pointsnames);
+        // 4x4 transform + optional non-linear gluing operation
+        transform.Apply(points,
+                        mask, gradient,
+                        origin,
+                        mriabstoguillotine,
+                        inflating);
 
-if ( xyzcoregtonorm != 0 )
-    *xyzcoregtonorm = transform.ComposeTransform ();    // should be the transform needed, given XYZ and MRI are already in normalized space...
+        points.WriteFile(xyztransfile, &pointsnames);
 
+        if (xyzcoregtonorm != 0)
+            *xyzcoregtonorm = transform.ComposeTransform(); // should be the transform needed, given XYZ and MRI are already in normalized space...
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Any optional alternate electrodes set?
-TOpenDoc<TElectrodesDoc>    xyzdoc ( xyztransfile, OpenDocHidden ); // extraction method is currently in TElectrodesDoc
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Any optional alternate electrodes set?
+        TOpenDoc<TElectrodesDoc> xyzdoc(xyztransfile, OpenDocHidden); // extraction method is currently in TElectrodesDoc
 
-TSelection          elsel ( points.GetNumPoints (), OrderArbitrary );
-char                buff[ 4 * KiloByte ];
+        TSelection elsel(points.GetNumPoints(), OrderArbitrary);
+        char buff[4 * KiloByte];
 
-elsel.Set ( altelectrodes, &pointsnames, true );
+        elsel.Set(altelectrodes, &pointsnames, true);
 
-bool                savingaltelectrodes =  xyzdoc.IsOpen ()
-                                        && elsel.NumSet () > 0 
-                                        && elsel.NumSet () < xyzdoc->GetNumElectrodes ()
-                                        && altxyztransfile != 0;
-                                      //&& StringIsNot ( savingaltelectrodes, "*" );
+        bool savingaltelectrodes = xyzdoc.IsOpen() && elsel.NumSet() > 0 && elsel.NumSet() < xyzdoc->GetNumElectrodes() && altxyztransfile != 0;
+        //&& StringIsNot ( savingaltelectrodes, "*" );
 
+        if (savingaltelectrodes)
+        {
 
-if ( savingaltelectrodes ) {
+            StringCopy(altxyztransfile, xyztransfile);
+            PostfixFilename(altxyztransfile, StringCopy(buff, ".", IntegerToString(elsel.NumSet())));
 
-    StringCopy          ( altxyztransfile,       xyztransfile );
-    PostfixFilename     ( altxyztransfile, StringCopy ( buff,  ".", IntegerToString ( elsel.NumSet () ) ) );
+            CheckNoOverwrite(altxyztransfile);
 
-    CheckNoOverwrite    ( altxyztransfile );
+            xyzdoc->ExtractToFile(altxyztransfile, elsel, false);
+        }
 
-    xyzdoc->ExtractToFile ( altxyztransfile, elsel, false );
+        xyzdoc.Close();
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        TVerboseFile Verbose;
+
+        Verbose.Open(fileverbose, VerboseFileDefaultWidth);
+
+        Verbose.PutTitle("Coregistering");
+
+        Verbose.NextTopic("Input Files:");
+        {
+            Verbose.Put("File to be coregistered:", xyzsourcefile);
+            Verbose.Put("File to coregister to:", mritargetfile);
+        }
+
+        Verbose.NextTopic("Output Files:");
+        {
+            Verbose.Put("Verbose file (this):", fileverbose);
+            Verbose.Put("Coregistered file:", xyztransfile);
+
+            if (savingaltelectrodes)
+            {
+
+                Verbose.NextLine();
+                Verbose.Put("Alternate electrodes to save:", elsel.ToText(buff, &pointsnames));
+                Verbose.Put("Alternate coregistered file:", altxyztransfile);
+            }
+        }
+
+        Verbose.NextTopic("Method:");
+        {
+            Verbose.Put("Piloted:", "Manually");
+            Verbose.Put("Type of coregistration:", CoregitrationTypeString[processing]);
+
+            Verbose.NextLine();
+            Verbose.Put("Final gluing:", transform.Gluing);
+        }
+
+        // also outputting the transform parameters? by sub-types of transforms?
+
+        return true;
     }
 
-
-xyzdoc.Close ();
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-TVerboseFile        Verbose;
-
-Verbose.Open        ( fileverbose, VerboseFileDefaultWidth );
-
-Verbose.PutTitle    ( "Coregistering" );
-
-
-Verbose.NextTopic   ( "Input Files:" );
-{
-Verbose.Put         ( "File to be coregistered:", xyzsourcefile );
-Verbose.Put         ( "File to coregister to:",   mritargetfile );
-}
-
-
-Verbose.NextTopic   ( "Output Files:" );
-{
-Verbose.Put         ( "Verbose file (this):", fileverbose );
-Verbose.Put         ( "Coregistered file:", xyztransfile );
-
-if ( savingaltelectrodes ) {
-
-    Verbose.NextLine ();
-    Verbose.Put     ( "Alternate electrodes to save:", elsel.ToText ( buff, &pointsnames ) );
-    Verbose.Put     ( "Alternate coregistered file:", altxyztransfile );
-    }
-}
-
-
-Verbose.NextTopic   ( "Method:" );
-{
-Verbose.Put         ( "Piloted:", "Manually" );
-Verbose.Put         ( "Type of coregistration:", CoregitrationTypeString[ processing ] );
-
-Verbose.NextLine ();
-Verbose.Put         ( "Final gluing:", transform.Gluing );
-}
-
-// also outputting the transform parameters? by sub-types of transforms?
-
-return  true;
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }
 

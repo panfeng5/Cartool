@@ -16,51 +16,45 @@ limitations under the License.
 
 #pragma once
 
-#include    "TTracksDoc.h"
+#include "TTracksDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Used to open .seg or .data documents
-class   TSegDoc : public  TTracksDoc
+namespace crtl
 {
-public:
-                    TSegDoc ( owl::TDocument *parent = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Used to open .seg or .data documents
+    class TSegDoc : public TTracksDoc
+    {
+    public:
+        TSegDoc(owl::TDocument *parent = 0);
 
-    bool            Open            ( int mode, const char *path = 0 )  final;
-    bool            Close           ()                                  final;
-    bool            IsOpen          ()                                  final       { return Tracks.IsAllocated (); }
-    bool            CanClose        ()                                  final;
+        bool Open(int mode, const char *path = 0) final;
+        bool Close() final;
+        bool IsOpen() final { return Tracks.IsAllocated(); }
+        bool CanClose() final;
 
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+        void SetReferenceType(ReferenceType ref, const char *tracks = 0, const TStrings *elnames = 0, bool verbose = true) final { Reference = ReferenceAsInFile; } // always
+        bool CanFilter() const final { return IsExtension(FILEEXT_DATA); }
+        void ReadRawTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0) final;
+        void GetTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0, AtomType atomtype = AtomTypeUseCurrent, PseudoTracksType pseudotracks = NoPseudoTracks, ReferenceType reference = ReferenceAsInFile, const TSelection *referencetracks = 0, const TRois *rois = 0) final;
+        bool HasStandardDeviation() const final { return false; }
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-    void            SetReferenceType( ReferenceType ref, const char* tracks = 0, const TStrings* elnames = 0, bool verbose = true ) final   { Reference = ReferenceAsInFile; }  // always
-    bool            CanFilter       ()      const final     { return IsExtension ( FILEEXT_DATA ); }
-    void            ReadRawTracks   ( long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0 )  final;
-    void            GetTracks       ( long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0, AtomType atomtype = AtomTypeUseCurrent, PseudoTracksType pseudotracks = NoPseudoTracks, ReferenceType reference = ReferenceAsInFile, const TSelection* referencetracks = 0, const TRois *rois = 0 )  final;
-    bool            HasStandardDeviation () const final     { return false; }
+        int GetNumFiles() const { return NumFiles; }
+        int GetNumVars() const { return NumVars; }
+        int GetNumClusters() const { return NumClusters; }
 
+    protected:
+        TTracks<float> Tracks;
+        int NumClusters; // of the segmentation
+        int NumFiles;    // number of times repeating infos
+        int NumVars;     // number of data stores for each file
 
-    int             GetNumFiles     ()      const           { return NumFiles;      }
-    int             GetNumVars      ()      const           { return NumVars;       }
-    int             GetNumClusters  ()      const           { return NumClusters;   }
+        bool SetArrays() final;
+    };
 
-
-protected:
-
-    TTracks<float>  Tracks;
-    int             NumClusters;        // of the segmentation
-    int             NumFiles;           // number of times repeating infos
-    int             NumVars;            // number of data stores for each file
-
-
-    bool            SetArrays       ()  final;
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

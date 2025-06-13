@@ -14,41 +14,41 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
 #if defined(CHECKASSERT)
-#include    <assert.h>
+#include <assert.h>
 #endif
 
-#include    "Dialogs.Input.h"
-#include    "Files.Conversions.h"
+#include "Dialogs.Input.h"
+#include "Files.Conversions.h"
 
-#include    "TCartoolMdiClient.h"
+#include "TCartoolMdiClient.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
-namespace crtl {
-
-OptimizeOff
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-void    TCartoolMdiClient::MergeTracksToFreqFilesUI ()
+namespace crtl
 {
-static GetFileFromUser  getfiles ( "Multiple tracks files to be merged into a single frequency file:", AllErpEegRisFilesFilter "|" AllSdFilesFilter, 1, GetFileMulti );
 
-if ( ! getfiles.Execute () )
-    return;
+    OptimizeOff
 
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        void
+        TCartoolMdiClient::MergeTracksToFreqFilesUI()
+    {
+        static GetFileFromUser getfiles("Multiple tracks files to be merged into a single frequency file:", AllErpEegRisFilesFilter "|" AllSdFilesFilter, 1, GetFileMulti);
 
-MergeTracksToFreqFiles ( (const TGoF&) getfiles );
-}
+        if (!getfiles.Execute())
+            return;
 
+        MergeTracksToFreqFiles((const TGoF &)getfiles);
+    }
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-OptimizeOn
+    OptimizeOn
 
 }

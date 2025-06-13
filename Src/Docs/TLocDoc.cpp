@@ -14,78 +14,75 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TLocDoc.h"
+#include "TLocDoc.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-        TLocDoc::TLocDoc ( TDocument *parent )
-   	  : TSolutionPointsDoc ( parent )
+namespace crtl
 {
-}
 
-
-//----------------------------------------------------------------------------
-bool	TLocDoc::ReadFromHeader ( const char* file, ReadFromHeaderType what, void* answer )
-{
-ifstream            ifs ( TFileName ( file, TFilenameExtendedPath ), ios::binary | ios::in );
-
-if ( ifs.fail() ) return false;
-
-//char                buff[ 128 ];
-
-
-switch ( what ) {
-
-    case ReadNumSolPoints :
-
-        ifs.seekg ( sizeof ( int ), ios::beg );
-        ifs.read  ( (char*) answer, sizeof ( int ) );
-
-        return  true;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    TLocDoc::TLocDoc(TDocument *parent)
+        : TSolutionPointsDoc(parent)
+    {
     }
 
+    //----------------------------------------------------------------------------
+    bool TLocDoc::ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer)
+    {
+        ifstream ifs(TFileName(file, TFilenameExtendedPath), ios::binary | ios::in);
 
-return false;
-}
+        if (ifs.fail())
+            return false;
 
+        // char                buff[ 128 ];
 
-//----------------------------------------------------------------------------
-bool	TLocDoc::Open ( int /*mode*/, const char *path )
-{
-if ( path )
-    SetDocPath ( path );
+        switch (what)
+        {
 
+        case ReadNumSolPoints:
 
-SetDirty ( false );
+            ifs.seekg(sizeof(int), ios::beg);
+            ifs.read((char *)answer, sizeof(int));
 
+            return true;
+        }
 
-if ( GetDocPath () ) {
-
-    HasNames            = false;
-
-    TPoints&        Points          = GetPoints ( DisplaySpace3D );
-
-    Points .ReadFile ( (char *) GetDocPath (), &SPNames );
-    }
-else {                          // can not create a LOC file
-    return false;
+        return false;
     }
 
+    //----------------------------------------------------------------------------
+    bool TLocDoc::Open(int /*mode*/, const char *path)
+    {
+        if (path)
+            SetDocPath(path);
 
-return true;
-}
+        SetDirty(false);
 
+        if (GetDocPath())
+        {
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+            HasNames = false;
+
+            TPoints &Points = GetPoints(DisplaySpace3D);
+
+            Points.ReadFile((char *)GetDocPath(), &SPNames);
+        }
+        else
+        { // can not create a LOC file
+            return false;
+        }
+
+        return true;
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

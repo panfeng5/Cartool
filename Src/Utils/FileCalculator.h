@@ -16,21 +16,20 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-class   TGoGoF;
+   class TGoGoF;
 
-void    FileCalculator  (   const char*     expr,
-                            const TGoGoF&   gogof,
-                            const char*     regularization,
-                            const char*     basedir,    const char*     fileext,    bool            compoundfilenames
-                        );
+   void FileCalculator(const char *expr,
+                       const TGoGoF &gogof,
+                       const char *regularization,
+                       const char *basedir, const char *fileext, bool compoundfilenames);
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

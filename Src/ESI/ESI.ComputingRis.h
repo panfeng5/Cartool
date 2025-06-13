@@ -16,51 +16,48 @@ limitations under the License.
 
 #pragma once
 
-#include    "CartoolTypes.h"            // RegularizationType BackgroundNormalization AtomType ZScoreType CentroidType FilterTypes
+#include "CartoolTypes.h" // RegularizationType BackgroundNormalization AtomType ZScoreType CentroidType FilterTypes
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-enum    ComputingRisPresetsEnum;
-enum    GroupsLayoutEnum;
-enum    SpatialFilterType;
-class   TGoGoF;
-class   TGoF;
+   enum ComputingRisPresetsEnum;
+   enum GroupsLayoutEnum;
+   enum SpatialFilterType;
+   class TGoGoF;
+   class TGoF;
 
+   // constexpr CentroidType  RisCentroidMethod = MedianCentroid;                   // Median gives sharper shapes/contours, counterpart is it basically forces to store all the data, and is more time-consuming to compute
+   constexpr CentroidType RisCentroidMethod = MeanCentroid; // maps can be quite empty after optional thresholding, a Median might be too radical while a Mean will still output something
+   // constexpr CentroidType  RisCentroidMethod = WeightedMeanCentroid;
 
-//constexpr CentroidType  RisCentroidMethod = MedianCentroid;                   // Median gives sharper shapes/contours, counterpart is it basically forces to store all the data, and is more time-consuming to compute
-constexpr CentroidType  RisCentroidMethod   = MeanCentroid;                     // maps can be quite empty after optional thresholding, a Median might be too radical while a Mean will still output something
-//constexpr CentroidType  RisCentroidMethod = WeightedMeanCentroid;
+   constexpr FilterTypes RisRoiMethod = FilterTypeMean; // for the same reason as for centroids: merging clipped data with a Median can produce too much null results
 
-constexpr FilterTypes   RisRoiMethod        = FilterTypeMean;                   // for the same reason as for centroids: merging clipped data with a Median can produce too much null results
+   constexpr FilterTypes RisEnvelopeMethod = FilterTypeEnvelopeGapBridging; // results close to analytic, but can work with positive-only data
 
-constexpr FilterTypes   RisEnvelopeMethod   = FilterTypeEnvelopeGapBridging;    // results close to analytic, but can work with positive-only data
+   bool ComputingRis(ComputingRisPresetsEnum esicase,
+                     const TGoGoF &gogof,
+                     GroupsLayoutEnum grouplayout, int numsubjects, int numconditions,
 
+                     const TGoF &inversefiles, RegularizationType regularization, BackgroundNormalization backnorm,
+                     AtomType datatypeepochs, AtomType datatypefinal,
+                     CentroidType centroidsmethod,
 
-bool    ComputingRis    (   ComputingRisPresetsEnum esicase,
-                            const TGoGoF&       gogof,                  
-                            GroupsLayoutEnum    grouplayout,            int                 numsubjects,        int             numconditions,
-                            
-                            const TGoF&         inversefiles,           RegularizationType  regularization,     BackgroundNormalization     backnorm,
-                            AtomType            datatypeepochs,         AtomType            datatypefinal,
-                            CentroidType        centroidsmethod,
+                     SpatialFilterType spatialfilter, const char *xyzfile,
+                     bool ranking,
+                     bool thresholding, double keepingtopdata,
+                     bool envelope, FilterTypes envelopetype, double envelopelowfreq, double envelopeduration,
+                     bool roiing, const char *roifile, FilterTypes roimethod,
 
-                            SpatialFilterType   spatialfilter,          const char*         xyzfile,
-                            bool                ranking,
-                            bool                thresholding,           double              keepingtopdata,
-                            bool                envelope,               FilterTypes         envelopetype,       double          envelopelowfreq,    double          envelopeduration,
-                            bool                roiing,                 const char*         roifile,            FilterTypes     roimethod,
+                     bool savingindividualfiles, bool savingepochfiles, bool savingzscorefactors,
+                     bool computegroupsaverages, bool computegroupscentroids,
+                     const char *basedir, const char *fileprefix,
+                     VerboseType verbose);
 
-                            bool                savingindividualfiles,  bool                savingepochfiles,   bool            savingzscorefactors,
-                            bool                computegroupsaverages,  bool                computegroupscentroids,
-                            const char*         basedir,                const char*         fileprefix,
-                            VerboseType         verbose
-                        );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

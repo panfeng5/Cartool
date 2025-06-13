@@ -16,69 +16,66 @@ limitations under the License.
 
 #pragma once
 
-#include    "Geometry.TPoint.h"
-#include    "Math.TMatrix44.h"
-#include    "GlobalOptimize.h"          // GOMethod
+#include "Geometry.TPoint.h"
+#include "Math.TMatrix44.h"
+#include "GlobalOptimize.h" // GOMethod
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-enum        RemapIntensityType;
-enum        FitVolumeType;
-class       TVolumeDoc;
-class       TGoF;
-class       CoregistrationSpecsType;
-
-
-void    CoregisterMris      (   const TVolumeDoc*   SourceMri,  RemapIntensityType  fromremap,
-                                const TVolumeDoc*   TargetMri,  RemapIntensityType  toremap,
-                                FitVolumeType       inclusionflags,
-                                const CoregistrationSpecsType& coregtype,
-                                GOMethod            method,
-                                double              precision,
-                                const TGoF&         buddymris,  const TGoF&         buddypoints,
-                                const char*         fileprefix,
-                                TGoF&               outputmats, TGoF&               outputmris,     TGoF&               outputpoints,
-                                double&             quality,    char*               qualityopinion,
-                                VerboseType         verbosey
-                            );
-
-
-void    CoregisterBrains    (   const TVolumeDoc*   SourceMri,  RemapIntensityType  fromremap,
-                                const TVolumeDoc*   TargetMri,  RemapIntensityType  toremap,
-                                FitVolumeType       inclusionflags,
-                                const CoregistrationSpecsType& coregtype,
-                                double              precision,
-                                const TGoF&         buddymris,  const TGoF&         buddypoints,
-                                const char*         fileprefix,
-                                TGoF&               outputmats, TGoF&               outputmris,     TGoF&               outputpoints,
-                                double&             quality,    char*               qualityopinion,
-                                VerboseType         verbosey
-                            );
-
-
-//----------------------------------------------------------------------------
-
-class   NormalizeBrainResults
+namespace crtl
 {
-public:
 
-    TMatrix44           Rel_to_Abs;
-    TPointDouble        Origin;
-    TPointDouble        OriginToTarget;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    void                Reset ()        { Rel_to_Abs.SetIdentity (); Origin.Reset (); OriginToTarget.Reset (); }
-};
+    enum RemapIntensityType;
+    enum FitVolumeType;
+    class TVolumeDoc;
+    class TGoF;
+    class CoregistrationSpecsType;
 
+    void CoregisterMris(const TVolumeDoc *SourceMri, RemapIntensityType fromremap,
+                        const TVolumeDoc *TargetMri, RemapIntensityType toremap,
+                        FitVolumeType inclusionflags,
+                        const CoregistrationSpecsType &coregtype,
+                        GOMethod method,
+                        double precision,
+                        const TGoF &buddymris, const TGoF &buddypoints,
+                        const char *fileprefix,
+                        TGoF &outputmats, TGoF &outputmris, TGoF &outputpoints,
+                        double &quality, char *qualityopinion,
+                        VerboseType verbosey);
 
-bool    NormalizeBrain      (   const TVolumeDoc*       MriDoc,
-                                NormalizeBrainResults&  norm
-                            );
+    void CoregisterBrains(const TVolumeDoc *SourceMri, RemapIntensityType fromremap,
+                          const TVolumeDoc *TargetMri, RemapIntensityType toremap,
+                          FitVolumeType inclusionflags,
+                          const CoregistrationSpecsType &coregtype,
+                          double precision,
+                          const TGoF &buddymris, const TGoF &buddypoints,
+                          const char *fileprefix,
+                          TGoF &outputmats, TGoF &outputmris, TGoF &outputpoints,
+                          double &quality, char *qualityopinion,
+                          VerboseType verbosey);
 
+    //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    class NormalizeBrainResults
+    {
+    public:
+        TMatrix44 Rel_to_Abs;
+        TPointDouble Origin;
+        TPointDouble OriginToTarget;
+
+        void Reset()
+        {
+            Rel_to_Abs.SetIdentity();
+            Origin.Reset();
+            OriginToTarget.Reset();
+        }
+    };
+
+    bool NormalizeBrain(const TVolumeDoc *MriDoc,
+                        NormalizeBrainResults &norm);
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

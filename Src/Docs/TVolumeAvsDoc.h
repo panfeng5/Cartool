@@ -16,34 +16,32 @@ limitations under the License.
 
 #pragma once
 
-#include    "TVolumeDoc.h"
+#include "TVolumeDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*     MriAvsTitle         = "Opening AVS MRI";
-constexpr char*     MriAvsMethodTitle   = "Reslicing AVS MRI";
-
-constexpr char*     MriAvsDataTypes     = "byte short float";
-
-
-class   TVolumeAvsDoc   : public  TVolumeDoc
+namespace crtl
 {
-public:
-                    TVolumeAvsDoc ( owl::TDocument *parent = 0 );
 
-                                            // owl::TDocument
-    bool            Commit  ( bool force = false )              final;
-    bool            Open    ( int mode, const char *path = 0 )  final;
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
+   constexpr char *MriAvsTitle = "Opening AVS MRI";
+   constexpr char *MriAvsMethodTitle = "Reslicing AVS MRI";
 
-protected:
-};
+   constexpr char *MriAvsDataTypes = "byte short float";
 
+   class TVolumeAvsDoc : public TVolumeDoc
+   {
+   public:
+      TVolumeAvsDoc(owl::TDocument *parent = 0);
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+      // owl::TDocument
+      bool Commit(bool force = false) final;
+      bool Open(int mode, const char *path = 0) final;
+
+   protected:
+   };
+
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

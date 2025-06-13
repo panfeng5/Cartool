@@ -16,124 +16,125 @@ limitations under the License.
 
 #pragma once
 
-#include    "Math.TMatrix44.h"
-#include    "Geometry.TPoint.h"
+#include "Math.TMatrix44.h"
+#include "Geometry.TPoint.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-enum    TOrientationType {
-        OrientationUnknown,
-
-        LeftRight,          // box side to axis meaning, without known direction
-        UpDown,
-        FrontBack,
-
-        ToLeft,             // box side to axis meaning, with proper direction
-        ToRight,
-        ToUp,       
-        ToDown,
-        ToFront,    
-        ToBack,
-
-        ToXMin,             // box side to default axis, like "X box side is X axis"
-        ToXMax,
-        ToYMin,     
-        ToYMax,
-        ToZMin,     
-        ToZMax,
-        ToXAxis,
-        ToYAxis,
-        ToZAxis,
-
-        NumOrientationTypes
-        };
-
-extern const char   OrientationLabels[ NumOrientationTypes ][ 32 ];
-
-inline  TOrientationType    LetterToOrientation ( char o )          {   return  o == 'A' ? ToFront 
-                                                                              : o == 'P' ? ToBack 
-                                                                              : o == 'L' ? ToLeft 
-                                                                              : o == 'R' ? ToRight 
-                                                                              : o == 'I' ? ToDown 
-                                                                              : o == 'S' ? ToUp 
-                                                                              :            OrientationUnknown; }
-bool                        IsOrientationOK     ( const char orientation[ 3 ] );
-bool                        IsOrientationOK     ( TOrientationType xaxis, TOrientationType yaxis, TOrientationType zaxis );
-
-                                        // Enum for each box sides
-enum    TBoxSide {
-        XMinSide,
-        XMaxSide,
-        YMinSide,   
-        YMaxSide,
-        ZMinSide,   
-        ZMaxSide,
-
-        XAxis,
-        YAxis,
-        ZAxis,
-
-        NumBoxSides
-        };
-
-                                        // Common axis re-orientations
-enum    StandardOrientationEnum {
-        LocalToPIR,         // current object to PIR
-        LocalToRAS,         // current object to RAS
-        PIRToLocal,         // PIR to current object
-        RASToLocal,         // RAS to current object
-
-        NumStandardOrientationEnum
-        };
-
-
-//----------------------------------------------------------------------------
-// Class used to give some meaning to the X/Y/Z axis of a 3D object:
-//
-// - Correspondance between objects' X/Y/Z axis and some meaning, like "left" or "Superior"
-// - Stores 3 3D vectors to point to the back, the down and the right directions
-// - Stores a 4x4 matrix to reorient to default RAS orientation
-
-class   TOrientation
+namespace crtl
 {
-public:
-                        TOrientation ();
-                        TOrientation ( const char orientation[ 3 ] )        { ResetOrientation (); SetOrientation ( orientation ); }
 
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
-    void                ResetOrientation    ();
-    bool                SetOrientation      ( TOrientationType xaxis,  TOrientationType yaxis,  TOrientationType zaxis );
-    bool                SetOrientation      ( const char orientation[ 3 ] );
-    virtual void        FindOrientation     ()                              { ResetOrientation (); }
+        enum TOrientationType
+        {
+                OrientationUnknown,
 
-    void                OrientationToString ( char orientation[ 3 ] )   const;
-    void                CompleteOrientation ( TOrientationType &xaxis, TOrientationType &yaxis, TOrientationType &zaxis );
+                LeftRight, // box side to axis meaning, without known direction
+                UpDown,
+                FrontBack,
 
+                ToLeft, // box side to axis meaning, with proper direction
+                ToRight,
+                ToUp,
+                ToDown,
+                ToFront,
+                ToBack,
 
-    TMatrix44           GetStandardOrientation ( StandardOrientationEnum orient )   const;
+                ToXMin, // box side to default axis, like "X box side is X axis"
+                ToXMax,
+                ToYMin,
+                ToYMax,
+                ToZMin,
+                ToZMax,
+                ToXAxis,
+                ToYAxis,
+                ToZAxis,
 
-    const TOrientationType* GetBoxSides     ()                      const   { return BoxSides; }
-    TBoxSide            GetAxis             ( TOrientationType o )  const;
-    int                 GetAxisIndex        ( TOrientationType o )  const;
+                NumOrientationTypes
+        };
 
+        extern const char OrientationLabels[NumOrientationTypes][32];
 
-protected:
+        inline TOrientationType LetterToOrientation(char o) { return o == 'A'   ? ToFront
+                                                                     : o == 'P' ? ToBack
+                                                                     : o == 'L' ? ToLeft
+                                                                     : o == 'R' ? ToRight
+                                                                     : o == 'I' ? ToDown
+                                                                     : o == 'S' ? ToUp
+                                                                                : OrientationUnknown; }
+        bool IsOrientationOK(const char orientation[3]);
+        bool IsOrientationOK(TOrientationType xaxis, TOrientationType yaxis, TOrientationType zaxis);
 
-    TVector3Double      BackVector;             // Orientation -> X/Y/Z vector values
-    TVector3Double      DownVector;
-    TVector3Double      RightVector;
+        // Enum for each box sides
+        enum TBoxSide
+        {
+                XMinSide,
+                XMaxSide,
+                YMinSide,
+                YMaxSide,
+                ZMinSide,
+                ZMaxSide,
 
-    TOrientationType    BoxSides[ NumBoxSides ];// give each side a label, X/Y/Z -> orientation
+                XAxis,
+                YAxis,
+                ZAxis,
 
-    TMatrix44           StandardOrientMatrix;   // Local -> PIR orientation (for historical reasons)
+                NumBoxSides
+        };
 
-};
+        // Common axis re-orientations
+        enum StandardOrientationEnum
+        {
+                LocalToPIR, // current object to PIR
+                LocalToRAS, // current object to RAS
+                PIRToLocal, // PIR to current object
+                RASToLocal, // RAS to current object
 
+                NumStandardOrientationEnum
+        };
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        // Class used to give some meaning to the X/Y/Z axis of a 3D object:
+        //
+        // - Correspondance between objects' X/Y/Z axis and some meaning, like "left" or "Superior"
+        // - Stores 3 3D vectors to point to the back, the down and the right directions
+        // - Stores a 4x4 matrix to reorient to default RAS orientation
+
+        class TOrientation
+        {
+        public:
+                TOrientation();
+                TOrientation(const char orientation[3])
+                {
+                        ResetOrientation();
+                        SetOrientation(orientation);
+                }
+
+                void ResetOrientation();
+                bool SetOrientation(TOrientationType xaxis, TOrientationType yaxis, TOrientationType zaxis);
+                bool SetOrientation(const char orientation[3]);
+                virtual void FindOrientation() { ResetOrientation(); }
+
+                void OrientationToString(char orientation[3]) const;
+                void CompleteOrientation(TOrientationType &xaxis, TOrientationType &yaxis, TOrientationType &zaxis);
+
+                TMatrix44 GetStandardOrientation(StandardOrientationEnum orient) const;
+
+                const TOrientationType *GetBoxSides() const { return BoxSides; }
+                TBoxSide GetAxis(TOrientationType o) const;
+                int GetAxisIndex(TOrientationType o) const;
+
+        protected:
+                TVector3Double BackVector; // Orientation -> X/Y/Z vector values
+                TVector3Double DownVector;
+                TVector3Double RightVector;
+
+                TOrientationType BoxSides[NumBoxSides]; // give each side a label, X/Y/Z -> orientation
+
+                TMatrix44 StandardOrientMatrix; // Local -> PIR orientation (for historical reasons)
+        };
+
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
 }

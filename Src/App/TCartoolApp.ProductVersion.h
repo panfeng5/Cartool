@@ -16,10 +16,10 @@ limitations under the License.
 
 #pragma once
 
-										// Cartool Major / minor / patch version numbers - set manually
-#define		MajorRevisionInt     5
-#define		MajorRevisionStr    "5"
-#define		MinorRevisionInt     05
-#define		MinorRevisionStr    "05"
-#define		PatchRevisionInt     06
-#define		PatchRevisionStr    "06"
+// Cartool Major / minor / patch version numbers - set manually
+#define MajorRevisionInt 5
+#define MajorRevisionStr "5"
+#define MinorRevisionInt 05
+#define MinorRevisionStr "05"
+#define PatchRevisionInt 06
+#define PatchRevisionStr "06"

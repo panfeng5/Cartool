@@ -16,47 +16,45 @@ limitations under the License.
 
 #pragma once
 
-#include    "OpenGL.h"
-#include    "OpenGL.Drawing.h"
-#include    "OpenGL.Font.h"
-#include    "Math.Utils.h"
+#include "OpenGL.h"
+#include "OpenGL.Drawing.h"
+#include "OpenGL.Font.h"
+#include "Math.Utils.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Global initialization for OpenGL
-class   TGlobalOpenGL
+namespace crtl
 {
-public:
-                                TGlobalOpenGL ();
-                               ~TGlobalOpenGL ();
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Global initialization for OpenGL
+    class TGlobalOpenGL
+    {
+    public:
+        TGlobalOpenGL();
+        ~TGlobalOpenGL();
 
-    static bool                 IsOpen      ()              { return  GLLineWidthStep != 0; }   // Using one of the variable as test
-    static void                 CreateFonts ();
+        static bool IsOpen() { return GLLineWidthStep != 0; } // Using one of the variable as test
+        static void CreateFonts();
 
-                                        // static objects will be unique for all inherited classes / objects
-    static TGLPixelFormat       GLpfd;                  // Declare and define a single pixel format variable (bits per pixel, per depth, per stencil, per accumulation buffer etc..)
-//  static TGLRenderingContext  GLrc;                   // Static, 1 for all windows. Technically speaking, we can have a single rendering context - current state is not working, so this is off for the moment
-    TGLRenderingContext         GLrc;                   // Non-static, 1 per window
+        // static objects will be unique for all inherited classes / objects
+        static TGLPixelFormat GLpfd; // Declare and define a single pixel format variable (bits per pixel, per depth, per stencil, per accumulation buffer etc..)
+                                     //  static TGLRenderingContext  GLrc;                   // Static, 1 for all windows. Technically speaking, we can have a single rendering context - current state is not working, so this is off for the moment
+        TGLRenderingContext GLrc;    // Non-static, 1 per window
 
-    static TGLBitmapFont*       SFont;
-    static TGLBitmapFont*       BFont;
+        static TGLBitmapFont *SFont;
+        static TGLBitmapFont *BFont;
 
-    static TGLBillboardSphere   BbLowSphere;            // Billboards allow for fast drawing of predefined glyphs
-    static TGLBillboardSphere   BbHighSphere;
+        static TGLBillboardSphere BbLowSphere; // Billboards allow for fast drawing of predefined glyphs
+        static TGLBillboardSphere BbHighSphere;
 
-    static GLfloat              GLLineWidthMin;
-    static GLfloat              GLLineWidthMax;
-    static GLfloat              GLLineWidthStep;
+        static GLfloat GLLineWidthMin;
+        static GLfloat GLLineWidthMax;
+        static GLfloat GLLineWidthStep;
 
-    static GLint                ViewportMaxSize[ 2 ];
+        static GLint ViewportMaxSize[2];
+    };
 
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

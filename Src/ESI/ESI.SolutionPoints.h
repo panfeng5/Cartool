@@ -16,46 +16,44 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-enum                    GreyMatterFlags;
-enum                    NeighborhoodType;
-class                   TVolumeDoc;
-class                   TPoints;
-class                   TStrings;
-class                   TSelection;
-template <class> class  TArray1;
+   enum GreyMatterFlags;
+   enum NeighborhoodType;
+   class TVolumeDoc;
+   class TPoints;
+   class TStrings;
+   class TSelection;
+   template <class>
+   class TArray1;
 
+   bool SegmentGreyMatter(const TVolumeDoc *mridoc, GreyMatterFlags greyflags, const char *greyfile);
 
-bool            SegmentGreyMatter       ( const TVolumeDoc* mridoc, GreyMatterFlags greyflags, const char* greyfile );
+   void ScanForOutsidePoints(const TPoints &referencepoints, const TPoints &checkedpoints, TSelection &spsrejected);
 
-void            ScanForOutsidePoints    ( const TPoints& referencepoints, const TPoints& checkedpoints, TSelection& spsrejected );
+   int RejectSingleNeighbors(const TPoints &pointsin, NeighborhoodType neighborhood, TSelection &spsrejected);
 
-int             RejectSingleNeighbors   ( const TPoints& pointsin, NeighborhoodType neighborhood, TSelection& spsrejected );
+   void RejectPointsFromList(TPoints &points, TStrings &names, const TSelection &spsrejected);
 
-void            RejectPointsFromList    ( TPoints& points, TStrings&    names, const TSelection& spsrejected );
+   void GetNumGreyNeighbors(const TPoints &points, double neighborradius, TArray1<int> &NumNeighbors, const TSelection *spsrejected = 0);
 
-void            GetNumGreyNeighbors     ( const TPoints& points, double neighborradius, TArray1<int>& NumNeighbors, const TSelection* spsrejected = 0 );
+   bool DownsampleSolutionPoints(const TVolumeDoc *mribraindoc, const TPoints &solpointsoriginal, double neighborradius, int numsolpointswished, TSelection &rejectsel);
 
-bool            DownsampleSolutionPoints( const TVolumeDoc* mribraindoc, const TPoints& solpointsoriginal, double neighborradius, int numsolpointswished, TSelection& rejectsel );
+   //----------------------------------------------------------------------------
+   // Wrapping everything up to compute the solution points
+   bool ComputeSolutionPoints(
+       const TVolumeDoc *mribraindoc, const TVolumeDoc *mrigreydoc,
+       int numsolpointswished, double resolutionwished,
+       GreyMatterFlags spflags,
+       NeighborhoodType loretaneighborhood, NeighborhoodType lauraneighborhood,
+       TPoints &solpoints, TStrings &spnames,
+       const char *filesp);
 
-
-//----------------------------------------------------------------------------
-                                        // Wrapping everything up to compute the solution points
-bool            ComputeSolutionPoints   (   
-                            const TVolumeDoc*   mribraindoc,        const TVolumeDoc*   mrigreydoc, 
-                            int                 numsolpointswished, double              resolutionwished,
-                            GreyMatterFlags     spflags,
-                            NeighborhoodType    loretaneighborhood, NeighborhoodType    lauraneighborhood, 
-                            TPoints&            solpoints,          TStrings&           spnames,
-                            const char*         filesp
-                            );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

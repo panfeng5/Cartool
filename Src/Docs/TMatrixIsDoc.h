@@ -16,27 +16,25 @@ limitations under the License.
 
 #pragma once
 
-#include    "TInverseMatrixDoc.h"
+#include "TInverseMatrixDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Cartool Inverse Matrix
-class   TMatrixIsDoc    :   public  TInverseMatrixDoc
+namespace crtl
 {
-public:
-                    TMatrixIsDoc ( owl::TDocument *parent = 0 );
 
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // Cartool Inverse Matrix
+   class TMatrixIsDoc : public TInverseMatrixDoc
+   {
+   public:
+      TMatrixIsDoc(owl::TDocument *parent = 0);
 
-    bool            Open            ( int mode, const char* path = 0 )  final;
+      bool Open(int mode, const char *path = 0) final;
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-};
+      static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+   };
 
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

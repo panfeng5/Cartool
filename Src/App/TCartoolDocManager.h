@@ -16,107 +16,98 @@ limitations under the License.
 
 #pragma once
 
-#include    <owl/decmdifr.h>
-#include    <owl/docmanag.h>
+#include <owl/decmdifr.h>
+#include <owl/docmanag.h>
 
-#include    "Files.Utils.h"
+#include "Files.Utils.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Forward declarations
-class   TCartoolApp;
-class   TCartoolDocManager;
-class   TCartoolMdiClient;
-class   TLinkManyDoc;
-class   TBaseDoc;
-class   TBaseView;
-class   TSuperGauge;
-
-
-//----------------------------------------------------------------------------
-                                        // Handy class which gives access to application, doc manager, MDI client etc.. to any classe that will need them, even if not part of OwlNext framework
-class   TCartoolObjects
+namespace crtl
 {
-public:
-                                        // Direct pointers that will be set at creation time
-    static  TCartoolApp*                CartoolApplication;
-    static  TCartoolDocManager*         CartoolDocManager;
-    static  owl::TDecoratedMDIFrame*    CartoolMainWindow;
-    static  TCartoolMdiClient*          CartoolMdiClient;
 
-};
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Forward declarations
+    class TCartoolApp;
+    class TCartoolDocManager;
+    class TCartoolMdiClient;
+    class TLinkManyDoc;
+    class TBaseDoc;
+    class TBaseView;
+    class TSuperGauge;
 
-                                        // Creating a global object for those functions with a lack of class
-extern  TCartoolObjects     CartoolObjects;
+    //----------------------------------------------------------------------------
+    // Handy class which gives access to application, doc manager, MDI client etc.. to any classe that will need them, even if not part of OwlNext framework
+    class TCartoolObjects
+    {
+    public:
+        // Direct pointers that will be set at creation time
+        static TCartoolApp *CartoolApplication;
+        static TCartoolDocManager *CartoolDocManager;
+        static owl::TDecoratedMDIFrame *CartoolMainWindow;
+        static TCartoolMdiClient *CartoolMdiClient;
+    };
 
+    // Creating a global object for those functions with a lack of class
+    extern TCartoolObjects CartoolObjects;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // default opening flags
-constexpr UINT  dtOpenOptions           = owl::dtAutoDelete | owl::dtUpdateDir | owl::dtOverwritePrompt;
-                                        // hidden from the templates, as to avoid confusing duplicates when creating new views
-constexpr UINT  dtOpenOptionsHidden     = dtOpenOptions | owl::dtHidden;
-                                        // when views are not needed, this is faster
-constexpr UINT  dtOpenOptionsNoView     = dtOpenOptions | owl::dtNoAutoView;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // default opening flags
+    constexpr UINT dtOpenOptions = owl::dtAutoDelete | owl::dtUpdateDir | owl::dtOverwritePrompt;
+    // hidden from the templates, as to avoid confusing duplicates when creating new views
+    constexpr UINT dtOpenOptionsHidden = dtOpenOptions | owl::dtHidden;
+    // when views are not needed, this is faster
+    constexpr UINT dtOpenOptionsNoView = dtOpenOptions | owl::dtNoAutoView;
 
-constexpr int   AnimationMaxDocOpen     = 50;
-constexpr int   AnimationMaxDocDropped  = 5;
+    constexpr int AnimationMaxDocOpen = 50;
+    constexpr int AnimationMaxDocDropped = 5;
 
+    //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
+    class TCartoolObjects;
+    class TGoF;
 
-class       TCartoolObjects;
-class       TGoF;
+    class TCartoolDocManager : public owl::TDocManager,
+                               public TCartoolObjects
+    {
+    public:
+        TCartoolDocManager(int mode, owl::TApplication *app, owl::TDocTemplate *&templateHead = ::DocTemplateStaticHead);
 
+        void CmFileOpen();
+        void CmViewCreate();
+        void CmFileRevert();
+        void CmFileSave();
+        void CmFileSaveAs();
 
-class   TCartoolDocManager :    public  owl::TDocManager,
-                                public  TCartoolObjects
-{
-public:
-                    TCartoolDocManager  ( int mode, owl::TApplication* app, owl::TDocTemplate*& templateHead = ::DocTemplateStaticHead );
+        int NumDocOpen();
+        owl::TDocument *CreateAnyDoc(const char *path, long flags = 0);
+        TBaseDoc *CreateDoc(owl::TDocTemplate *tpl, /*const*/ char *path, owl::TDocument *parent = 0, long flags = 0); // !OwlNext complaining!
+        int GetNewTemplates(owl::TDocTemplate **tplList, int size, bool newDoc);
 
+        TBaseDoc *IsOpen(const char *filename);
+        void GetDocs(TGoF &gof, const char *extensions = 0);
+        TBaseDoc *OpenDoc(const char *path, long flags);
+        void CloseDoc(TBaseDoc *doc, bool refresh = true);
+        void CloseDoc(const char *filename, bool refresh = true);
+        void CloseView(owl::TView *view);
+        void CloseViews(owl::TDocument *doc, owl::TView *notthisview = 0, TLinkManyDoc *god = 0);
 
-    void            CmFileOpen          ();
-    void            CmViewCreate        ();
-    void            CmFileRevert        ();
-    void            CmFileSave          ();
-    void            CmFileSaveAs        ();
+        owl::TDocTemplate *MatchTemplate(const char *path); // virtual, although the Help says it is not
+        TBaseDoc *DocListNext(owl::TDocument *doc);
+        //  char*           GetOpenCommand      ( char *extension, char *command );
+        void OpenUnknownFile(const char *path);
 
+        TBaseView *GetView(UINT viewid);
+        TBaseDoc *GetCurrentBaseDoc();
+        TBaseView *GetCurrentView();
 
-    int             NumDocOpen          ();
-    owl::TDocument* CreateAnyDoc        ( const char *path, long flags=0 );
-    TBaseDoc*       CreateDoc           ( owl::TDocTemplate* tpl, /*const*/ char *path, owl::TDocument *parent=0, long flags=0 );    // !OwlNext complaining!
-    int             GetNewTemplates     ( owl::TDocTemplate** tplList, int size, bool newDoc );
+    protected:
+        int SelectViewType(owl::TDocTemplate **tpllist, int tplcount);
 
-    TBaseDoc*       IsOpen              ( const char *filename );
-    void            GetDocs             ( TGoF& gof, const char* extensions = 0 );
-    TBaseDoc*       OpenDoc             ( const char* path, long flags );
-    void            CloseDoc            ( TBaseDoc *doc, bool refresh = true );
-    void            CloseDoc            ( const char *filename, bool refresh = true );
-    void            CloseView           ( owl::TView* view );
-    void            CloseViews          ( owl::TDocument* doc, owl::TView* notthisview = 0, TLinkManyDoc* god = 0 );
+        DECLARE_RESPONSE_TABLE(TCartoolDocManager);
+    };
 
-    owl::TDocTemplate*  MatchTemplate   ( const char *path );     // virtual, although the Help says it is not
-    TBaseDoc*       DocListNext         ( owl::TDocument *doc );
-//  char*           GetOpenCommand      ( char *extension, char *command );
-    void            OpenUnknownFile     ( const char *path );
-
-    TBaseView*      GetView             ( UINT viewid );
-    TBaseDoc*       GetCurrentBaseDoc   ();
-    TBaseView*      GetCurrentView      ();
-
-
-protected:
-    int             SelectViewType ( owl::TDocTemplate** tpllist, int tplcount );
-
-
-    DECLARE_RESPONSE_TABLE(TCartoolDocManager);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

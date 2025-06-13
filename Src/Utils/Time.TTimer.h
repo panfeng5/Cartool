@@ -16,107 +16,99 @@ limitations under the License.
 
 #pragma once
 
-#include    "WinUser.h"                 // SetTimer
+#include "WinUser.h" // SetTimer
 
-#include    "System.h"
+#include "System.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Wrapper around Windows timer
-class   TTimer
+namespace crtl
 {
-public:
-                    TTimer ( HWND hw = 0 )                          : Hwnd ( hw ), TimerId (  0 ), Interval (  0 ), MaxCount (    0 ), Count ( 0 )  {}
-                    TTimer ( HWND hw, int id, int it, int maxc )    : Hwnd ( hw ), TimerId ( id ), Interval ( it ), MaxCount ( maxc ), Count ( 0 )  {}
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Wrapper around Windows timer
+    class TTimer
+    {
+    public:
+        TTimer(HWND hw = 0) : Hwnd(hw), TimerId(0), Interval(0), MaxCount(0), Count(0) {}
+        TTimer(HWND hw, int id, int it, int maxc) : Hwnd(hw), TimerId(id), Interval(it), MaxCount(maxc), Count(0) {}
 
-    bool            IsFirstCall ()              const   { return Hwnd && Count == 0; }
+        bool IsFirstCall() const { return Hwnd && Count == 0; }
 
-    int             GetTimerId  ()              const   { return TimerId;            }
-    int             GetCount    ()              const   { return Count;              }
-    int             GetMaxCount ()              const   { return MaxCount;           }
-    int             GetInterval ()              const   { return Interval;           }
-    double          GetPercentageCompletion ()  const   { return              Count   / (double) MaxCount; }
-    double          GetPercentageRemaining  ()  const   { return ( MaxCount - Count ) / (double) MaxCount; }
+        int GetTimerId() const { return TimerId; }
+        int GetCount() const { return Count; }
+        int GetMaxCount() const { return MaxCount; }
+        int GetInterval() const { return Interval; }
+        double GetPercentageCompletion() const { return Count / (double)MaxCount; }
+        double GetPercentageRemaining() const { return (MaxCount - Count) / (double)MaxCount; }
 
+        inline void Stop();
+        inline void Start();
+        inline void Start(int id, int it, int maxc);
+        void SetInterval(int it) { Interval = it; }
 
-    inline void     Stop        ();
-    inline void     Start       ();
-    inline void     Start       ( int id, int it, int maxc );
-    void            SetInterval ( int it )              { Interval = it;             }
+        inline operator bool() const { return Hwnd && Count > 0 && Count <= MaxCount; } // true if timer is all set AND running
 
-    inline          operator    bool    ()      const   { return Hwnd && Count > 0 && Count <= MaxCount; }  // true if timer is all set AND running
+        inline TTimer &operator++(int);
 
-    inline TTimer&  operator    ++      ( int );
+    protected:
+        HWND Hwnd;    // store the window to time
+        int TimerId;  // identifies this timer
+        int Count;    // counts the # of iteration, better hide it
+        int MaxCount; // # of loop Timer
+        int Interval; // in ms
+    };
 
+    //----------------------------------------------------------------------------
+    // Implementation
+    //----------------------------------------------------------------------------
 
-protected:
+    void TTimer::Stop()
+    {
+        /*if ( (bool) *this )*/
 
-    HWND            Hwnd;               // store the window to time
-    int             TimerId;            // identifies this timer
-    int             Count;              // counts the # of iteration, better hide it
-    int             MaxCount;           // # of loop Timer
-    int             Interval;           // in ms
-};
+        KillTimer(Hwnd, TimerId);
 
-
-//----------------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------------
-
-
-void        TTimer::Stop    ()
-{
-/*if ( (bool) *this )*/
-
-    KillTimer ( Hwnd, TimerId );
-
-Count       = 0;
-}
-
-
-void        TTimer::Start   ()
-{
-Stop ();
-
-Count       = 1; 
-
-SetTimer ( Hwnd, TimerId, Interval, 0 );
-}
-
-
-void        TTimer::Start   ( int id, int it, int maxc )
-{
-Stop ();
-
-TimerId     = id; 
-Interval    = it; 
-MaxCount    = maxc; 
-Count       = 0; 
-
-Start ();
-}
-
-
-TTimer&     TTimer::operator++ ( int )
-{
-if ( VkEscape () )
-
-    Stop ();
-
-else {
-    Count++;
-
-    SetTimer ( Hwnd, TimerId, Interval, 0 );
+        Count = 0;
     }
 
-return *this;
-}
+    void TTimer::Start()
+    {
+        Stop();
 
+        Count = 1;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        SetTimer(Hwnd, TimerId, Interval, 0);
+    }
+
+    void TTimer::Start(int id, int it, int maxc)
+    {
+        Stop();
+
+        TimerId = id;
+        Interval = it;
+        MaxCount = maxc;
+        Count = 0;
+
+        Start();
+    }
+
+    TTimer &TTimer::operator++(int)
+    {
+        if (VkEscape())
+
+            Stop();
+
+        else
+        {
+            Count++;
+
+            SetTimer(Hwnd, TimerId, Interval, 0);
+        }
+
+        return *this;
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

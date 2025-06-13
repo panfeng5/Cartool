@@ -16,35 +16,34 @@ limitations under the License.
 
 #pragma once
 
-#include    "TVolumeDoc.h"
+#include "TVolumeDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*     NiftiTitle          = "Opening Nifti MRI";
-constexpr char*     NiftiMethod1Title   = "Reslicing Nifti Method 1";
-constexpr char*     NiftiMethod2Title   = "Reslicing Nifti Method 2";
-constexpr char*     NiftiMethod3Title   = "Reslicing Nifti Method 3";
-                                        // Currently will force reslice all Nifit volumes to this target voxel size, in [mm]:
-constexpr double    NiftiTargetRes      = 1.0;
-
-
-class   TVolumeNiftiDoc     :  public  TVolumeDoc
+namespace crtl
 {
-public:
-                    TVolumeNiftiDoc ( owl::TDocument *parent = 0 );
 
-                                            // owl::TDocument
-    bool            Commit  ( bool force = false )              final;
-    bool            Open    ( int mode, const char *path = 0 )  final;
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-protected:
-};
+   constexpr char *NiftiTitle = "Opening Nifti MRI";
+   constexpr char *NiftiMethod1Title = "Reslicing Nifti Method 1";
+   constexpr char *NiftiMethod2Title = "Reslicing Nifti Method 2";
+   constexpr char *NiftiMethod3Title = "Reslicing Nifti Method 3";
+   // Currently will force reslice all Nifit volumes to this target voxel size, in [mm]:
+   constexpr double NiftiTargetRes = 1.0;
 
+   class TVolumeNiftiDoc : public TVolumeDoc
+   {
+   public:
+      TVolumeNiftiDoc(owl::TDocument *parent = 0);
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+      // owl::TDocument
+      bool Commit(bool force = false) final;
+      bool Open(int mode, const char *path = 0) final;
+
+   protected:
+   };
+
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

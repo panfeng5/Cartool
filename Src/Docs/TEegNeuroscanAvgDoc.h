@@ -16,39 +16,34 @@ limitations under the License.
 
 #pragma once
 
-#include    "TEegCartoolEpDoc.h"
+#include "TEegCartoolEpDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // TEegNeuroscanAvgDoc is derived from TEegCartoolEpDoc, as it has all we need already
-                                        // IF it happens more files would be EP files, then we could create an TTracksErpDoc class f.ex.
-                                        // and derive all from it
-class   TEegNeuroscanAvgDoc :   public  TEegCartoolEpDoc
+namespace crtl
 {
-public:
-                    TEegNeuroscanAvgDoc ( owl::TDocument *parent = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // TEegNeuroscanAvgDoc is derived from TEegCartoolEpDoc, as it has all we need already
+    // IF it happens more files would be EP files, then we could create an TTracksErpDoc class f.ex.
+    // and derive all from it
+    class TEegNeuroscanAvgDoc : public TEegCartoolEpDoc
+    {
+    public:
+        TEegNeuroscanAvgDoc(owl::TDocument *parent = 0);
 
-    bool            CanClose        ()                                  final;
-    bool            Open            ( int mode, const char *path = 0 )  final;
+        bool CanClose() final;
+        bool Open(int mode, const char *path = 0) final;
 
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
+    protected:
+        TArray1<double> Gains;
+        TArray1<double> Zeros;
 
+        bool SetArrays() final;
+    };
 
-protected:
-
-    TArray1<double> Gains;
-    TArray1<double> Zeros;
-
-
-    bool            SetArrays       ()  final;
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

@@ -16,42 +16,38 @@ limitations under the License.
 
 #pragma once
 
-#include    "MemUtil.h"
-#include    "Geometry.TPoint.h"
+#include "MemUtil.h"
+#include "Geometry.TPoint.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Vertex = location + normal
-class   TVertex
+namespace crtl
 {
-public:
 
-    TPointFloat     Vertex;
-    TVector3Float   Normal;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Vertex = location + normal
+    class TVertex
+    {
+    public:
+        TPointFloat Vertex;
+        TVector3Float Normal;
 
+        double Norm2() { return Normal.Norm2(); }
+        double Norm() { return Normal.Norm(); }
+        void Normalize() { Normal.Normalize(); }
 
-    double          Norm2     ()                                { return Normal.Norm2 (); }
-    double          Norm      ()                                { return Normal.Norm (); }
-    void            Normalize ()                                { Normal.Normalize (); }
+        bool SamePosition(const TVertex *vn2) const { return Vertex == vn2->Vertex; }
 
-    bool            SamePosition ( const TVertex* vn2 ) const   { return Vertex == vn2->Vertex; }
+        void *operator new[](size_t numbytes) { return GetVirtualMemory(numbytes); } // direct call to GetVirtualMemory, using TMemory would add too many variables for a single vertex - otherwise, do a class like ArrayVertices
+        void operator delete[](void *block) { FreeVirtualMemory(block); }
+    };
 
+    // vertex + normal + index
+    class TVertexI : public TVertex,
+                     public TIndex
+    {
+    };
 
-    void*           operator new    []  ( size_t numbytes )     {   return  GetVirtualMemory ( numbytes );  }   // direct call to GetVirtualMemory, using TMemory would add too many variables for a single vertex - otherwise, do a class like ArrayVertices
-    void            operator delete []  ( void *block )         {   FreeVirtualMemory ( block );            }
-
-};
-
-                                        // vertex + normal + index
-class   TVertexI :  public TVertex,
-                    public TIndex
-{
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

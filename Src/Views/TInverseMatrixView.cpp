@@ -14,174 +14,160 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TInverseMatrixView.h"
+#include "TInverseMatrixView.h"
 
-#include    "OpenGL.h"
+#include "OpenGL.h"
 
-#include    "TInverseMatrixDoc.h"
+#include "TInverseMatrixDoc.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-DEFINE_RESPONSE_TABLE1 (TInverseMatrixView, TBaseView)
-
-//  EV_WM_GETMINMAXINFO,
-//  EV_WM_SIZE,
-//  EV_WM_KEYDOWN,
-//  EV_WM_KEYUP,
-
-    EV_COMMAND_AND_ID   ( CM_INVERSEAVERAGEBEFORE,  CmSetAveragingBefore ),
-    EV_COMMAND_AND_ID   ( CM_INVERSEAVERAGEAFTER,   CmSetAveragingBefore ),
-    EV_COMMAND_ENABLE   ( CM_INVERSEAVERAGEBEFORE,  CmPrecedenceBeforeEnable ),
-    EV_COMMAND_ENABLE   ( CM_INVERSEAVERAGEAFTER,   CmPrecedenceAfterEnable  ),
-
-END_RESPONSE_TABLE;
-
-
-        TInverseMatrixView::TInverseMatrixView ( TInverseMatrixDoc& doc, TWindow* parent, TLinkManyDoc *group )
-      : TBaseView ( doc, parent, group ), ISDoc ( &doc )
+namespace crtl
 {
-GODoc       = 0;                        // force it to no-group -> 1 window is enough
-                                        // let's have a smart start-up size
-Attr.W      = max ( BFont->GetStringWidth ( "Atomic result is Vectorial,  single float" ),
-                    BFont->GetStringWidth ( (char *) ISDoc->GetTitle () ) )
-              + 4 * BFont->GetAvgWidth ();
 
-Attr.H      = 6.5 * BFont->GetHeight ();
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    DEFINE_RESPONSE_TABLE1(TInverseMatrixView, TBaseView)
 
-StandSize   = TSize ( crtl::GetWindowWidth ( this ), crtl::GetWindowHeight ( this ) );
+    //  EV_WM_GETMINMAXINFO,
+    //  EV_WM_SIZE,
+    //  EV_WM_KEYDOWN,
+    //  EV_WM_KEYUP,
 
-SetViewMenu ( new TMenuDescr (IDM_IS) );
+    EV_COMMAND_AND_ID(CM_INVERSEAVERAGEBEFORE, CmSetAveragingBefore),
+        EV_COMMAND_AND_ID(CM_INVERSEAVERAGEAFTER, CmSetAveragingBefore),
+        EV_COMMAND_ENABLE(CM_INVERSEAVERAGEBEFORE, CmPrecedenceBeforeEnable),
+        EV_COMMAND_ENABLE(CM_INVERSEAVERAGEAFTER, CmPrecedenceAfterEnable),
 
+        END_RESPONSE_TABLE;
 
-BackColor.Set ( 0, GLBASE_BACKCOLOR_PRINTING );
-BackColor.Set ( 1, GLBASE_BACKCOLOR_PRINTING );
+    TInverseMatrixView::TInverseMatrixView(TInverseMatrixDoc &doc, TWindow *parent, TLinkManyDoc *group)
+        : TBaseView(doc, parent, group), ISDoc(&doc)
+    {
+        GODoc = 0; // force it to no-group -> 1 window is enough
+                   // let's have a smart start-up size
+        Attr.W = max(BFont->GetStringWidth("Atomic result is Vectorial,  single float"),
+                     BFont->GetStringWidth((char *)ISDoc->GetTitle())) +
+                 4 * BFont->GetAvgWidth();
 
+        Attr.H = 6.5 * BFont->GetHeight();
 
-if ( ! ValidView() )
-    NotOK();                // do not create the window (cancel from doc)
-}
+        StandSize = TSize(crtl::GetWindowWidth(this), crtl::GetWindowHeight(this));
 
+        SetViewMenu(new TMenuDescr(IDM_IS));
 
-//----------------------------------------------------------------------------
-void    TInverseMatrixView::CreateGadgets ()
-{
-NumControlBarGadgets    = ISGLVIEW_CBG_NUM;
-ControlBarGadgets       = new TGadget * [ NumControlBarGadgets ];
+        BackColor.Set(0, GLBASE_BACKCOLOR_PRINTING);
+        BackColor.Set(1, GLBASE_BACKCOLOR_PRINTING);
 
-CreateBaseGadgets ();
-}
-
-
-//----------------------------------------------------------------------------
-void    TInverseMatrixView::GLPaint ( int how, int /*renderingmode*/, TGLClipPlane* /*clipplane*/ )
-{
-if ( ( how & GLPaintOpaque ) && ( how & GLPaintOwner ) ) {
-
-    char                buff[ 256 ];
-    GLdouble            xpos            = 2 * BFont->GetAvgWidth ();
-    GLdouble            ypos            = PaintRect.Height() - BFont->GetHeight () / 2;
-    GLdouble            zpos            = -0.5;
-
-                                        // drawing setup
-//  GLSmoothEdgesOn ();
-    GLColoringOn    ();
-    GLWriteDepthOff ();
-
-
-    glColor4f ( GLBASE_GROUPCOLOR_IS );
-    sprintf ( buff, "%s", ISDoc->GetTitle () );
-    BFont->Print ( xpos, ypos, zpos, buff, TA_LEFT | TA_TOP );
-
-
-    ypos -= 1.5 * BFont->GetHeight ();
-    glColor4f ( 0.00, 0.00, 0.00, 1.0 );
-    sprintf ( buff, "%0d  Rows (Solution Points)", ISDoc->GetNumSolPoints () );
-    BFont->Print ( xpos, ypos, zpos, buff, TA_LEFT | TA_TOP );
-
-
-    ypos -= BFont->GetHeight ();
-    glColor4f ( 0.00, 0.00, 0.00, 1.0 );
-    sprintf ( buff, "%0d  Columns (Electrodes)", ISDoc->GetNumElectrodes () );
-    BFont->Print ( xpos, ypos, zpos, buff, TA_LEFT | TA_TOP );
-
-
-    ypos -= BFont->GetHeight ();
-    glColor4f ( 0.00, 0.00, 0.00, 1.0 );
-    if ( ISDoc->GetNumRegularizations () )
-        sprintf ( buff, "%0d  Regularization%s", ISDoc->GetNumRegularizations (), StringPlural ( ISDoc->GetNumRegularizations () ) );
-    else
-        StringCopy ( buff, "No Regularization" );
-    BFont->Print ( xpos, ypos, zpos, buff, TA_LEFT | TA_TOP );
-
-
-    ypos -= BFont->GetHeight ();
-    glColor4f ( 0.00, 0.00, 0.00, 1.0 );
-    if ( ISDoc->IsVector ( AtomTypeUseCurrent ) )
-        sprintf ( buff, "Atomic result is Vectorial,  " );
-    else
-        sprintf ( buff, "Atomic result is Scalar,  " );
-
-    StringAppend ( buff, "Single Float" );
-
-    BFont->Print ( xpos, ypos, zpos, buff, TA_LEFT | TA_TOP );
-
-
-//  GLSmoothEdgesOff();
-    GLColoringOff   ();
-    GLWriteDepthOn  ();
+        if (!ValidView())
+            NotOK(); // do not create the window (cancel from doc)
     }
-}
 
+    //----------------------------------------------------------------------------
+    void TInverseMatrixView::CreateGadgets()
+    {
+        NumControlBarGadgets = ISGLVIEW_CBG_NUM;
+        ControlBarGadgets = new TGadget *[NumControlBarGadgets];
 
-//----------------------------------------------------------------------------
-void    TInverseMatrixView::Paint ( TDC &dc, bool /*erase*/ , TRect &rect )
-{
+        CreateBaseGadgets();
+    }
 
-PrePaint ( dc, rect, 0, 0, 0 );
+    //----------------------------------------------------------------------------
+    void TInverseMatrixView::GLPaint(int how, int /*renderingmode*/, TGLClipPlane * /*clipplane*/)
+    {
+        if ((how & GLPaintOpaque) && (how & GLPaintOwner))
+        {
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            char buff[256];
+            GLdouble xpos = 2 * BFont->GetAvgWidth();
+            GLdouble ypos = PaintRect.Height() - BFont->GetHeight() / 2;
+            GLdouble zpos = -0.5;
 
-//AntialiasingPaint ();                    // not relevant because text only
-GLPaint ( GLPaintNormal, RenderingUnchanged, 0 );
+            // drawing setup
+            //  GLSmoothEdgesOn ();
+            GLColoringOn();
+            GLWriteDepthOff();
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            glColor4f(GLBASE_GROUPCOLOR_IS);
+            sprintf(buff, "%s", ISDoc->GetTitle());
+            BFont->Print(xpos, ypos, zpos, buff, TA_LEFT | TA_TOP);
 
-PostPaint ( dc );
-}
+            ypos -= 1.5 * BFont->GetHeight();
+            glColor4f(0.00, 0.00, 0.00, 1.0);
+            sprintf(buff, "%0d  Rows (Solution Points)", ISDoc->GetNumSolPoints());
+            BFont->Print(xpos, ypos, zpos, buff, TA_LEFT | TA_TOP);
 
+            ypos -= BFont->GetHeight();
+            glColor4f(0.00, 0.00, 0.00, 1.0);
+            sprintf(buff, "%0d  Columns (Electrodes)", ISDoc->GetNumElectrodes());
+            BFont->Print(xpos, ypos, zpos, buff, TA_LEFT | TA_TOP);
 
-//----------------------------------------------------------------------------
-void    TInverseMatrixView::CmSetAveragingBefore ( owlwparam w )
-{
-ISDoc->SetAveragingBefore ( w == CM_INVERSEAVERAGEBEFORE ? AverageBeforeInverse : AverageAfterInverse );
+            ypos -= BFont->GetHeight();
+            glColor4f(0.00, 0.00, 0.00, 1.0);
+            if (ISDoc->GetNumRegularizations())
+                sprintf(buff, "%0d  Regularization%s", ISDoc->GetNumRegularizations(), StringPlural(ISDoc->GetNumRegularizations()));
+            else
+                StringCopy(buff, "No Regularization");
+            BFont->Print(xpos, ypos, zpos, buff, TA_LEFT | TA_TOP);
 
-ISDoc->NotifyDocViews ( vnReloadData, EV_VN_RELOADDATA_EEG );
-}
+            ypos -= BFont->GetHeight();
+            glColor4f(0.00, 0.00, 0.00, 1.0);
+            if (ISDoc->IsVector(AtomTypeUseCurrent))
+                sprintf(buff, "Atomic result is Vectorial,  ");
+            else
+                sprintf(buff, "Atomic result is Scalar,  ");
 
+            StringAppend(buff, "Single Float");
 
-void    TInverseMatrixView::CmPrecedenceBeforeEnable ( TCommandEnabler& tce )
-{
-tce.SetCheck ( ISDoc->GetAveragingBefore () == AverageBeforeInverse );
-}
+            BFont->Print(xpos, ypos, zpos, buff, TA_LEFT | TA_TOP);
 
+            //  GLSmoothEdgesOff();
+            GLColoringOff();
+            GLWriteDepthOn();
+        }
+    }
 
-void    TInverseMatrixView::CmPrecedenceAfterEnable ( TCommandEnabler& tce )
-{
-tce.SetCheck ( ISDoc->GetAveragingBefore () == AverageAfterInverse );
-}
+    //----------------------------------------------------------------------------
+    void TInverseMatrixView::Paint(TDC &dc, bool /*erase*/, TRect &rect)
+    {
 
+        PrePaint(dc, rect, 0, 0, 0);
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        // AntialiasingPaint ();                    // not relevant because text only
+        GLPaint(GLPaintNormal, RenderingUnchanged, 0);
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        PostPaint(dc);
+    }
+
+    //----------------------------------------------------------------------------
+    void TInverseMatrixView::CmSetAveragingBefore(owlwparam w)
+    {
+        ISDoc->SetAveragingBefore(w == CM_INVERSEAVERAGEBEFORE ? AverageBeforeInverse : AverageAfterInverse);
+
+        ISDoc->NotifyDocViews(vnReloadData, EV_VN_RELOADDATA_EEG);
+    }
+
+    void TInverseMatrixView::CmPrecedenceBeforeEnable(TCommandEnabler &tce)
+    {
+        tce.SetCheck(ISDoc->GetAveragingBefore() == AverageBeforeInverse);
+    }
+
+    void TInverseMatrixView::CmPrecedenceAfterEnable(TCommandEnabler &tce)
+    {
+        tce.SetCheck(ISDoc->GetAveragingBefore() == AverageAfterInverse);
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

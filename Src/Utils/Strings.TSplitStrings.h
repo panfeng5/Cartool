@@ -16,81 +16,73 @@ limitations under the License.
 
 #pragma once
 
-#include    "Strings.TStrings.h"
+#include "Strings.TStrings.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Splitting a string into tokens
-                                        // handling the case of "" quoted tokens
-                                        // Individual tokens are gracefully allocated with more space to them, allowing for some simple editing (like Regex neutralization)
-
-constexpr char*     SplitStringsSeparators  = " \t\n,;";
-
-                                        // Control if repeating tokens are allowed or not
-enum                StringsUnicity 
-                    {
-                    UniqueStrings,
-                    NonUniqueStrings
-                    };
-
-
-class   TSplitStrings
+namespace crtl
 {
-public:
-                    TSplitStrings ();
-                    TSplitStrings ( const char* str, StringsUnicity unicity, const char* separators = SplitStringsSeparators );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Splitting a string into tokens
+    // handling the case of "" quoted tokens
+    // Individual tokens are gracefully allocated with more space to them, allowing for some simple editing (like Regex neutralization)
 
-    bool            IsEmpty                 ()  const           { return  Tokens.IsEmpty ();                }
-    int             GetNumTokens            ()  const           { return  Tokens.NumStrings ();             }
-    int             GetBiggestTokenIndex    ()  const           { return  Tokens.GetLongestStringIndex ();  }
-    long            GetBiggestTokenLength   ()  const           { return  Tokens.GetMaxStringLength ();     }
+    constexpr char *SplitStringsSeparators = " \t\n,;";
 
+    // Control if repeating tokens are allowed or not
+    enum StringsUnicity
+    {
+        UniqueStrings,
+        NonUniqueStrings
+    };
 
-    void            Set                 ( const char* str, StringsUnicity unicity, const char* separators = SplitStringsSeparators );
-    void            Reset               ();
+    class TSplitStrings
+    {
+    public:
+        TSplitStrings();
+        TSplitStrings(const char *str, StringsUnicity unicity, const char *separators = SplitStringsSeparators);
 
-    void            Add                 ( const char* str, StringsUnicity unicity, const char* separators = SplitStringsSeparators );
-    void            Add                 ( const TSplitStrings& splitstring, StringsUnicity unicity );
-    void            AddToken            ( const char* token )   { Tokens.Add ( token, StringAutoSizePlusMargin, strlen ( token ) ); } // directly adding a token, with extra room for safety
+        bool IsEmpty() const { return Tokens.IsEmpty(); }
+        int GetNumTokens() const { return Tokens.NumStrings(); }
+        int GetBiggestTokenIndex() const { return Tokens.GetLongestStringIndex(); }
+        long GetBiggestTokenLength() const { return Tokens.GetMaxStringLength(); }
 
-    void            Remove              ( const char* removestrs );
-    void            RemoveDuplicates    ();
+        void Set(const char *str, StringsUnicity unicity, const char *separators = SplitStringsSeparators);
+        void Reset();
 
+        void Add(const char *str, StringsUnicity unicity, const char *separators = SplitStringsSeparators);
+        void Add(const TSplitStrings &splitstring, StringsUnicity unicity);
+        void AddToken(const char *token) { Tokens.Add(token, StringAutoSizePlusMargin, strlen(token)); } // directly adding a token, with extra room for safety
 
-    void            ExpandWildchars     ( TStrings&    strs, StringsUnicity unicity );
-    void            FilterWith          ( TStrings&    strs, bool silent = true );
-    void            CompactSpaces       ();
+        void Remove(const char *removestrs);
+        void RemoveDuplicates();
 
-    bool            Contains            ( const char* str )         const;
-    bool            Intersect           ( const TSplitStrings& splitstring )    const;
-    bool            PartiallyContains   ( const char* str )         const;
-    char*           ToString            ( char* str, bool verbose ) const;
-    void            Show                ( const char* title = 0 )   const;
-    const TStrings&     GetTokens       ()      const           { return Tokens; }
+        void ExpandWildchars(TStrings &strs, StringsUnicity unicity);
+        void FilterWith(TStrings &strs, bool silent = true);
+        void CompactSpaces();
 
+        bool Contains(const char *str) const;
+        bool Intersect(const TSplitStrings &splitstring) const;
+        bool PartiallyContains(const char *str) const;
+        char *ToString(char *str, bool verbose) const;
+        void Show(const char *title = 0) const;
+        const TStrings &GetTokens() const { return Tokens; }
 
-//  char*           operator    []      ( int i )               { return  IsInsideLimits ( i, 0, GetNumTokens () - 1 ) ? Tokens[ i ] : 0; }
-//  const char*     operator    []      ( int i )   const       { return  IsInsideLimits ( i, 0, GetNumTokens () - 1 ) ? Tokens[ i ] : 0; }
-    char*           operator    []      ( int i )               { return  i >= 0 && i <= GetNumTokens () - 1 ? Tokens[ i ] : 0; }
-    const char*     operator    []      ( int i )   const       { return  i >= 0 && i <= GetNumTokens () - 1 ? Tokens[ i ] : 0; }
+        //  char*           operator    []      ( int i )               { return  IsInsideLimits ( i, 0, GetNumTokens () - 1 ) ? Tokens[ i ] : 0; }
+        //  const char*     operator    []      ( int i )   const       { return  IsInsideLimits ( i, 0, GetNumTokens () - 1 ) ? Tokens[ i ] : 0; }
+        char *operator[](int i) { return i >= 0 && i <= GetNumTokens() - 1 ? Tokens[i] : 0; }
+        const char *operator[](int i) const { return i >= 0 && i <= GetNumTokens() - 1 ? Tokens[i] : 0; }
 
-//  TSplitStrings&  operator    +=      ( const TSplitStrings &op2 );
+        //  TSplitStrings&  operator    +=      ( const TSplitStrings &op2 );
 
-                    operator    bool    ()      const           { return  (bool) Tokens; }
-                    operator    int     ()      const           { return  (int)  Tokens; }
+        operator bool() const { return (bool)Tokens; }
+        operator int() const { return (int)Tokens; }
 
+    protected:
+        TStrings Tokens;
+    };
 
-protected:
-
-    TStrings        Tokens;
-
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

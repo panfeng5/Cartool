@@ -16,99 +16,93 @@ limitations under the License.
 
 #pragma once
 
-#include    <owl/filedoc.h>             // TFileDocument
+#include <owl/filedoc.h> // TFileDocument
 
-#include    "CartoolTypes.h"
-#include    "TList.h"
-#include    "Geometry.TOrientation.h"
-#include    "Geometry.TGeometryTransform.h"
-#include    "Geometry.TDisplaySpaces.h"
+#include "CartoolTypes.h"
+#include "TList.h"
+#include "Geometry.TOrientation.h"
+#include "Geometry.TGeometryTransform.h"
+#include "Geometry.TDisplaySpaces.h"
 
-#include    "TCartoolApp.h"
+#include "TCartoolApp.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // ALL Cartool documents will derive from TBaseDoc, which itself derives from TFileDocument.
-                                        // (this basically implies that all Cartool documents come from files)
-                                        // Class upgrades are the following:
-                                        //  - defining data type, 3D orientation (if relevant), different display space (2D and 3D f.ex.)
-                                        //  - providing easy access to application, doc manager, MDI window etc..
-                                        //  - referencing / linking / syncing between documents
-                                        //  - passing message to (docs + views), or friend views, instead of only views from a given doc
-                                        //  - preventing closing document when doing critical user interactions
-class       TLinkManyDoc;
-class       TTracksView;
-class       TRisDoc;
-class       TRois;
-class       GeometryTransform;
-
-
-class	TBaseDoc :      public          owl::TFileDocument, // all documents come from some files
-                        public          TCartoolObjects,    // centralized access to application, doc manager, main window etc...
-                        public          TProductInfo,       // company name and stuff
-                        public virtual  TDataFormat,        // centralized the atomic data type handling - !could be inherited by different sub-children, hence virtual!
-                        public          TOrientation        // many data need some sort of orientation
+namespace crtl
 {
-public:
-                        TBaseDoc ( owl::TDocument* parent = 0 );
-    virtual            ~TBaseDoc ();        // for proper destructor calls, when using TBaseDoc*
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // ALL Cartool documents will derive from TBaseDoc, which itself derives from TFileDocument.
+    // (this basically implies that all Cartool documents come from files)
+    // Class upgrades are the following:
+    //  - defining data type, 3D orientation (if relevant), different display space (2D and 3D f.ex.)
+    //  - providing easy access to application, doc manager, MDI window etc..
+    //  - referencing / linking / syncing between documents
+    //  - passing message to (docs + views), or friend views, instead of only views from a given doc
+    //  - preventing closing document when doing critical user interactions
+    class TLinkManyDoc;
+    class TTracksView;
+    class TRisDoc;
+    class TRois;
+    class GeometryTransform;
 
-    TLinkManyDoc*       LastGroupDoc;       // Group of the last active window of this doc
+    class TBaseDoc : public owl::TFileDocument,  // all documents come from some files
+                     public TCartoolObjects,     // centralized access to application, doc manager, main window etc...
+                     public TProductInfo,        // company name and stuff
+                     public virtual TDataFormat, // centralized the atomic data type handling - !could be inherited by different sub-children, hence virtual!
+                     public TOrientation         // many data need some sort of orientation
+    {
+    public:
+        TBaseDoc(owl::TDocument *parent = 0);
+        virtual ~TBaseDoc(); // for proper destructor calls, when using TBaseDoc*
 
-                                            // owl::TDocument
-    bool                CanClose            ()                              override;   // owl::TDocument virtual method
-    bool                IsDirty             ()                              override    { return TFileDocument::IsDirty (); }
+        TLinkManyDoc *LastGroupDoc; // Group of the last active window of this doc
 
-                                            // Cartool
-    bool                CanClose            ( bool silent );                            // Cartool CanClose
-    bool                IsUsedBy            ()                              const       { return (bool) UsedBy;             }
-    void                AddLink             ( const owl::TDocument* doc )               { UsedBy.Append ( doc );            }
-    void                RemoveLink          ( const owl::TDocument* doc )               { UsedBy.Remove ( doc, DontDeallocate );}
-    void                PreventClosing      ()                                          { DoNotClose    = true;             }
-    void                AllowClosing        ()                                          { DoNotClose    = false;            }
+        // owl::TDocument
+        bool CanClose() override; // owl::TDocument virtual method
+        bool IsDirty() override { return TFileDocument::IsDirty(); }
 
-    bool                CanSync             ( owl::TWindow* towin )         const;
+        // Cartool
+        bool CanClose(bool silent); // Cartool CanClose
+        bool IsUsedBy() const { return (bool)UsedBy; }
+        void AddLink(const owl::TDocument *doc) { UsedBy.Append(doc); }
+        void RemoveLink(const owl::TDocument *doc) { UsedBy.Remove(doc, DontDeallocate); }
+        void PreventClosing() { DoNotClose = true; }
+        void AllowClosing() { DoNotClose = false; }
 
-    const char*         GetDefaultExtension ()                                          { return GetTemplate ()->GetDefaultExt (); }
-    bool                IsExtension         ( const char* ext )             const       { return crtl::IsExtension      ( GetDocPath (), ext ); /*StringIs ( GetDefaultExtension (), ext );*/  }
-    bool                IsExtensionAmong    ( const char* exts )            const       { return crtl::IsExtensionAmong ( GetDocPath (), exts ); }
+        bool CanSync(owl::TWindow *towin) const;
 
-    virtual char*       GetBaseFileName     ( char* basefilename )          const;  // the base name to be used for any processing ouput (removing extension, caring for mff directory...)
+        const char *GetDefaultExtension() { return GetTemplate()->GetDefaultExt(); }
+        bool IsExtension(const char *ext) const { return crtl::IsExtension(GetDocPath(), ext); /*StringIs ( GetDefaultExtension (), ext );*/ }
+        bool IsExtensionAmong(const char *exts) const { return crtl::IsExtensionAmong(GetDocPath(), exts); }
 
-                                            // Extending NotifyViews functionalities:
-    virtual bool        NotifyDocViews      (                         int event, owl::TParam2 item = 0, owl::TView* viewexclude = 0, owl::TDocument* docexclude = 0 );
-    bool                NotifyFriendViews   ( owl::uint friendshipid, int event, owl::TParam2 item = 0, owl::TView* viewexclude = 0 );
+        virtual char *GetBaseFileName(char *basefilename) const; // the base name to be used for any processing ouput (removing extension, caring for mff directory...)
 
-                                            // Specializing TDocument GetViewList and NextView
-    TBaseView*          GetViewList         ()                              const;
-    TBaseView*          GetViewList         ( TLinkManyDoc* group, bool equal = true );
-    TBaseView*          NextView            ( const owl::TView* view );
-    TBaseView*          NextView            ( const TBaseView* bview, TLinkManyDoc* group, bool equal = true );
-    bool                HasView             ( const owl::TView* searchedview );
+        // Extending NotifyViews functionalities:
+        virtual bool NotifyDocViews(int event, owl::TParam2 item = 0, owl::TView *viewexclude = 0, owl::TDocument *docexclude = 0);
+        bool NotifyFriendViews(owl::uint friendshipid, int event, owl::TParam2 item = 0, owl::TView *viewexclude = 0);
 
-    void                SetFocus            ( owl::uint viewid );
-    void                MinimizeViews       ();
+        // Specializing TDocument GetViewList and NextView
+        TBaseView *GetViewList() const;
+        TBaseView *GetViewList(TLinkManyDoc *group, bool equal = true);
+        TBaseView *NextView(const owl::TView *view);
+        TBaseView *NextView(const TBaseView *bview, TLinkManyDoc *group, bool equal = true);
+        bool HasView(const owl::TView *searchedview);
 
+        void SetFocus(owl::uint viewid);
+        void MinimizeViews();
 
-    const TGeometryTransform*   GetGeometryTransform ()                     const       { return GeometryTransform; }
-    const TDisplaySpaces&       GetDisplaySpaces     ()                     const       { return DisplaySpaces;     }
+        const TGeometryTransform *GetGeometryTransform() const { return GeometryTransform; }
+        const TDisplaySpaces &GetDisplaySpaces() const { return DisplaySpaces; }
 
+    protected:
+        bool DoNotClose; // some processing can put a lock on a given active document to prevent it from closing
+        crtl::TList<owl::TDocument> UsedBy;
 
-protected:
+        TDisplaySpaces DisplaySpaces; // 3D data can be seen in different spaces / projection
+        TGeometryTransform *GeometryTransform;
+    };
 
-    bool                DoNotClose;         // some processing can put a lock on a given active document to prevent it from closing
-    crtl::TList<owl::TDocument> UsedBy;
-
-    TDisplaySpaces      DisplaySpaces;      // 3D data can be seen in different spaces / projection
-    TGeometryTransform* GeometryTransform;
-
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

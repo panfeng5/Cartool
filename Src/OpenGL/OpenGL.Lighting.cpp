@@ -16,100 +16,95 @@ limitations under the License.
 
 #pragma once
 
-#include    <windows.h>
+#include <windows.h>
 
-#include    "OpenGL.Lighting.h"
+#include "OpenGL.Lighting.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // specific bodies according to type
-void    TGLLight<GLint>::GLize ( int /*param*/ )
+namespace crtl
 {
-glLightiv ( LightNumber, GL_AMBIENT,  (const GLint *) Ambient  );
-glLightiv ( LightNumber, GL_DIFFUSE,  (const GLint *) Diffuse  );
-glLightiv ( LightNumber, GL_SPECULAR, (const GLint *) Specular );
-glLightiv ( LightNumber, GL_POSITION, (const GLint *) Position );
 
-glEnable ( LightNumber );
-}
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // specific bodies according to type
+   void TGLLight<GLint>::GLize(int /*param*/)
+   {
+      glLightiv(LightNumber, GL_AMBIENT, (const GLint *)Ambient);
+      glLightiv(LightNumber, GL_DIFFUSE, (const GLint *)Diffuse);
+      glLightiv(LightNumber, GL_SPECULAR, (const GLint *)Specular);
+      glLightiv(LightNumber, GL_POSITION, (const GLint *)Position);
 
+      glEnable(LightNumber);
+   }
 
-void    TGLLight<GLfloat>::GLize ( int /*param*/ )
-{
-glLightfv ( LightNumber, GL_AMBIENT,  (const GLfloat *) Ambient  );
-glLightfv ( LightNumber, GL_DIFFUSE,  (const GLfloat *) Diffuse  );
-glLightfv ( LightNumber, GL_SPECULAR, (const GLfloat *) Specular );
-glLightfv ( LightNumber, GL_POSITION, (const GLfloat *) Position );
+   void TGLLight<GLfloat>::GLize(int /*param*/)
+   {
+      glLightfv(LightNumber, GL_AMBIENT, (const GLfloat *)Ambient);
+      glLightfv(LightNumber, GL_DIFFUSE, (const GLfloat *)Diffuse);
+      glLightfv(LightNumber, GL_SPECULAR, (const GLfloat *)Specular);
+      glLightfv(LightNumber, GL_POSITION, (const GLfloat *)Position);
 
-glEnable ( LightNumber );
-}
+      glEnable(LightNumber);
+   }
 
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // specific bodies according to type
+   void TGLMaterial<GLint>::GLize(int /*param*/)
+   {
+      glMaterialiv(Side, GL_AMBIENT, (const GLint *)Ambient);
+      glMaterialiv(Side, GL_DIFFUSE, (const GLint *)Diffuse);
+      glMaterialiv(Side, GL_SPECULAR, (const GLint *)Specular);
+      glMaterialiv(Side, GL_EMISSION, (const GLint *)Emission);
+      glMaterialiv(Side, GL_SHININESS, &Shininess);
+   }
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // specific bodies according to type
-void    TGLMaterial<GLint>::GLize ( int /*param*/ )
-{
-glMaterialiv ( Side, GL_AMBIENT,   (const GLint *) Ambient  );
-glMaterialiv ( Side, GL_DIFFUSE,   (const GLint *) Diffuse  );
-glMaterialiv ( Side, GL_SPECULAR,  (const GLint *) Specular );
-glMaterialiv ( Side, GL_EMISSION,  (const GLint *) Emission );
-glMaterialiv ( Side, GL_SHININESS, &Shininess );
-}
+   void TGLMaterial<GLfloat>::GLize(int /*param*/)
+   {
+      glMaterialfv(Side, GL_AMBIENT, (const GLfloat *)Ambient);
+      glMaterialfv(Side, GL_DIFFUSE, (const GLfloat *)Diffuse);
+      glMaterialfv(Side, GL_SPECULAR, (const GLfloat *)Specular);
+      glMaterialfv(Side, GL_EMISSION, (const GLfloat *)Emission);
+      glMaterialfv(Side, GL_SHININESS, &Shininess);
+   }
 
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // specific bodies according to type
+   void TGLFog<GLint>::GLize(int /*param*/)
+   {
+      glFogi(GL_FOG_MODE, FogMode);
+      glFogiv(GL_FOG_COLOR, (const GLint *)FogColor);
+      glFogi(GL_FOG_DENSITY, FogDensity);
 
-void    TGLMaterial<GLfloat>::GLize ( int /*param*/ )
-{
-glMaterialfv ( Side, GL_AMBIENT,   (const GLfloat *) Ambient  );
-glMaterialfv ( Side, GL_DIFFUSE,   (const GLfloat *) Diffuse  );
-glMaterialfv ( Side, GL_SPECULAR,  (const GLfloat *) Specular );
-glMaterialfv ( Side, GL_EMISSION,  (const GLfloat *) Emission );
-glMaterialfv ( Side, GL_SHININESS, &Shininess );
-}
+      glFogi(GL_FOG_START, FogStart);
+      glFogi(GL_FOG_END, FogEnd);
 
+      // glHint  ( GL_FOG_HINT, GL_DONT_CARE );
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // specific bodies according to type
-void    TGLFog<GLint>::GLize ( int /*param*/ )
-{
-glFogi  ( GL_FOG_MODE, FogMode );
-glFogiv ( GL_FOG_COLOR, (const GLint *) FogColor );
-glFogi  ( GL_FOG_DENSITY, FogDensity );
+      GLFogOn();
+   }
 
-glFogi  ( GL_FOG_START, FogStart );
-glFogi  ( GL_FOG_END,   FogEnd );
+   void TGLFog<GLfloat>::GLize(int /*param*/)
+   {
+      glFogi(GL_FOG_MODE, FogMode);
+      glFogfv(GL_FOG_COLOR, (const GLfloat *)FogColor);
+      glFogf(GL_FOG_DENSITY, FogDensity);
 
-//glHint  ( GL_FOG_HINT, GL_DONT_CARE );
+      glFogf(GL_FOG_START, FogStart);
+      glFogf(GL_FOG_END, FogEnd);
 
-GLFogOn         ();
-}
+      // glHint  ( GL_FOG_HINT, GL_DONT_CARE );
 
+      GLFogOn();
+   }
 
-void    TGLFog<GLfloat>::GLize ( int /*param*/ )
-{
-glFogi  ( GL_FOG_MODE, FogMode );
-glFogfv ( GL_FOG_COLOR, (const GLfloat *) FogColor );
-glFogf  ( GL_FOG_DENSITY, FogDensity );
-
-glFogf  ( GL_FOG_START, FogStart );
-glFogf  ( GL_FOG_END,   FogEnd );
-
-//glHint  ( GL_FOG_HINT, GL_DONT_CARE );
-
-GLFogOn         ();
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

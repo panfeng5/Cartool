@@ -16,68 +16,62 @@ limitations under the License.
 
 #pragma once
 
-#include    "TTracksDoc.h"
-#include    "TInverseResults.h"
+#include "TTracksDoc.h"
+#include "TInverseResults.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-                                        // 'RI01' type
-struct  TRisHeader {
-    char            Magic[ 4 ];
-    int             NumSolutionPoints;
-    int             NumTimeFrames;
-    float           SamplingFrequency;  // in Herz
-    char            IsInverseScalar;    // 1 if scalar, 0 if vectorial  (value, and not text)
-};                                      // size = 17
-
-
-EndBytePacking
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   TRisDoc :   public  TTracksDoc,     // tracks content
-                    public  TInverseResults // can produce Inverse Solution results
+namespace crtl
 {
-public:
-                    TRisDoc         ( owl::TDocument *parent = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-    bool            Open            ( int mode, const char* path = 0 )  final;
-    bool            CanClose        ()                                  final;
-    bool            Close           ()                                  final;
-    bool            IsOpen          ()                                  final   { return Tracks.IsAllocated (); }
-    bool            CommitRis       ( bool force = false );
+        // 'RI01' type
+        struct TRisHeader
+    {
+        char Magic[4];
+        int NumSolutionPoints;
+        int NumTimeFrames;
+        float SamplingFrequency; // in Herz
+        char IsInverseScalar;    // 1 if scalar, 0 if vectorial  (value, and not text)
+    }; // size = 17
 
+    EndBytePacking
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-    void            ReadRawTracks   ( long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0 )  final;
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
+        class TRisDoc : public TTracksDoc,     // tracks content
+                        public TInverseResults // can produce Inverse Solution results
+    {
+    public:
+        TRisDoc(owl::TDocument *parent = 0);
 
-    const char*     GetInverseTitle ()  const final         { return owl::TFileDocument::GetTitle (); } 
+        bool Open(int mode, const char *path = 0) final;
+        bool CanClose() final;
+        bool Close() final;
+        bool IsOpen() final { return Tracks.IsAllocated(); }
+        bool CommitRis(bool force = false);
 
-    void            GetInvSol       ( int reg, long tf1, long tf2, TArray1< float         >& inv, TTracksView *eegview, TRois *rois = 0 )     const final;
-    void            GetInvSol       ( int reg, long tf1, long tf2, TArray1< TVector3Float >& inv, TTracksView *eegview, TRois *rois = 0 )     const final;
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+        void ReadRawTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0) final;
 
+        const char *GetInverseTitle() const final { return owl::TFileDocument::GetTitle(); }
 
-protected:
+        void GetInvSol(int reg, long tf1, long tf2, TArray1<float> &inv, TTracksView *eegview, TRois *rois = 0) const final;
+        void GetInvSol(int reg, long tf1, long tf2, TArray1<TVector3Float> &inv, TTracksView *eegview, TRois *rois = 0) const final;
 
-    TTracks<float>  Tracks;             // NumElectrodes == NumSolPoints here
+    protected:
+        TTracks<float> Tracks; // NumElectrodes == NumSolPoints here
 
-    int             NumTracks;          // 1 or 3 * NumElectrodes, in the case of vectorial data
-    int             TotalTracks;
+        int NumTracks; // 1 or 3 * NumElectrodes, in the case of vectorial data
+        int TotalTracks;
 
+        bool SetArrays() final;
+    };
 
-    bool            SetArrays       ()  final;
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

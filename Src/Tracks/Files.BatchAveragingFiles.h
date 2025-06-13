@@ -16,49 +16,44 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-constexpr char*     BatchAveragingTitle         = "Batch Averaging";
+    constexpr char *BatchAveragingTitle = "Batch Averaging";
 
-enum        FrequencyAnalysisType;
-enum        PolarityType;
-class       TGoF;
+    enum FrequencyAnalysisType;
+    enum PolarityType;
+    class TGoF;
 
-                                        // Each  file*  acts as a flag as whether or not computing a given output
-void    BatchAveragingScalar    (   const TGoF& gof,
-                                    char*       meanfile,       char*       sdfile,         char*       snrfile,
-                                    char*       medianfile,     char*       madfile,
-                                    bool        openresults,    bool        showgauge       = true
-                                );
-                                        // can also save the results as norms
-void    BatchAveragingVectorial (   const TGoF& gof, 
-                                    char*       vmeanfile,      char*       nmeanfile,      char*       snrfile,
-                                    char*       sphmeanfile,    char*       sphsdfile,      char*       sphsnrfile,
-                                    bool        openresults,    bool        showgauge       = true
-                                );
+    // Each  file*  acts as a flag as whether or not computing a given output
+    void BatchAveragingScalar(const TGoF &gof,
+                              char *meanfile, char *sdfile, char *snrfile,
+                              char *medianfile, char *madfile,
+                              bool openresults, bool showgauge = true);
+    // can also save the results as norms
+    void BatchAveragingVectorial(const TGoF &gof,
+                                 char *vmeanfile, char *nmeanfile, char *snrfile,
+                                 char *sphmeanfile, char *sphsdfile, char *sphsnrfile,
+                                 bool openresults, bool showgauge = true);
 
-void    BatchPoolAveragingVectorial (   const TGoF& gof, 
-                                        char*       vmeanfile,      char*       nmeanfile,      char*       snrfile,
-                                        char*       sphmeanfile,    char*       sphsdfile,      char*       sphsnrfile,
-                                        int         numlocalavg,    int         numrepeatavg,
-                                        bool        openresults,    bool        showgauge 
-                                    );
+    void BatchPoolAveragingVectorial(const TGoF &gof,
+                                     char *vmeanfile, char *nmeanfile, char *snrfile,
+                                     char *sphmeanfile, char *sphsdfile, char *sphsnrfile,
+                                     int numlocalavg, int numrepeatavg,
+                                     bool openresults, bool showgauge);
 
-void    BatchAveragingFreq      (   const TGoF&             gof,
-                                    FrequencyAnalysisType   freqtype,       PolarityType    fftapproxpolarity,
-                                    char*                   meanfile,       char*           sdfile, 
-                                    bool                    openresults,    bool            showgauge       = true
-                                );
+    void BatchAveragingFreq(const TGoF &gof,
+                            FrequencyAnalysisType freqtype, PolarityType fftapproxpolarity,
+                            char *meanfile, char *sdfile,
+                            bool openresults, bool showgauge = true);
 
-void    BatchAveragingErrorData (   const TGoF& gof, 
-                                    char*       meanfile,
-                                    bool        openresults,    bool        showgauge       = true
-                                );
+    void BatchAveragingErrorData(const TGoF &gof,
+                                 char *meanfile,
+                                 bool openresults, bool showgauge = true);
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

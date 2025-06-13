@@ -16,31 +16,29 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Storing the AAL Atlas codes
-                                        // See:  https://www.gin.cnrs.fr/en/tools/aal/
-//constexpr int     NumAAL1Codes        = 116;
-constexpr int       NumAAL3v1Codes      = 170;
-
-
-class  TAALRoi
+namespace crtl
 {
-public:
-    int             Index;              // index in volume, starting from 1
-    char            ShortName[ 32 ];
-    char            LongName [ 32 ];
-    int             Value;              // value associated with that region, whatever
-};
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Storing the AAL Atlas codes
+    // See:  https://www.gin.cnrs.fr/en/tools/aal/
+    // constexpr int     NumAAL1Codes        = 116;
+    constexpr int NumAAL3v1Codes = 170;
 
-//extern const TAALRoi    AAL1Codes  [ NumAAL1Codes   ];
-extern const TAALRoi    AAL3v1Codes[ NumAAL3v1Codes ];
+    class TAALRoi
+    {
+    public:
+        int Index; // index in volume, starting from 1
+        char ShortName[32];
+        char LongName[32];
+        int Value; // value associated with that region, whatever
+    };
 
+    // extern const TAALRoi    AAL1Codes  [ NumAAL1Codes   ];
+    extern const TAALRoi AAL3v1Codes[NumAAL3v1Codes];
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

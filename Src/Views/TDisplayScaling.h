@@ -16,161 +16,147 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-constexpr double    ScalingLevelInit            = 0.5;
-constexpr double    ScalingLevelSmallStep       = 1.1;
-constexpr double    ScalingLevelStep            = 1.1;
-constexpr double    ScalingLevelBigStep         = 1.3;
+    constexpr double ScalingLevelInit = 0.5;
+    constexpr double ScalingLevelSmallStep = 1.1;
+    constexpr double ScalingLevelStep = 1.1;
+    constexpr double ScalingLevelBigStep = 1.3;
 
-constexpr double    ScalingMinContrast          = 0.0;
-constexpr double    ScalingMaxContrast          = 1.0;
+    constexpr double ScalingMinContrast = 0.0;
+    constexpr double ScalingMaxContrast = 1.0;
 
-
-enum    ScalingAutoType
-        {  
+    enum ScalingAutoType
+    {
         ScalingAutoOff,
-        ScalingAutoSymmetric,           // both negative and positive scales are the same
-        ScalingAutoAsymmetric,          // negative and positive have their own scales
+        ScalingAutoSymmetric,  // both negative and positive scales are the same
+        ScalingAutoAsymmetric, // negative and positive have their own scales
 
         NumScalingAuto,
-        NumScalingAutoPositive  = ScalingAutoSymmetric + 1,
-        };
+        NumScalingAutoPositive = ScalingAutoSymmetric + 1,
+    };
 
+    //----------------------------------------------------------------------------
+    // Class to handle data scaling for display purposes
+    class TDisplayScaling
+    {
+    public:
+        inline TDisplayScaling() { ResetScaling(); }
 
-//----------------------------------------------------------------------------
-                                        // Class to handle data scaling for display purposes
-class   TDisplayScaling
-{
-public:
-    inline          TDisplayScaling ()          { ResetScaling (); }
+        double ScalingLimitMin; // ABSOLUTE limits for ScalingLevel
+        double ScalingLimitMax;
+        double ScalingLevel;
+        double ScalingPMax; // current positive intensity Max
+        double ScalingNMax; // current negative intensity Max
 
+        double ScalingContrast; // 1 max contrast, 0 low contrast (linear)
 
-    double          ScalingLimitMin;    // ABSOLUTE limits for ScalingLevel
-    double          ScalingLimitMax;
-    double          ScalingLevel;
-    double          ScalingPMax;        // current positive intensity Max
-    double          ScalingNMax;        // current negative intensity Max
+        ScalingAutoType ScalingAuto; // adaptative scaling
 
-    double          ScalingContrast;    // 1 max contrast, 0 low contrast (linear)
+        virtual inline void ResetScaling();
+        virtual inline void ResetScalingLevel();
+        virtual inline void ResetScalingContrast();
 
-    ScalingAutoType ScalingAuto;        // adaptative scaling
+        virtual inline void SetScalingLimits(double absminv, double absmaxv);
+        virtual inline void SetScaling(double scaling);
+        virtual inline void SetScaling(double negv, double posv, bool forcesymetric = true);
+        virtual inline double SetScalingContrast(double contrast);
 
+    protected:
+        virtual inline void UpdateScaling();
+    };
 
-    virtual inline  void    ResetScaling        ();
-    virtual inline  void    ResetScalingLevel   ();
-    virtual inline  void    ResetScalingContrast();
+    //----------------------------------------------------------------------------
+    // Implementation
+    //----------------------------------------------------------------------------
+    void TDisplayScaling::ResetScaling()
+    {
+        SetScalingLimits(SingleFloatEpsilon, 1);
 
-    virtual inline void     SetScalingLimits    ( double absminv, double absmaxv );
-    virtual inline void     SetScaling          ( double scaling );
-    virtual inline void     SetScaling          ( double negv, double posv, bool forcesymetric = true );
-    virtual inline double   SetScalingContrast  ( double contrast );
+        ResetScalingLevel();
 
+        UpdateScaling();
 
-protected:
+        ResetScalingContrast();
 
-    virtual inline void     UpdateScaling ();
-};
+        ScalingAuto = ScalingAutoOff;
+    }
 
+    void TDisplayScaling::ResetScalingLevel()
+    {
+        ScalingLevel = ScalingLimitMin + (ScalingLimitMax - ScalingLimitMin) * ScalingLevelInit;
+    }
 
-//----------------------------------------------------------------------------
-// Implementation
-//----------------------------------------------------------------------------
-void    TDisplayScaling::ResetScaling ()
-{
-SetScalingLimits    ( SingleFloatEpsilon, 1 );
+    void TDisplayScaling::ResetScalingContrast()
+    {
+        ScalingContrast = ScalingMinContrast;
+    }
 
-ResetScalingLevel   ();
+    //----------------------------------------------------------------------------
+    // Absolute values
+    void TDisplayScaling::SetScalingLimits(double absminv, double absmaxv)
+    {
+        absminv = abs(absminv);
+        absmaxv = abs(absmaxv);
 
-UpdateScaling       ();
+        CheckOrder(absminv, absmaxv);
 
-ResetScalingContrast();
+        ScalingLimitMin = absminv;
+        ScalingLimitMax = absmaxv;
+    }
 
-ScalingAuto         = ScalingAutoOff;
-}
+    //----------------------------------------------------------------------------
+    // Absolute value
+    void TDisplayScaling::SetScaling(double scaling)
+    {
+        ScalingLevel = Clip(abs(scaling), ScalingLimitMin, ScalingLimitMax);
 
+        UpdateScaling();
+    }
 
-void    TDisplayScaling::ResetScalingLevel ()
-{
-ScalingLevel        = ScalingLimitMin + ( ScalingLimitMax - ScalingLimitMin ) * ScalingLevelInit;
-}
+    void TDisplayScaling::UpdateScaling()
+    {
+        // update these variables - ScalingLevel is always positive (a member with a good attitude)
+        ScalingPMax = ScalingLevel;
+        ScalingNMax = -ScalingLevel;
+    }
 
+    //----------------------------------------------------------------------------
+    // Negative and Positive values
+    void TDisplayScaling::SetScaling(double negv, double posv, bool forcesymetric)
+    {
+        // force positive
+        ScalingPMax = abs(posv);
 
-void    TDisplayScaling::ResetScalingContrast ()
-{
-ScalingContrast     = ScalingMinContrast;
-}
+        // force negative
+        ScalingNMax = -abs(negv);
 
+        // keep biggest scaling (most significant if one is actually 0) + clipping to safe values
+        ScalingLevel = Clip(max(ScalingPMax, -ScalingNMax), ScalingLimitMin, ScalingLimitMax);
 
-//----------------------------------------------------------------------------
-                                        // Absolute values
-void    TDisplayScaling::SetScalingLimits ( double absminv, double absmaxv )
-{
-absminv         = abs ( absminv );
-absmaxv         = abs ( absmaxv );
+        // make the 2 scaling equal
+        if (forcesymetric)
+            UpdateScaling();
+    }
 
-CheckOrder ( absminv, absmaxv );
+    //----------------------------------------------------------------------------
 
-ScalingLimitMin = absminv;
-ScalingLimitMax = absmaxv;
-}
+    double TDisplayScaling::SetScalingContrast(double contrast)
+    {
+        double osc = ScalingContrast;
 
+        ScalingContrast = Clip(contrast, ScalingMinContrast, ScalingMaxContrast);
 
-//----------------------------------------------------------------------------
-                                        // Absolute value
-void    TDisplayScaling::SetScaling ( double scaling )
-{
-ScalingLevel    = Clip ( abs ( scaling ), ScalingLimitMin, ScalingLimitMax );
+        UpdateScaling();
 
-UpdateScaling ();
-}
+        return osc;
+    }
 
-
-void    TDisplayScaling::UpdateScaling ()
-{
-                                        // update these variables - ScalingLevel is always positive (a member with a good attitude)
-ScalingPMax =   ScalingLevel;
-ScalingNMax = - ScalingLevel;
-}
-
-
-//----------------------------------------------------------------------------
-                                        // Negative and Positive values
-void    TDisplayScaling::SetScaling ( double negv, double posv, bool forcesymetric )
-{
-                                        // force positive
-ScalingPMax         =   abs ( posv );
-
-                                        // force negative
-ScalingNMax         = - abs ( negv );
-
-                                        // keep biggest scaling (most significant if one is actually 0) + clipping to safe values
-ScalingLevel        = Clip ( max ( ScalingPMax, -ScalingNMax ), ScalingLimitMin, ScalingLimitMax );
-
-                                        // make the 2 scaling equal
-if ( forcesymetric )
-    UpdateScaling ();
-}
-
-
-//----------------------------------------------------------------------------
-
-double  TDisplayScaling::SetScalingContrast ( double contrast )
-{
-double              osc             = ScalingContrast;
-
-ScalingContrast     = Clip ( contrast, ScalingMinContrast, ScalingMaxContrast );
-
-UpdateScaling ();
-
-return  osc;
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

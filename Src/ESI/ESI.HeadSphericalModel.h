@@ -16,23 +16,22 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // number of points used to compute the head model
-constexpr int   HeadModelNumPoints              = 2000;
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // number of points used to compute the head model
+   constexpr int HeadModelNumPoints = 2000;
 
-class           TFitModelOnPoints;
+   class TFitModelOnPoints;
 
-bool            ComputeSpherizationModel    (   TFitModelOnPoints&  gosurf  );
+   bool ComputeSpherizationModel(TFitModelOnPoints &gosurf);
 
+   // void          SaveSpherizedMri      ( char *file, TVolumeDoc* mridoc, Volume *volume, TFitModelOnPoints &gosurf, bool creepy = false );
+   // void          SaveUnspherizedMri    ( char *file, TVolumeDoc* mrigreydoc, TVolumeDoc *mribrain, TFitModelOnPoints &gosurf );
 
-//void          SaveSpherizedMri      ( char *file, TVolumeDoc* mridoc, Volume *volume, TFitModelOnPoints &gosurf, bool creepy = false );
-//void          SaveUnspherizedMri    ( char *file, TVolumeDoc* mrigreydoc, TVolumeDoc *mribrain, TFitModelOnPoints &gosurf );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

@@ -16,135 +16,124 @@ limitations under the License.
 
 #pragma once
 
-#include    <complex>
+#include <complex>
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
-constexpr char*     FrequencyAnalysisTitle      = "Frequency Analysis";
-                                        // also limit the number of frequencies to average
-constexpr int       STranformMaxAvg             = 25;
-                                        // when high frequency resolution is available, limit the averaging to this step
-constexpr double    AvgMinStep_hz               = 0.25;
-                                        // smallest step between output frequencies
-constexpr double    FrequencyResolution         = 0.01; // 0.1;
+        constexpr char *FrequencyAnalysisTitle = "Frequency Analysis";
+        // also limit the number of frequencies to average
+        constexpr int STranformMaxAvg = 25;
+        // when high frequency resolution is available, limit the averaging to this step
+        constexpr double AvgMinStep_hz = 0.25;
+        // smallest step between output frequencies
+        constexpr double FrequencyResolution = 0.01; // 0.1;
 
-constexpr double    FreqMinLog10Value           = 1e-3;
-                                        // Hanning windowing deletes half of the signal, we can rescale the results by 2 to recover the original amplitude
-constexpr double    HanningRescaling            = 2.0;
+        constexpr double FreqMinLog10Value = 1e-3;
+        // Hanning windowing deletes half of the signal, we can rescale the results by 2 to recover the original amplitude
+        constexpr double HanningRescaling = 2.0;
 
-
-enum    FreqAnalysisType
+        enum FreqAnalysisType
         {
-        FreqAnalysisFFT,
-        FreqAnalysisPowerMaps,          // FFT for surface EEG: Average Reference, Norm^2
-        FreqAnalysisFFTApproximation,   // FFT projected on a single Real axis
-        FreqAnalysisSTransform,         // Stockwell transform, a sort of Wavelet very close to Morlet's
+                FreqAnalysisFFT,
+                FreqAnalysisPowerMaps,        // FFT for surface EEG: Average Reference, Norm^2
+                FreqAnalysisFFTApproximation, // FFT projected on a single Real axis
+                FreqAnalysisSTransform,       // Stockwell transform, a sort of Wavelet very close to Morlet's
         };
 
-
-enum    FreqOutputBands
+        enum FreqOutputBands
         {
-        OutputLinearInterval,
-        OutputLogInterval,
-        OutputBands,
+                OutputLinearInterval,
+                OutputLogInterval,
+                OutputBands,
         };
 
-                                        // Controlling how the FFT results should be rescaled / divided
-enum    FFTRescalingType
+        // Controlling how the FFT results should be rescaled / divided
+        enum FFTRescalingType
         {
-        FFTRescalingNone,
-        FFTRescalingSqrtWindowSize,
-        FFTRescalingWindowSize,
-        NumFFTRescalingType,
+                FFTRescalingNone,
+                FFTRescalingSqrtWindowSize,
+                FFTRescalingWindowSize,
+                NumFFTRescalingType,
 
-        FFTRescalingForward         = FFTRescalingNone,
-        FFTRescalingBackward        = FFTRescalingWindowSize,   // default rescaling used for forward AND backward (FFT then FFTI) to get back to original scaling
-        FFTRescalingParseval        = FFTRescalingWindowSize,   // FFT forward only Parseval rescaling, which preserves the energy of the signal - still be careful of real signal "folded" output
+                FFTRescalingForward = FFTRescalingNone,
+                FFTRescalingBackward = FFTRescalingWindowSize, // default rescaling used for forward AND backward (FFT then FFTI) to get back to original scaling
+                FFTRescalingParseval = FFTRescalingWindowSize, // FFT forward only Parseval rescaling, which preserves the energy of the signal - still be careful of real signal "folded" output
         };
 
-extern const char   FFTRescalingString[ NumFFTRescalingType ][ 64 ];
+        extern const char FFTRescalingString[NumFFTRescalingType][64];
 
-                                        // Controlling how the FFT complex values are written to file
-enum    FreqOutputAtomType
+        // Controlling how the FFT complex values are written to file
+        enum FreqOutputAtomType
         {
-        OutputAtomReal,
-        OutputAtomNorm,
-        OutputAtomNorm2,
-        OutputAtomComplex,
-        OutputAtomPhase,
-        NumFreqOutputAtomType
+                OutputAtomReal,
+                OutputAtomNorm,
+                OutputAtomNorm2,
+                OutputAtomComplex,
+                OutputAtomPhase,
+                NumFreqOutputAtomType
         };
 
-extern const char   FreqOutputAtomString[ NumFreqOutputAtomType ][ 32 ];
+        extern const char FreqOutputAtomString[NumFreqOutputAtomType][32];
 
-
-enum    FreqWindowingType
+        enum FreqWindowingType
         {
-        FreqWindowingNone,
-        FreqWindowingHanning,
-        FreqWindowingHanningBorder,
+                FreqWindowingNone,
+                FreqWindowingHanning,
+                FreqWindowingHanningBorder,
         };
 
+        //----------------------------------------------------------------------------
+        //  a few utilities used by FrequencyAnalysis
+        void InvertFreqMap(std::complex<float> *v,
+                           int numel);
 
-//----------------------------------------------------------------------------
-                                        //  a few utilities used by FrequencyAnalysis
-void    InvertFreqMap                   (   std::complex<float>*    v,  
-                                            int                     numel   
-                                        );
+        bool IsNegativeCorrelation(std::complex<float> *vc1,
+                                   std::complex<float> *vc2,
+                                   int numel);
 
-bool    IsNegativeCorrelation           (   std::complex<float>*    vc1, 
-                                            std::complex<float>*    vc2, 
-                                            int                     numel   
-                                        );
+        void ApproximateFrequency(std::complex<float> cstl[],
+                                  int numel);
 
-void    ApproximateFrequency            (   std::complex<float>     cstl[], 
-                                            int                     numel   
-                                        );
+        void ApproximateFrequencyOptimized(std::complex<float> cstl[],
+                                           int numel);
 
-void    ApproximateFrequencyOptimized   (   std::complex<float>     cstl[], 
-                                            int                     numel   
-                                        );
+        //----------------------------------------------------------------------------
+        // Frequency analysis, with all options
+        enum ReferenceType;
+        enum MarkerType;
+        class TTracksDoc;
 
+        bool FrequencyAnalysis(TTracksDoc *eegdoc, // not const, because we activate/deactivate filters
+                               const char *xyzfile,
+                               FreqAnalysisType analysis,
+                               const char *channels, // could be empty or "*" to select all regular tracks
+                               ReferenceType ref, const char *reflist,
+                               long timemin, long timemax, bool endoffile,
+                               double samplingfrequency,
+                               int numblocks, int blocksize, int blockstep, double blocksoverlap,
+                               FFTRescalingType fftnorm,
+                               FreqOutputBands outputbands,
+                               FreqOutputAtomType outputatomtype,
+                               bool outputmarkers, MarkerType outputmarkerstype,
+                               const char *outputbandslist,
+                               double outputfreqmin, double outputfreqmax, double outputfreqstep,
+                               int outputdecadestep,
+                               bool outputsequential, // averaged otherwise
+                               FreqWindowingType windowing,
+                               bool optimaldownsampling,
+                               const char *infixfilename, bool createsubdir,
+                               char *fileoutfreq, // these parameters act as flags: if null, ignore specific output, otherwise, generate file
+                               char *fileoutsplitelec,
+                               char *fileoutsplitfreq,
+                               char *fileoutspectrum,
+                               char *fileoutapprfreqs,
+                               bool silent);
 
-//----------------------------------------------------------------------------
-                                        // Frequency analysis, with all options
-enum    ReferenceType;
-enum    MarkerType;
-class   TTracksDoc;
-
-
-bool    FrequencyAnalysis   (   TTracksDoc*         eegdoc,             // not const, because we activate/deactivate filters
-                                const char*         xyzfile,
-                                FreqAnalysisType    analysis,
-                                const char*         channels,           // could be empty or "*" to select all regular tracks
-                                ReferenceType       ref,                const char*         reflist,
-                                long                timemin,            long                timemax,            bool                endoffile,
-                                double              samplingfrequency,
-                                int                 numblocks,          int                 blocksize,          int                 blockstep,          double              blocksoverlap,
-                                FFTRescalingType    fftnorm,
-                                FreqOutputBands     outputbands,
-                                FreqOutputAtomType  outputatomtype,
-                                bool                outputmarkers,      MarkerType          outputmarkerstype,
-                                const char*         outputbandslist,
-                                double              outputfreqmin,      double              outputfreqmax,      double              outputfreqstep,     
-                                int                 outputdecadestep,
-                                bool                outputsequential,   // averaged otherwise
-                                FreqWindowingType   windowing,
-                                bool                optimaldownsampling,
-                                const char*         infixfilename,      bool                createsubdir,
-                                char*               fileoutfreq,        // these parameters act as flags: if null, ignore specific output, otherwise, generate file
-                                char*               fileoutsplitelec,
-                                char*               fileoutsplitfreq,
-                                char*               fileoutspectrum,
-                                char*               fileoutapprfreqs,
-                                bool                silent
-                            );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
 }

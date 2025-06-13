@@ -16,74 +16,68 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
-constexpr char*     MriCoregistrationTitle      = "MRI Coregistration";
+        constexpr char *MriCoregistrationTitle = "MRI Coregistration";
 
-
-enum    CoregistrationTypes
+        enum CoregistrationTypes
         {
-                                        // Regular, general prupose affine coregistration
-        CoregistrationTrans,
-        CoregistrationRotTrans,
-        CoregistrationRotTransScale1,
-        CoregistrationRotTransScale3,
-        CoregistrationRotTransScale3Shear2,
-        CoregistrationRotTransScale3Shear3,
-        CoregistrationRotTransScale3Shear6,
-                                        // Brain-specific affine coregistration
-        CoregistrationBrainTrans,
-        CoregistrationBrainRotTrans,
-        CoregistrationBrainRotTransScale1,
-        CoregistrationBrainRotTransScale3,
-        CoregistrationBrainRotTransScale3Shear2,
-        CoregistrationBrainRotTransScale3Shear3,
-        CoregistrationBrainRotTransScale3Shear6,
+                // Regular, general prupose affine coregistration
+                CoregistrationTrans,
+                CoregistrationRotTrans,
+                CoregistrationRotTransScale1,
+                CoregistrationRotTransScale3,
+                CoregistrationRotTransScale3Shear2,
+                CoregistrationRotTransScale3Shear3,
+                CoregistrationRotTransScale3Shear6,
+                // Brain-specific affine coregistration
+                CoregistrationBrainTrans,
+                CoregistrationBrainRotTrans,
+                CoregistrationBrainRotTransScale1,
+                CoregistrationBrainRotTransScale3,
+                CoregistrationBrainRotTransScale3Shear2,
+                CoregistrationBrainRotTransScale3Shear3,
+                CoregistrationBrainRotTransScale3Shear6,
 
-        NumCoregistrationTypes,
+                NumCoregistrationTypes,
 
-        CoregistrationRegularMin= CoregistrationTrans,
-        CoregistrationRegularMax= CoregistrationRotTransScale3Shear6,
-        CoregistrationBrainMin  = CoregistrationBrainTrans,
-        CoregistrationBrainMax  = CoregistrationBrainRotTransScale3Shear6,
+                CoregistrationRegularMin = CoregistrationTrans,
+                CoregistrationRegularMax = CoregistrationRotTransScale3Shear6,
+                CoregistrationBrainMin = CoregistrationBrainTrans,
+                CoregistrationBrainMax = CoregistrationBrainRotTransScale3Shear6,
         };
 
+        class TVerboseFile;
 
-class       TVerboseFile;
+        class CoregistrationSpecsType
+        {
+        public:
+                CoregistrationTypes Code;
+                char Text[128];
+                char Choice[2];
+                bool IsLinearTransform;
+                int NumTranslations;
+                int NumRotations;
+                int NumScalings;
+                int NumShearings;
 
+                void ToVerbose(TVerboseFile &verbose) const;
+        };
 
-class   CoregistrationSpecsType
-{
-public:
-        CoregistrationTypes     Code;
-        char                    Text    [ 128 ];
-        char                    Choice  [   2 ];
-        bool                    IsLinearTransform;
-        int                     NumTranslations;
-        int                     NumRotations;
-        int                     NumScalings;
-        int                     NumShearings;
+        extern const CoregistrationSpecsType CoregistrationSpecs[NumCoregistrationTypes];
 
-        void                    ToVerbose ( TVerboseFile& verbose ) const;
-};
+        //----------------------------------------------------------------------------
 
+        class TVolumeDoc;
 
-extern const CoregistrationSpecsType    CoregistrationSpecs[ NumCoregistrationTypes ];
+        void CoregistrationMrisUI(const TVolumeDoc *SourceMri = 0,
+                                  const TVolumeDoc *TargetMri = 0);
 
-
-//----------------------------------------------------------------------------
-
-class       TVolumeDoc;
-
-void    CoregistrationMrisUI(   const TVolumeDoc*   SourceMri   = 0,
-                                const TVolumeDoc*   TargetMri   = 0    
-                            );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
 }

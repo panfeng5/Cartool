@@ -16,27 +16,25 @@ limitations under the License.
 
 #pragma once
 
-#include    "TInverseMatrixDoc.h"
+#include "TInverseMatrixDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Roberto Inverse Matrix
-class   TMatrixSpinvDoc :   public  TInverseMatrixDoc
+namespace crtl
 {
-public:
-                    TMatrixSpinvDoc ( owl::TDocument *parent = 0 );
 
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // Roberto Inverse Matrix
+   class TMatrixSpinvDoc : public TInverseMatrixDoc
+   {
+   public:
+      TMatrixSpinvDoc(owl::TDocument *parent = 0);
 
-    bool            Open            ( int mode, const char* path = 0 )  final;
+      bool Open(int mode, const char *path = 0) final;
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-};
+      static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+   };
 
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

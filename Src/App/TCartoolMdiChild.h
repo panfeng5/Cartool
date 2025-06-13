@@ -16,41 +16,30 @@ limitations under the License.
 
 #pragma once
 
+#include "TCartoolDocManager.h" // TCartoolObjects
 
-#include    "TCartoolDocManager.h"      // TCartoolObjects
-
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   TCartoolApp;
-class   TCartoolMdiClient;
-class   TCartoolDocManager;
-
-
-class   TCartoolMdiChild    :   public  owl::TMDIChild,
-                                public  TCartoolObjects
+namespace crtl
 {
-public:
-                    TCartoolMdiChild ( owl::TMDIClient& parent, const char* title, owl::TWindow* clientWnd, bool shrinkToClient = false, owl::TModule* module = 0 );
 
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-    void            EvSysCommand ( UINT cmdType, const owl::TPoint& );
+   class TCartoolApp;
+   class TCartoolMdiClient;
+   class TCartoolDocManager;
 
+   class TCartoolMdiChild : public owl::TMDIChild,
+                            public TCartoolObjects
+   {
+   public:
+      TCartoolMdiChild(owl::TMDIClient &parent, const char *title, owl::TWindow *clientWnd, bool shrinkToClient = false, owl::TModule *module = 0);
 
-    DECLARE_RESPONSE_TABLE (TCartoolMdiChild);
-};
+      void EvSysCommand(UINT cmdType, const owl::TPoint &);
 
+      DECLARE_RESPONSE_TABLE(TCartoolMdiChild);
+   };
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }
-
-
-
-
-
-
-

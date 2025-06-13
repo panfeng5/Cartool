@@ -16,73 +16,65 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-constexpr char*     CentroidTitle           = "Centroids Computation";
+   constexpr char *CentroidTitle = "Centroids Computation";
 
+   enum AtomType;
+   enum ReferenceType;
+   enum CentroidType;
+   enum PolarityType;
+   enum SpatialFilterType;
+   class TMaps;
+   class TGoF;
 
-enum        AtomType;
-enum        ReferenceType;
-enum        CentroidType;
-enum        PolarityType;
-enum        SpatialFilterType;
-class       TMaps;
-class       TGoF;
+   enum ComputeCentroidEnum
+   {
+      OneFileOneCentroid,  // typical case: each file is basically 1 condition & 1 subject
+      AllFilesOneCentroid, // typical case: files are epochs for 1 condition & 1 subject
+   };
 
+   void ProcessResults(TMaps &data, AtomType datatype, ReferenceType reference,
+                       bool ranking,
+                       bool thresholding, double threshold,
+                       bool normalize);
 
-enum        ComputeCentroidEnum {
-            OneFileOneCentroid,     // typical case: each file is basically 1 condition & 1 subject
-            AllFilesOneCentroid,    // typical case: files are epochs for 1 condition & 1 subject
-            };
+   void ProcessResults(TGoF &gof, AtomType datatype, ReferenceType reference,
+                       bool ranking,
+                       bool thresholding, double threshold,
+                       bool normalize);
 
+   void ComputeCentroidFiles(const TGoF &gof, ComputeCentroidEnum layout,
+                             CentroidType centroidflag,
+                             AtomType datatype,
+                             PolarityType polarity,
+                             ReferenceType processingref,
+                             //                                  bool                toabszscore,
+                             bool ranking,
+                             bool thresholding, double threshold,
+                             bool normalize,
+                             SpatialFilterType spatialfilter, const char *xyzfile,
+                             TMaps &mapscentroid,
+                             bool showprogress = false);
 
-void    ProcessResults  (   TMaps&      data,           AtomType        datatype,       ReferenceType   reference,
-                            bool        ranking, 
-                            bool        thresholding,   double          threshold, 
-                            bool        normalize 
-                        );
+   void ComputeCentroidFiles(const TGoF &gof, ComputeCentroidEnum layout,
+                             CentroidType centroidflag,
+                             AtomType datatype,
+                             PolarityType polarity,
+                             ReferenceType processingref,
+                             //                                  bool                toabszscore,
+                             bool ranking,
+                             bool thresholding, double threshold,
+                             bool normalize,
+                             SpatialFilterType spatialfilter, const char *xyzfile,
+                             char *centrfile,
+                             bool showprogress = false);
 
-void    ProcessResults  (   TGoF&       gof,            AtomType        datatype,       ReferenceType   reference,
-                            bool        ranking, 
-                            bool        thresholding,   double          threshold, 
-                            bool        normalize 
-                        );
-
-
-void    ComputeCentroidFiles    (   const TGoF&         gof,                ComputeCentroidEnum     layout,
-                                    CentroidType        centroidflag,
-                                    AtomType            datatype,
-                                    PolarityType        polarity,
-                                    ReferenceType       processingref,
-//                                  bool                toabszscore,
-                                    bool                ranking,
-                                    bool                thresholding,       double                  threshold,
-                                    bool                normalize,
-                                    SpatialFilterType   spatialfilter,      const char*             xyzfile,
-                                    TMaps&              mapscentroid,
-                                    bool                showprogress    = false
-                                );
-
-
-void    ComputeCentroidFiles    (   const TGoF&         gof,                ComputeCentroidEnum     layout,
-                                    CentroidType        centroidflag,
-                                    AtomType            datatype,
-                                    PolarityType        polarity,
-                                    ReferenceType       processingref,
-//                                  bool                toabszscore,
-                                    bool                ranking,
-                                    bool                thresholding,       double                  threshold,
-                                    bool                normalize,
-                                    SpatialFilterType   spatialfilter,      const char*             xyzfile,
-                                    char*               centrfile,
-                                    bool                showprogress    = false
-                                );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

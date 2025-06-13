@@ -16,29 +16,28 @@ limitations under the License.
 
 #pragma once
 
-#include    "Geometry.TDipole.h"
+#include "Geometry.TDipole.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-constexpr char*     GenerateOscillatingDataTitle    = "Generating Data";
+   constexpr char *GenerateOscillatingDataTitle = "Generating Data";
 
+   class TLeadField;
+   template <class>
+   class TTracks;
 
-class                       TLeadField;
-template <class> class      TTracks;
+   void GenerateOscillatingData(
+       TLeadField &leadfield, TTracks<float> &K,
+       TDipole dipoles[], int numsources,
+       int fileduration, double samplingfrequency,
+       const char *basefilename,
+       bool savemaps, bool saveris);
 
-
-void        GenerateOscillatingData (
-                            TLeadField&         leadfield,          TTracks<float>& K,                  
-                            TDipole             dipoles[],          int             numsources,
-                            int                 fileduration,       double          samplingfrequency,
-                            const char*         basefilename,
-                            bool                savemaps,           bool            saveris
-                            );
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

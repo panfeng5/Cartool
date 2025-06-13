@@ -16,94 +16,87 @@ limitations under the License.
 
 #pragma once
 
-#include    "System.h"
-#include    "TBaseDialog.h"
-#include    "TCartoolApp.h"
+#include "System.h"
+#include "TBaseDialog.h"
+#include "TCartoolApp.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-class   TFileCalculatorStruct
+namespace crtl
 {
-public:
-                        TFileCalculatorStruct ();
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-    TEditData           NumGroups   [ EditSizeValue ];
-    TListBoxData        GroupsSummary;
+        class TFileCalculatorStruct
+    {
+    public:
+        TFileCalculatorStruct();
 
-    TComboBoxData       Expression;
+        TEditData NumGroups[EditSizeValue];
+        TListBoxData GroupsSummary;
 
-    TEditData           BaseDir       [ EditSizeText ];
-    TRadioButtonData    CompoundFilenames;
-    TRadioButtonData    GenericFilenames;
-    TComboBoxData       FileTypes;
+        TComboBoxData Expression;
 
-    TEditData           Regularization[ EditSizeText ];
+        TEditData BaseDir[EditSizeText];
+        TRadioButtonData CompoundFilenames;
+        TRadioButtonData GenericFilenames;
+        TComboBoxData FileTypes;
+
+        TEditData Regularization[EditSizeText];
     };
 
+    EndBytePacking
 
-EndBytePacking
+        //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
+        class TGoF;
 
-class   TGoF;
+    class TFileCalculatorDialog : public TBaseDialog
+    {
+    public:
+        TFileCalculatorDialog(owl::TWindow *parent, owl::TResId resId);
+        ~TFileCalculatorDialog();
 
+    protected:
+        owl::TEdit *NumGroups;
+        owl::TListBox *GroupsSummary;
 
-class   TFileCalculatorDialog   :   public  TBaseDialog
-{
-public:
-                        TFileCalculatorDialog ( owl::TWindow* parent, owl::TResId resId );
-                       ~TFileCalculatorDialog ();
+        owl::TComboBox *Expression;
 
-protected:
-    owl::TEdit          *NumGroups;
-    owl::TListBox       *GroupsSummary;
+        owl::TEdit *BaseDir;
+        owl::TRadioButton *CompoundFilenames;
+        owl::TRadioButton *GenericFilenames;
+        owl::TComboBox *FileTypes;
 
-    owl::TComboBox      *Expression;
+        owl::TEdit *Regularization;
 
-    owl::TEdit          *BaseDir;
-    owl::TRadioButton   *CompoundFilenames;
-    owl::TRadioButton   *GenericFilenames;
-    owl::TComboBox      *FileTypes;
+        static TGoGoF GoGoF;
 
-    owl::TEdit          *Regularization;
+        bool CheckGroups(const TGoF &gof);
+        void AddFileToGroup(const char *filename, bool first);
+        void GuessOutputFileExtension();
+        void AddGroupSummary(int gofi);
+        void SetBaseFilename();
 
+        void CmOk();
+        void CmOkEnable(owl::TCommandEnabler &tce);
 
-    static TGoGoF       GoGoF;
+        void CmUpOneDirectory();
+        void CmBrowseBaseFileName();
+        void CmAddGroup(owlwparam w);
+        void CmRemoveGroup();
+        void CmClearGroups();
+        void CmSortGroups();
+        void EvDropFiles(owl::TDropInfo drop);
+        void CmReadParams();
+        void ReadParams(char *filename = 0);
+        void CmWriteParams();
 
+        DECLARE_RESPONSE_TABLE(TFileCalculatorDialog);
+    };
 
-    bool                CheckGroups             ( const TGoF& gof );
-    void                AddFileToGroup          ( const char* filename, bool first );
-    void                GuessOutputFileExtension();
-    void                AddGroupSummary         ( int gofi );
-    void                SetBaseFilename         ();
-
-    void                CmOk                    ();
-    void                CmOkEnable              ( owl::TCommandEnabler &tce );
-
-    void                CmUpOneDirectory        ();
-    void                CmBrowseBaseFileName    ();
-    void                CmAddGroup              ( owlwparam w );
-    void                CmRemoveGroup           ();
-    void                CmClearGroups           ();
-    void                CmSortGroups            ();
-    void                EvDropFiles             ( owl::TDropInfo drop );
-    void                CmReadParams            ();
-    void                ReadParams              ( char *filename = 0 );
-    void                CmWriteParams           ();
-
-
-    DECLARE_RESPONSE_TABLE ( TFileCalculatorDialog );
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

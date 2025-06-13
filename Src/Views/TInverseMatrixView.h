@@ -16,55 +16,49 @@ limitations under the License.
 
 #pragma once
 
-#include    "TBaseDoc.h"
-#include    "TInverseMatrixDoc.h"
+#include "TBaseDoc.h"
+#include "TInverseMatrixDoc.h"
 
-#include    "TBaseView.h"
+#include "TBaseView.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-enum    {
-        ISGLVIEW_CBG_NUM    = NumBaseViewButtons
-        };
-
-
-class   TInverseMatrixView  :   public  TBaseView
+namespace crtl
 {
-public:
-                        TInverseMatrixView ( TInverseMatrixDoc &doc, owl::TWindow *parent = 0, TLinkManyDoc *group=0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    static const char*  StaticName              ()          { return "Inverse &Matrix"; }
-    const char*         GetViewName             ()  final   { return StaticName(); }
+    enum
+    {
+        ISGLVIEW_CBG_NUM = NumBaseViewButtons
+    };
 
-    void                CreateGadgets           ()  final;
+    class TInverseMatrixView : public TBaseView
+    {
+    public:
+        TInverseMatrixView(TInverseMatrixDoc &doc, owl::TWindow *parent = 0, TLinkManyDoc *group = 0);
 
+        static const char *StaticName() { return "Inverse &Matrix"; }
+        const char *GetViewName() final { return StaticName(); }
 
-    void                GLPaint                 ( int how, int renderingmode, TGLClipPlane *otherclipplane )    final;
+        void CreateGadgets() final;
 
+        void GLPaint(int how, int renderingmode, TGLClipPlane *otherclipplane) final;
 
-protected:
+    protected:
+        TInverseMatrixDoc *ISDoc;
 
-    TInverseMatrixDoc*  ISDoc;
+        bool ValidView() final { return ISDoc->GetNumElectrodes(); }
 
+        void Paint(owl::TDC &dc, bool erase, owl::TRect &rect) final;
 
-    bool                ValidView               ()  final   { return ISDoc->GetNumElectrodes(); }
+        void CmSetAveragingBefore(owlwparam w);
+        void CmPrecedenceBeforeEnable(owl::TCommandEnabler &tce);
+        void CmPrecedenceAfterEnable(owl::TCommandEnabler &tce);
 
-    void                Paint                   ( owl::TDC& dc, bool erase, owl::TRect& rect )  final;
+        DECLARE_RESPONSE_TABLE(TInverseMatrixView);
+    };
 
-
-    void                CmSetAveragingBefore    ( owlwparam w );
-    void                CmPrecedenceBeforeEnable( owl::TCommandEnabler& tce );
-    void                CmPrecedenceAfterEnable ( owl::TCommandEnabler& tce );
-
-    DECLARE_RESPONSE_TABLE (TInverseMatrixView);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

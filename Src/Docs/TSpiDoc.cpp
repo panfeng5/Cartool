@@ -14,92 +14,86 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TSpiDoc.h"
+#include "TSpiDoc.h"
 
-#include    "Math.Utils.h"
-#include    "Files.Stream.h"
+#include "Math.Utils.h"
+#include "Files.Stream.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-        TSpiDoc::TSpiDoc ( TDocument* parent )
-   	  : TSolutionPointsDoc ( parent )
+namespace crtl
 {
-}
 
-
-//----------------------------------------------------------------------------
-bool	TSpiDoc::ReadFromHeader ( const char* file, ReadFromHeaderType what, void* answer )
-{
-ifstream            ifs ( TFileName ( file, TFilenameExtendedPath ) );
-
-if ( ifs.fail () )
-    return false;
-
-switch ( what ) {
-
-    case ReadNumSolPoints :
-        *((int *)answer) = AtLeast ( 0, CountLines ( file ) );
-        return  true;
-
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    TSpiDoc::TSpiDoc(TDocument *parent)
+        : TSolutionPointsDoc(parent)
+    {
     }
 
+    //----------------------------------------------------------------------------
+    bool TSpiDoc::ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer)
+    {
+        ifstream ifs(TFileName(file, TFilenameExtendedPath));
 
-return false;
-}
+        if (ifs.fail())
+            return false;
 
+        switch (what)
+        {
 
-//----------------------------------------------------------------------------
-bool	TSpiDoc::Open ( int /*mode*/, const char *path )
-{
-if ( path )
-    SetDocPath ( path );
+        case ReadNumSolPoints:
+            *((int *)answer) = AtLeast(0, CountLines(file));
+            return true;
+        }
 
-
-SetDirty ( false );
-
-
-if ( GetDocPath () ) {
-
-    TPoints&            Points          = GetPoints ( DisplaySpace3D );
-
-    Points .ReadFile ( (char *) GetDocPath (), &SPNames );
-
-
-//    double      md      = Points.GetMedianDistance ();
-//    for ( int sp = 0; sp < GetNumSolPoints (); sp++ )
-//        Points[ sp ].RoundTo ( md );
-
-
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                            // testing if names exist: test first line
-    ifstream            ifs ( TFileName ( GetDocPath (), TFilenameExtendedPath ) );
-    char                buff  [ KiloByte ];
-
-    ifs.getline ( buff, KiloByte );
-
-    HasNames            = sscanf ( buff, "%*f %*f %*f %s", buff ) == 1;
-
-//  DBGV ( HasNames, GetTitle () );
-    }
-else {                                  // can not create a SPI file
-    return  false;
+        return false;
     }
 
+    //----------------------------------------------------------------------------
+    bool TSpiDoc::Open(int /*mode*/, const char *path)
+    {
+        if (path)
+            SetDocPath(path);
 
-return  true;
-}
+        SetDirty(false);
 
+        if (GetDocPath())
+        {
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+            TPoints &Points = GetPoints(DisplaySpace3D);
+
+            Points.ReadFile((char *)GetDocPath(), &SPNames);
+
+            //    double      md      = Points.GetMedianDistance ();
+            //    for ( int sp = 0; sp < GetNumSolPoints (); sp++ )
+            //        Points[ sp ].RoundTo ( md );
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // testing if names exist: test first line
+            ifstream ifs(TFileName(GetDocPath(), TFilenameExtendedPath));
+            char buff[KiloByte];
+
+            ifs.getline(buff, KiloByte);
+
+            HasNames = sscanf(buff, "%*f %*f %*f %s", buff) == 1;
+
+            //  DBGV ( HasNames, GetTitle () );
+        }
+        else
+        { // can not create a SPI file
+            return false;
+        }
+
+        return true;
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

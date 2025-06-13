@@ -16,141 +16,129 @@ limitations under the License.
 
 #pragma once
 
-#include    "OpenGL.Colors.h"           // TGLColor
+#include "OpenGL.Colors.h" // TGLColor
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   TMaps;
-class   TGoMaps;
-
-
-class   TRoi
+namespace crtl
 {
-public:
-                    TRoi ();
 
-    TSelection          Selection;
-    TGLColor<GLfloat>   Color;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-                                        // Currently implemented: FilterTypeMedian, FilterTypeMean
-    void            Average ( TArray2<float>&         datainout, long tf1, long tf2, FilterTypes how, float* dataout = 0 ) const;
-    void            Average ( TArray1<float>&         datainout, FilterTypes how )              const;
-    void            Average ( TArray1<TVector3Float>& datainout, FilterTypes how )              const;
-    void            Average ( const TMaps& datain, TMaps& dataout, int roii, FilterTypes how )  const;
+    class TMaps;
+    class TGoMaps;
 
+    class TRoi
+    {
+    public:
+        TRoi();
 
-                    TRoi            ( const TRoi& op );
-    TRoi&           operator    =   ( const TRoi& op2 );
-};
+        TSelection Selection;
+        TGLColor<GLfloat> Color;
 
+        // Currently implemented: FilterTypeMedian, FilterTypeMean
+        void Average(TArray2<float> &datainout, long tf1, long tf2, FilterTypes how, float *dataout = 0) const;
+        void Average(TArray1<float> &datainout, FilterTypes how) const;
+        void Average(TArray1<TVector3Float> &datainout, FilterTypes how) const;
+        void Average(const TMaps &datain, TMaps &dataout, int roii, FilterTypes how) const;
 
-//----------------------------------------------------------------------------
+        TRoi(const TRoi &op);
+        TRoi &operator=(const TRoi &op2);
+    };
 
-constexpr int   RoiNameLength           = 256;
+    //----------------------------------------------------------------------------
 
-class           TStrings;
+    constexpr int RoiNameLength = 256;
 
-enum            RoiType
-                {
-                UnknownRoiType,
-                RoiIndex,
-                //RoiCoordinates    // not currently used
-                };
+    class TStrings;
 
+    enum RoiType
+    {
+        UnknownRoiType,
+        RoiIndex,
+        // RoiCoordinates    // not currently used
+    };
 
-class   TRois //:   public virtual  TDataFormat   // to handle Type and more if needed
-{
-public:
-                    TRois ();
-                    TRois ( int numrois, int dimension );
-                    TRois ( const char* filepath );
-                   ~TRois ();
+    class TRois //:   public virtual  TDataFormat   // to handle Type and more if needed
+    {
+    public:
+        TRois();
+        TRois(int numrois, int dimension);
+        TRois(const char *filepath);
+        ~TRois();
 
+        bool IsAllocated() const { return Rois != 0; }
+        bool IsNotAllocated() const { return Rois == 0; }
+        bool IsEmpty() const { return NumRois == 0; }
+        bool IsNotEmpty() const { return NumRois != 0; }
 
-    bool            IsAllocated     ()      const           { return    Rois    != 0; }
-    bool            IsNotAllocated  ()      const           { return    Rois    == 0; }
-    bool            IsEmpty         ()      const           { return    NumRois == 0; }
-    bool            IsNotEmpty      ()      const           { return    NumRois != 0; }
+        RoiType GetType() const { return Type; }
+        const char *GetName() const { return Name; }
+        int GetDimension() const { return Dimension; }
+        int GetNumRois() const { return NumRois; }
+        int GetTotalSelected() const { return TotalSelected; }
 
+        const TStrings *GetRoiNames() const { return &RoiNames; }
+        const char *GetRoiName(int r) const { return RoiNames[r]; }
+        char *RoiNamesToText(char *text) const;
 
-    RoiType         GetType         ()      const           { return    Type; }
-    const char*     GetName         ()      const           { return    Name; }
-    int             GetDimension    ()      const           { return    Dimension; }
-    int             GetNumRois      ()      const           { return    NumRois; }
-    int             GetTotalSelected()      const           { return    TotalSelected; }
+        const TRoi *GetRoi(int r = 0) const { return &Rois[r]; }
+        const TRoi *IndexToRoi(int index) const;
 
-    const TStrings* GetRoiNames ()          const           { return   &RoiNames; }
-    const char*     GetRoiName  ( int r )   const           { return    RoiNames[ r ]; }
-    char*           RoiNamesToText ( char* text )   const;
+        const TSelection *GetRoisSelected() const { return &RoisSelected; }
+        const TSelection *GetAtomsNotSelected() const { return &AtomsNotSelected; }
 
+        // RoisSelected
+        void Set();
+        void Set(int roi);
 
-    const TRoi*     GetRoi      ( int r = 0 )   const       { return   &Rois[ r ]; }
-    const TRoi*     IndexToRoi  ( int index )   const;
+        void Reset();
+        void Reset(int roi);
 
-    const TSelection*   GetRoisSelected     ()  const       { return   &RoisSelected; }
-    const TSelection*   GetAtomsNotSelected ()  const       { return   &AtomsNotSelected; }
+        void ShiftUp(int num = 1);
+        void ShiftDown(int num = 1);
 
-                                            // RoisSelected
-    void            Set         ();
-    void            Set         ( int roi );
+        int NumSet() const { return RoisSelected.NumSet(); }
 
-    void            Reset       ();
-    void            Reset       ( int roi );
+        // cumulate rois selection into one selection
+        void CumulateInto(TSelection &sel, int fromvalue = -1, int tovalue = -1);
 
-    void            ShiftUp     ( int num = 1 );
-    void            ShiftDown   ( int num = 1 );
+        // Currently implemented: FilterTypeMedian, FilterTypeMean
+        void Average(TArray2<float> &datainout, long tf1, long tf2, FilterTypes how, TArray2<float> *dataout = 0) const;
+        void Average(TArray1<float> &datainout, FilterTypes how) const;
+        void Average(TArray1<TVector3Float> &datainout, FilterTypes how) const;
+        void Average(const TMaps &datain, TMaps &dataout, FilterTypes how) const;
+        void Average(const TGoMaps &datain, TGoMaps &dataout, FilterTypes how) const;
 
-    int             NumSet      ()          const           { return    RoisSelected.NumSet (); }
+        bool AddRoi(TSelection &roisel, const char *roiname, bool doallocate, bool checkoverlap);
+        void RemoveRoi();
+        void WriteFile(const char *file) const;
+        void ReadFile(const char *file);
 
-                                        // cumulate rois selection into one selection
-    void            CumulateInto ( TSelection &sel, int fromvalue = -1, int tovalue = -1 );
+        const TRoi &operator[](int i) const { return Rois[i]; }
+        TRoi &operator[](int i) { return Rois[i]; }
+        operator TSelection &() { return RoisSelected; }
 
-                                        // Currently implemented: FilterTypeMedian, FilterTypeMean
-    void            Average     ( TArray2<float>&           datainout, long tf1, long tf2, FilterTypes how, TArray2<float>* dataout = 0 )   const;
-    void            Average     ( TArray1<float>&           datainout, FilterTypes how )                    const;
-    void            Average     ( TArray1<TVector3Float>&   datainout, FilterTypes how )                    const;
-    void            Average     ( const TMaps&              datain, TMaps&      dataout, FilterTypes how )  const;
-    void            Average     ( const TGoMaps&            datain, TGoMaps&    dataout, FilterTypes how )  const;
+    protected:
+        RoiType Type;             // index or voxels
+        int Dimension;            // of the original data
+        char Name[RoiNameLength]; // of the roi itself
 
+        TRoi *Rois; // C++ array of single roi's (could be using some std::vector instead)
+        int NumRois;
+        int TotalSelected;           // the count of all selections in all ROIs
+        TSelection RoisSelected;     // handy to know which Rois are active (working like Tracks)
+        TStrings RoiNames;           // names of rois
+        TSelection AtomsNotSelected; // keep track of elements that are not part of any ROI
 
-    bool            AddRoi      ( TSelection& roisel, const char* roiname, bool doallocate, bool checkoverlap );
-    void            RemoveRoi   ();
-    void            WriteFile   ( const char* file )    const;
-    void            ReadFile    ( const char* file );
+        void ResetClass();
+        void Allocate(int numrois, int dimension);
+        void AddRoiFinalize();
 
+        void UpdateToRoisSelected();
+        void UpdateFromRoisSelected();
+    };
 
-    const TRoi&     operator    []      ( int i )   const   { return    Rois[ i ]; }
-          TRoi&     operator    []      ( int i )           { return    Rois[ i ]; }
-                    operator    TSelection& ()              { return    RoisSelected; }
-
-protected:
-
-    RoiType         Type;                   // index or voxels
-    int             Dimension;              // of the original data
-    char            Name[ RoiNameLength ];  // of the roi itself
-
-    TRoi*           Rois;                   // C++ array of single roi's (could be using some std::vector instead)
-    int             NumRois;
-    int             TotalSelected;          // the count of all selections in all ROIs
-    TSelection      RoisSelected;           // handy to know which Rois are active (working like Tracks)
-    TStrings        RoiNames;               // names of rois
-    TSelection      AtomsNotSelected;       // keep track of elements that are not part of any ROI
-
-
-    void            ResetClass ();
-    void            Allocate ( int numrois, int dimension );
-    void            AddRoiFinalize ();
-
-    void            UpdateToRoisSelected   ();
-    void            UpdateFromRoisSelected ();
-
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

@@ -16,53 +16,48 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-enum                        GOMethod;
-class                       TPoints;
-class                       TStrings;
-class                       TMatrix44;
-template <class>    class   TArray2;
+    enum GOMethod;
+    class TPoints;
+    class TStrings;
+    class TMatrix44;
+    template <class>
+    class TArray2;
 
+    //----------------------------------------------------------------------------
+    double CoregisterXyzToXyz(TPoints &frompoints, const TPoints &topoints,
+                              GOMethod method, int how, double precision,
+                              int numscaling, bool finalscaling,
+                              const TStrings *xyznames, const char *filename,
+                              const char *title = 0);
 
-//----------------------------------------------------------------------------
-double  CoregisterXyzToXyz      (   TPoints&            frompoints,     const TPoints&      topoints, 
-                                    GOMethod            method,         int                 how,            double              precision,
-                                    int                 numscaling,     bool                finalscaling,
-                                    const TStrings*     xyznames,       const char*         filename,
-                                    const char*         title       = 0
-                                );
+    void AveragePoints(TPoints *listpoints,
+                       int numlists,
+                       TArray2<bool> &oktoaverage,
+                       TPoints &averagepoints,
+                       TStrings *xyznames,
+                       char *filename);
 
-void    AveragePoints           (   TPoints*            listpoints, 
-                                    int                 numlists, 
-                                    TArray2<bool>&      oktoaverage, 
-                                    TPoints&            averagepoints, 
-                                    TStrings*           xyznames,
-                                    char*               filename
-                                );
+    void CenterAndReorient(TPoints &xyzpoints,
+                           TMatrix44 &matrix,
+                           char *filexyz);
 
-void    CenterAndReorient       (   TPoints&            xyzpoints, 
-                                    TMatrix44&          matrix, 
-                                    char*               filexyz 
-                                );
+    void SymmetrizeXyz(TPoints &xyzpoints);
 
-void    SymmetrizeXyz           (   TPoints&            xyzpoints );
+    //----------------------------------------------------------------------------
+    // Realign Sagittal + "Transverse" planes
+    // Can also coregister to another model
+    bool NormalizeXyz(TPoints &xyz,
+                      TStrings &xyznames,
+                      TPoints &buddyxyz,
+                      const char *xyzreffile);
 
-
-//----------------------------------------------------------------------------
-                                        // Realign Sagittal + "Transverse" planes
-                                        // Can also coregister to another model
-bool    NormalizeXyz            (   TPoints&            xyz,
-                                    TStrings&           xyznames,
-                                    TPoints&            buddyxyz,
-                                    const char*         xyzreffile
-                                );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

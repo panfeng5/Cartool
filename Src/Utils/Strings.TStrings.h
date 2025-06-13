@@ -16,131 +16,121 @@ limitations under the License.
 
 #pragma once
 
-#include    <owl/contain.h>             // TStringArray (for ListBox in dialogs)
+#include <owl/contain.h> // TStringArray (for ListBox in dialogs)
 
-#include    "TList.h"
+#include "TList.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-enum                            GrepOption;
-template <class TypeD> class    TArray2;
-
-
-enum            StringOptions
-                {
-                StringAutoSize,             // each string has exactly its needed room
-                StringAutoSizePlusMargin,   // same, but adding some margin
-                StringFixedSize,            // providing exact size, clipping strings
-                };
-
-
-class   TStrings
+namespace crtl
 {
-public:
-                    TStrings    ()                                                  { Reset ();                             }
-                    TStrings    ( int numstrings, long stringlength )               { Set     ( numstrings, stringlength ); }
-                    TStrings    ( const char*                       string  )       { SetOnly ( string );                   }
-                    TStrings    ( const TStrings&                   strings )       { Set     ( strings );                  }   // Copy constructor
-                    TStrings    ( const std::vector<std::string>&   strings )       { Set     ( strings );                  }   // Used by CLI
-                    TStrings    ( const owl::TStringArray&          strings )       { Set     ( strings );                  }   // Used by OwlNext dialogs
-                    TStrings    ( const TArray2<char>&              arraychar )     { Set     ( arraychar );                }   // Can be handy
 
-    virtual        ~TStrings    ()                                                  { Reset ();                             }
+      //----------------------------------------------------------------------------
+      //----------------------------------------------------------------------------
 
+      enum GrepOption;
+      template <class TypeD>
+      class TArray2;
 
-    int             NumStrings              ()  const       { return    Strings.Num ();         }
-    bool            IsEmpty                 ()  const       { return    Strings.IsEmpty ();     }
-    bool            IsNotEmpty              ()  const       { return    Strings.IsNotEmpty ();  }
-    long            GetMinStringLength      ()  const;
-    long            GetMaxStringLength      ()  const;
-    int             GetLongestStringIndex   ()  const;
+      enum StringOptions
+      {
+            StringAutoSize,           // each string has exactly its needed room
+            StringAutoSizePlusMargin, // same, but adding some margin
+            StringFixedSize,          // providing exact size, clipping strings
+      };
 
-    const char*     GetFirst ()                 const       { return    Strings.GetFirst (); }
-          char*     GetFirst ()                             { return    Strings.GetFirst (); }
-    const char*     GetLast  ()                 const       { return    Strings.GetLast  (); }
-          char*     GetLast  ()                             { return    Strings.GetLast  (); }
+      class TStrings
+      {
+      public:
+            TStrings() { Reset(); }
+            TStrings(int numstrings, long stringlength) { Set(numstrings, stringlength); }
+            TStrings(const char *string) { SetOnly(string); }
+            TStrings(const TStrings &strings) { Set(strings); }                 // Copy constructor
+            TStrings(const std::vector<std::string> &strings) { Set(strings); } // Used by CLI
+            TStrings(const owl::TStringArray &strings) { Set(strings); }        // Used by OwlNext dialogs
+            TStrings(const TArray2<char> &arraychar) { Set(arraychar); }        // Can be handy
 
+            virtual ~TStrings() { Reset(); }
 
-    virtual void    Reset           ();
+            int NumStrings() const { return Strings.Num(); }
+            bool IsEmpty() const { return Strings.IsEmpty(); }
+            bool IsNotEmpty() const { return Strings.IsNotEmpty(); }
+            long GetMinStringLength() const;
+            long GetMaxStringLength() const;
+            int GetLongestStringIndex() const;
 
-    void            Set             ( int numstrings, long stringsize );
-    void            SetOnly         ( const char* string );
-    void            Set             ( const TStrings&                   strings );
-    void            Set             ( const std::vector<std::string>&   strings );
-    void            Set             ( const owl::TStringArray&          strings );   // OWL strings
-    void            Set             ( const TArray2<char>& arraychar );     // // "C"-like array of chars
-    void            Set             ( const char* strings, const char* separators );
+            const char *GetFirst() const { return Strings.GetFirst(); }
+            char *GetFirst() { return Strings.GetFirst(); }
+            const char *GetLast() const { return Strings.GetLast(); }
+            char *GetLast() { return Strings.GetLast(); }
 
+            virtual void Reset();
 
-    void            Add             ( const char* string, StringOptions how, long length = 0 );   // the work horse
-    virtual void    Add             ( const char* string );
-    virtual void    Add             ( const char* string, long length );
-    void            Add             ( const TStrings& stringlist );
-    void            Add             ( int    v, int width = 0 );
-    void            Add             ( double v, int width, int precision );
-    void            Add             ( double v, int precision );
-    void            Add             ( double v );
-    void            AddNoDuplicates ( const char* string );
+            void Set(int numstrings, long stringsize);
+            void SetOnly(const char *string);
+            void Set(const TStrings &strings);
+            void Set(const std::vector<std::string> &strings);
+            void Set(const owl::TStringArray &strings); // OWL strings
+            void Set(const TArray2<char> &arraychar);   // // "C"-like array of chars
+            void Set(const char *strings, const char *separators);
 
-    void            Remove          ( const char* string );     // any string
-    void            RemoveRef       ( const char* string );     // string must be one within Strings list, usually Strings[ index ]
-    void            GrepKeep        ( const char* regexp, GrepOption options );
-    void            GrepRemove      ( const char* regexp, GrepOption options );
-    void            RemoveFirst     ( int num = 1 );
-    void            RemoveLast      ( int num = 1 );
+            void Add(const char *string, StringOptions how, long length = 0); // the work horse
+            virtual void Add(const char *string);
+            virtual void Add(const char *string, long length);
+            void Add(const TStrings &stringlist);
+            void Add(int v, int width = 0);
+            void Add(double v, int width, int precision);
+            void Add(double v, int precision);
+            void Add(double v);
+            void AddNoDuplicates(const char *string);
 
-    void            RevertOrder     ();
+            void Remove(const char *string);    // any string
+            void RemoveRef(const char *string); // string must be one within Strings list, usually Strings[ index ]
+            void GrepKeep(const char *regexp, GrepOption options);
+            void GrepRemove(const char *regexp, GrepOption options);
+            void RemoveFirst(int num = 1);
+            void RemoveLast(int num = 1);
 
-    void            CopyTo          ( TArray2<char> &stringsarray ) const;  // copy the strings
-    virtual void    Sort            ();
+            void RevertOrder();
 
-    char*           Concatenate     ( char* concatstring, const char* separator )   const;
-    const char*     Contains        ( const char* string )                          const;
-    const char*     PartiallyContains( const char* string )                         const;
-    bool            ContainsAny     ( const TStrings &strings )                     const;
-    bool            HasNoDuplicates ()                                              const;
-    bool            HasOnlyDuplicates ()                                            const;
-    void            RemoveDuplicates  ();
+            void CopyTo(TArray2<char> &stringsarray) const; // copy the strings
+            virtual void Sort();
 
-    bool            AllStringsGrep  ( const char* regexp, GrepOption options )      const;  // true if all strings Grep to true
-    bool            SomeStringsGrep ( const char* regexp, GrepOption options )      const;  // true if at least 1 string Grep to true
-    void            StringsReplace  ( const char* tobereplaced, char* replacedwith );
+            char *Concatenate(char *concatstring, const char *separator) const;
+            const char *Contains(const char *string) const;
+            const char *PartiallyContains(const char *string) const;
+            bool ContainsAny(const TStrings &strings) const;
+            bool HasNoDuplicates() const;
+            bool HasOnlyDuplicates() const;
+            void RemoveDuplicates();
 
+            bool AllStringsGrep(const char *regexp, GrepOption options) const;  // true if all strings Grep to true
+            bool SomeStringsGrep(const char *regexp, GrepOption options) const; // true if at least 1 string Grep to true
+            void StringsReplace(const char *tobereplaced, char *replacedwith);
 
-    int             GetIndex        ( const char* string    )   const;
-    void            Show            ( const char* title = 0 )   const;
+            int GetIndex(const char *string) const;
+            void Show(const char *title = 0) const;
 
+            TStrings &operator=(const TStrings &op2);
 
-    TStrings&       operator    =       ( const TStrings &op2 );
+            const char *operator[](int index) const { return Strings[index]; } // access from const object forces returning a const char*
+            char *operator[](int index) { return Strings[index]; }
+            const char *operator()(int index) const { return Strings[index]; } // access from const object forces returning a const char*
+            char *operator()(int index) { return Strings[index]; }
 
+            operator int() const { return (int)Strings; }
+            operator bool() const { return (bool)Strings; }
+            operator TList<char> &() { return Strings; }
+            operator const TList<char> &() const { return Strings; }
 
-    const char*     operator    []              ( int index ) const { return Strings[ index ]; }    // access from const object forces returning a const char*
-          char*     operator    []              ( int index )       { return Strings[ index ]; }
-    const char*     operator    ()              ( int index ) const { return Strings[ index ]; }    // access from const object forces returning a const char*
-          char*     operator    ()              ( int index )       { return Strings[ index ]; }
+            bool operator==(const TStrings &op) const;
+            bool operator!=(const TStrings &op) const;
 
-                    operator    int                 ()  const       { return (int)  Strings; }
-                    operator    bool                ()  const       { return (bool) Strings; }
-                    operator          TList<char>&  ()              { return Strings; }
-                    operator    const TList<char>&  ()  const       { return Strings; }
+      protected:
+            crtl::TList<char> Strings;
 
+            void Sort(int l, int r);
+      };
 
-    bool            operator    ==              ( const TStrings &op )   const;
-    bool            operator    !=              ( const TStrings &op )   const;
-
-
-protected:
-
-    crtl::TList<char>   Strings;
-
-    void            Sort  ( int l, int r );
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+      //----------------------------------------------------------------------------
+      //----------------------------------------------------------------------------
 
 }

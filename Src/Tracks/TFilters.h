@@ -15,15 +15,15 @@ limitations under the License.
 \************************************************************************/
 
 #pragma once
-                                        // TFilter and TFilters definition
-#include    "TFilters.Base.h"
-                                        // Temporal filters
-#include    "TFilters.Baseline.h"
-#include    "TFilters.Butterworth.h"
-#include    "TFilters.Envelope.h"
-                                        // Non-temporal filters
-#include    "TFilters.Spatial.h"
-#include    "TFilters.Ranking.h"
-#include    "TFilters.Reference.h"
-#include    "TFilters.Rectification.h"
-#include    "TFilters.Threshold.h"
+// TFilter and TFilters definition
+#include "TFilters.Base.h"
+// Temporal filters
+#include "TFilters.Baseline.h"
+#include "TFilters.Butterworth.h"
+#include "TFilters.Envelope.h"
+// Non-temporal filters
+#include "TFilters.Spatial.h"
+#include "TFilters.Ranking.h"
+#include "TFilters.Reference.h"
+#include "TFilters.Rectification.h"
+#include "TFilters.Threshold.h"

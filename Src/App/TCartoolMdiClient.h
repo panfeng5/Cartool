@@ -16,114 +16,107 @@ limitations under the License.
 
 #pragma once
 
-#include    "owl/mdi.h"
+#include "owl/mdi.h"
 
-#include    "resource.h"
+#include "resource.h"
 
-#include    "TCartoolApp.h"
+#include "TCartoolApp.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-enum        FrequencyAnalysisType; 
-class       TGoF;
-
-
-class   TCartoolMdiClient   :   public  owl::TMDIClient,
-                                public  TCartoolObjects
-
+namespace crtl
 {
-public:
 
-    using           owl::TMDIClient::TMDIClient;
-    virtual        ~TCartoolMdiClient       ();
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
+    enum FrequencyAnalysisType;
+    class TGoF;
 
-    bool            CanClose                ()  final;
+    class TCartoolMdiClient : public owl::TMDIClient,
+                              public TCartoolObjects
 
-    void            RefreshWindows          ();
+    {
+    public:
+        using owl::TMDIClient::TMDIClient;
+        virtual ~TCartoolMdiClient();
 
+        bool CanClose() final;
 
-    void            CmWinAction             ( owlwparam w );
-    void            CmDocWinAction          ( owlwparam w );
-    void            CmAllWinAction          ( owlwparam w );
-    void            CmGroupWinAction        ( owlwparam w );
-    void            CmCloseChildren         ();
-    void            ScreenToClient          ( owl::TRect& r );
+        void RefreshWindows();
 
+        void CmWinAction(owlwparam w);
+        void CmDocWinAction(owlwparam w);
+        void CmAllWinAction(owlwparam w);
+        void CmGroupWinAction(owlwparam w);
+        void CmCloseChildren();
+        void ScreenToClient(owl::TRect &r);
 
-protected:
+    protected:
+        void SetupWindow() final;
+        void BeforeClosing();
 
-    void            SetupWindow             ()  final;
-    void            BeforeClosing           ();
+        void CmNewEmptyLM();
+        void CmNewLMFromExisting();
 
-    void            CmNewEmptyLM            ();
-    void            CmNewLMFromExisting     ();
+        void CmDocWinActionEnable(owl::TCommandEnabler &tce);
+        void CmAllWinActionEnable(owl::TCommandEnabler &tce);
+        void CmGroupWinActionEnable(owl::TCommandEnabler &tce);
 
-    void            CmDocWinActionEnable    ( owl::TCommandEnabler &tce );
-    void            CmAllWinActionEnable    ( owl::TCommandEnabler &tce );
-    void            CmGroupWinActionEnable  ( owl::TCommandEnabler &tce );
+        void CmToolsHelp();
 
-    void            CmToolsHelp             ();
+        void EvDropFiles(owl::TDropInfo);
 
-    void            EvDropFiles             ( owl::TDropInfo );
+        // Menu interface handlers:
 
-                                        // Menu interface handlers:
+        // Runs actual specialized dialogs
+        void CmComputeRis();
+        void CmCoregistration();
+        void CmCreateInverseSolutions();
+        void CmCreateRois();
+        void CmExportTracks();
+        void CmFileCalculator();
+        void CmFreqAnalysis();
+        void CmInteractiveAveraging();
+        void CmInterpolate();
+        void CmPreprocessMris();
+        void CmRisToVolume();
+        void CmScanTriggers();
+        void CmStatistics(owlwparam w);
 
-                                        // Runs actual specialized dialogs
-    void            CmComputeRis            ();
-    void            CmCoregistration        ();
-    void            CmCreateInverseSolutions();
-    void            CmCreateRois            ();
-    void            CmExportTracks          ();
-    void            CmFileCalculator        ();
-    void            CmFreqAnalysis          ();
-    void            CmInteractiveAveraging  ();
-    void            CmInterpolate           ();
-    void            CmPreprocessMris        ();
-    void            CmRisToVolume           ();
-    void            CmScanTriggers          ();
-    void            CmStatistics            ( owlwparam w );
+        void CmSegmentEeg();
+        void CmFitting();
 
-    void            CmSegmentEeg            ();
-    void            CmFitting               ();
+        // Does not run actual dialogs but simplified UI (simply asking user some questions)
+        void GenerateDataUI(owlwparam w);
+        void GenerateOscillatingDataUI();
+        void GenerateRandomDataUI();
+        void AnalyzeGeneratedDataUI(owlwparam w);
 
-                                        // Does not run actual dialogs but simplified UI (simply asking user some questions)
-    void            GenerateDataUI          ( owlwparam w );
-    void            GenerateOscillatingDataUI ();
-    void            GenerateRandomDataUI    ();
-    void            AnalyzeGeneratedDataUI  ( owlwparam w );
+        void BuildTemplateElectrodesUI();
+        void DownsamplingElectrodesUI();
+        void ExtractElectrodesFromKriosUI();
 
-    void            BuildTemplateElectrodesUI ();
-    void            DownsamplingElectrodesUI();
-    void            ExtractElectrodesFromKriosUI ();
+        void BrainToSolutionPointsUI();
 
-    void            BrainToSolutionPointsUI ();
+        void BatchProcessMrisUI(owlwparam w);
+        void MergingMriMasksUI();
+        void CoregistrationMrisUI();
+        void ComputingTemplateMriUI();
 
-    void            BatchProcessMrisUI      ( owlwparam w );
-    void            MergingMriMasksUI       ();
-    void            CoregistrationMrisUI    ();
-    void            ComputingTemplateMriUI  ();
+        void BatchAveragingFilesUI(owlwparam w);
+        void ComputeCentroidFilesUI(owlwparam w);
+        void CorrelateFilesUI();
+        void PCA_ICA_UI(owlwparam w);
 
-    void            BatchAveragingFilesUI   ( owlwparam w );
-    void            ComputeCentroidFilesUI  ( owlwparam w );
-    void            CorrelateFilesUI        ();
-    void            PCA_ICA_UI              ( owlwparam w );
+        void SplitFreqFilesUI(owlwparam w);
+        void MergeTracksToFreqFilesUI();
+        //  void            SplitMatFilesUI         ( owlwparam w );
+        void FilesConversionVrbToTvaUI();
+        void RisToCloudVectorsUI();
 
-    void            SplitFreqFilesUI        ( owlwparam w );
-    void            MergeTracksToFreqFilesUI();
-//  void            SplitMatFilesUI         ( owlwparam w );
-    void            FilesConversionVrbToTvaUI ();
-    void            RisToCloudVectorsUI     ();
+        DECLARE_RESPONSE_TABLE(TCartoolMdiClient);
+    };
 
-
-    DECLARE_RESPONSE_TABLE(TCartoolMdiClient);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

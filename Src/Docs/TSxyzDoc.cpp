@@ -14,81 +14,78 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TSxyzDoc.h"
+#include "TSxyzDoc.h"
 
-#include    "Math.Utils.h"
-#include    "Files.Stream.h"
+#include "Math.Utils.h"
+#include "Files.Stream.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-        TSxyzDoc::TSxyzDoc ( TDocument *parent )
-   	  : TSolutionPointsDoc ( parent )
+namespace crtl
 {
-}
 
-
-//----------------------------------------------------------------------------
-bool	TSxyzDoc::ReadFromHeader ( const char* file, ReadFromHeaderType what, void* answer )
-{
-ifstream            ifs ( TFileName ( file, TFilenameExtendedPath ) );
-
-if ( ifs.fail() ) return false;
-
-char        buff[ 128 ];
-
-
-switch ( what ) {
-
-    case ReadNumSolPoints :
-
-        int     numsp   = StringToInteger ( GetToken ( &ifs, buff ) );
-
-        *((int *)answer) = ( numsp > 0 ) ? numsp : 0;
-        return  true;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    TSxyzDoc::TSxyzDoc(TDocument *parent)
+        : TSolutionPointsDoc(parent)
+    {
     }
 
+    //----------------------------------------------------------------------------
+    bool TSxyzDoc::ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer)
+    {
+        ifstream ifs(TFileName(file, TFilenameExtendedPath));
 
-return false;
-}
+        if (ifs.fail())
+            return false;
 
+        char buff[128];
 
-//----------------------------------------------------------------------------
-bool	TSxyzDoc::Open ( int /*mode*/, const char *path )
-{
-if ( path )
-    SetDocPath ( path );
+        switch (what)
+        {
 
+        case ReadNumSolPoints:
 
-SetDirty ( false );
+            int numsp = StringToInteger(GetToken(&ifs, buff));
 
+            *((int *)answer) = (numsp > 0) ? numsp : 0;
+            return true;
+        }
 
-if ( GetDocPath () ) {
-
-    HasNames            = true;
-
-    TPoints&        Points          = GetPoints ( DisplaySpace3D );
-
-    Points .ReadFile ( (char *) GetDocPath (), &SPNames );
-    }
-else {                          // can not create a SPI file
-    return false;
+        return false;
     }
 
+    //----------------------------------------------------------------------------
+    bool TSxyzDoc::Open(int /*mode*/, const char *path)
+    {
+        if (path)
+            SetDocPath(path);
 
-return true;
-}
+        SetDirty(false);
 
+        if (GetDocPath())
+        {
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+            HasNames = true;
+
+            TPoints &Points = GetPoints(DisplaySpace3D);
+
+            Points.ReadFile((char *)GetDocPath(), &SPNames);
+        }
+        else
+        { // can not create a SPI file
+            return false;
+        }
+
+        return true;
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

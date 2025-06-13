@@ -14,85 +14,78 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "Math.Random.h"
-#include    "Files.Utils.h"
-#include    "Dialogs.Input.h"
+#include "Math.Random.h"
+#include "Files.Utils.h"
+#include "Dialogs.Input.h"
 
-#include    "TMaps.h"
+#include "TMaps.h"
 
-#include    "GenerateRandomData.h"
+#include "GenerateRandomData.h"
 
-#include    "TCartoolMdiClient.h"
+#include "TCartoolMdiClient.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*     GenerateRandomDataTitle     = "Generating Random Data";
-
-
-void    TCartoolMdiClient::GenerateRandomDataUI ()
+namespace crtl
 {
-int                 numel;
-double              fileduration;
-double              samplingfrequency;
-TFileName           basefilename;
-TFileName           filename;
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    constexpr char *GenerateRandomDataTitle = "Generating Random Data";
 
-GetValueFromUser ( "Number of tracks:", GenerateRandomDataTitle, numel, "", this );
+    void TCartoolMdiClient::GenerateRandomDataUI()
+    {
+        int numel;
+        double fileduration;
+        double samplingfrequency;
+        TFileName basefilename;
+        TFileName filename;
 
-if ( numel <= 0 )
-    return;
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        GetValueFromUser("Number of tracks:", GenerateRandomDataTitle, numel, "", this);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        if (numel <= 0)
+            return;
 
-GetValueFromUser ( "File duration:", GenerateRandomDataTitle, fileduration, "1000", this );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if ( fileduration <= 0 )
-    return;
+        GetValueFromUser("File duration:", GenerateRandomDataTitle, fileduration, "1000", this);
 
+        if (fileduration <= 0)
+            return;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // currently not asking
-samplingfrequency   = 1000;
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // currently not asking
+        samplingfrequency = 1000;
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        GetFileFromUser getbasefile("Output directory:", AllFilesFilter, 1, GetFileDirectory);
 
-GetFileFromUser     getbasefile ( "Output directory:", AllFilesFilter, 1, GetFileDirectory );
+        if (!getbasefile.Execute() || (int)getbasefile < 1)
+            return;
+        else
+            StringCopy(basefilename, getbasefile[0]);
 
-if ( ! getbasefile.Execute () || (int) getbasefile < 1 )
-    return;
-else 
-    StringCopy ( basefilename, getbasefile[ 0 ] );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        GenerateRandomData(numel,
+                           fileduration, samplingfrequency,
+                           basefilename, filename);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        filename.Open();
+    }
 
-GenerateRandomData  (   numel, 
-                        fileduration,   samplingfrequency, 
-                        basefilename,   filename
-                    );
-
-filename.Open ();
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

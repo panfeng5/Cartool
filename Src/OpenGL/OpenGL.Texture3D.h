@@ -16,129 +16,114 @@ limitations under the License.
 
 #pragma once
 
-#include    "OpenGL.h"
-#include    "OpenGL.Colors.h"
-#include    "OpenGL.Geometry.h"
-#include    "OpenGL.Drawing.h"
+#include "OpenGL.h"
+#include "OpenGL.Colors.h"
+#include "OpenGL.Geometry.h"
+#include "OpenGL.Drawing.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Stores the setup of a texture, not the texture itself
-constexpr int   GLTextureColorTableSize         = 256;
-constexpr int   GLTextureNumRGBA                = 4;
-                                        // the absolute for OpenGL - well, that actually depends on the graphic card
-constexpr int   GLTextureOpenGLMaxTextureSize   = 512;
-                                        // the limit we set ourselves
-//constexpr int GLTextureMaxTextureSize         = 256;  // safe value, but high resolution volumes appearance will be degraded due to possible downsampling
-//constexpr int GLTextureMaxTextureSize         = 384;  // give it a little more chance for 256 MRIs that get tilted
-constexpr int   GLTextureMaxTextureSize         = 512;  // highest resolution limit - requires more memory, which might be a problem for some graphic cards
-
-constexpr int   GLTextureError                  = -1;
-
-
-class   TGLTexture3D :  public TGLObject
+namespace crtl
 {
-public:
-                    TGLTexture3D ();
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Stores the setup of a texture, not the texture itself
+    constexpr int GLTextureColorTableSize = 256;
+    constexpr int GLTextureNumRGBA = 4;
+    // the absolute for OpenGL - well, that actually depends on the graphic card
+    constexpr int GLTextureOpenGLMaxTextureSize = 512;
+    // the limit we set ourselves
+    // constexpr int GLTextureMaxTextureSize         = 256;  // safe value, but high resolution volumes appearance will be degraded due to possible downsampling
+    // constexpr int GLTextureMaxTextureSize         = 384;  // give it a little more chance for 256 MRIs that get tilted
+    constexpr int GLTextureMaxTextureSize = 512; // highest resolution limit - requires more memory, which might be a problem for some graphic cards
 
-    GLuint          Name;               // Texture Id
-    bool            Compress;           // ask for compression - useful for non-paletted textures
-    bool            Busy;               // when rebuilding
+    constexpr int GLTextureError = -1;
 
-    GLint           MinFilter;          // OpenGL parameters
-    GLint           MaxFilter;
-    GLint           Wrap;
+    class TGLTexture3D : public TGLObject
+    {
+    public:
+        TGLTexture3D();
 
-    TGLColorTable*  ColorTable;         // color tables stuff
-    UINT            ColorTableHash;
-    GLubyte         ColorTablePos [ GLTextureColorTableSize ][ GLTextureNumRGBA ];  // caching RGBA color table values - positive data
-    GLubyte         ColorTableNeg [ GLTextureColorTableSize ][ GLTextureNumRGBA ];  // caching RGBA color table values - negative data
+        GLuint Name;   // Texture Id
+        bool Compress; // ask for compression - useful for non-paletted textures
+        bool Busy;     // when rebuilding
 
-    TGLMatrix       Matrix;             // for texture coordinates
+        GLint MinFilter; // OpenGL parameters
+        GLint MaxFilter;
+        GLint Wrap;
 
+        TGLColorTable *ColorTable; // color tables stuff
+        UINT ColorTableHash;
+        GLubyte ColorTablePos[GLTextureColorTableSize][GLTextureNumRGBA]; // caching RGBA color table values - positive data
+        GLubyte ColorTableNeg[GLTextureColorTableSize][GLTextureNumRGBA]; // caching RGBA color table values - negative data
 
-    void            GLize   ( int param = 0 );
-    void            unGLize ();
+        TGLMatrix Matrix; // for texture coordinates
 
-    void            GenerateName            ();
-    void            SetParameters           ();
+        void GLize(int param = 0);
+        void unGLize();
 
-    bool            IsTextureLoaded         ();
-    bool            IsTexture3DEnable       ();
-    bool            IsPalettedTextureEnable ();
+        void GenerateName();
+        void SetParameters();
 
-    UINT            HashColorTable ();
+        bool IsTextureLoaded();
+        bool IsTexture3DEnable();
+        bool IsPalettedTextureEnable();
 
-                                // dynamically returning pointers to function
-    PFNGLTEXIMAGE3DPROC                     glTexImage3D ();
-    PFNGLCOLORTABLEEXTPROC                  glColorTableEXT ();
-//  PFNGLCOMPRESSEDTEXIMAGE3DPROC           glCompressedTexImage3D ();
-//  PFNGLGETCOLORTABLEPARAMETERIVEXTPROC    glGetColorTableParameterivEXT () { return (PFNGLGETCOLORTABLEPARAMETERIVEXTPROC) wglGetProcAddress ( "glGetColorTableParameterivEXT" ); }
-//  void            LoadFunctions           ();
+        UINT HashColorTable();
 
+        // dynamically returning pointers to function
+        PFNGLTEXIMAGE3DPROC glTexImage3D();
+        PFNGLCOLORTABLEEXTPROC glColorTableEXT();
+        //  PFNGLCOMPRESSEDTEXIMAGE3DPROC           glCompressedTexImage3D ();
+        //  PFNGLGETCOLORTABLEPARAMETERIVEXTPROC    glGetColorTableParameterivEXT () { return (PFNGLGETCOLORTABLEPARAMETERIVEXTPROC) wglGetProcAddress ( "glGetColorTableParameterivEXT" ); }
+        //  void            LoadFunctions           ();
 
-protected:
+    protected:
+        int Texture3DEnable;
+        int PalettedTextureEnable;
+    };
 
-    int             Texture3DEnable;
-    int             PalettedTextureEnable;
+    //----------------------------------------------------------------------------
+    // To render a volume, at the moment to show slices of it
+    // There can be 3 different renderings: texture, fast and slow quads
+    template <class TypeD>
+    class TVolume;
 
-};
+    // A single volume can be loaded in different context, so we need to keep track to a few "instances" of TGLTexture3D
+    constexpr int GLTextureMaxNames = 10;
+    constexpr int GLTextureIndexError = -1;
 
+    class TGLVolume : public TGLObject
+    {
+    public:
+        TGLVolume();
 
-//----------------------------------------------------------------------------
-                                        // To render a volume, at the moment to show slices of it
-                                        // There can be 3 different renderings: texture, fast and slow quads
-template <class TypeD> class        TVolume;
+        TGLTexture3D Texture[GLTextureMaxNames];
 
-                                        // A single volume can be loaded in different context, so we need to keep track to a few "instances" of TGLTexture3D
-constexpr int   GLTextureMaxNames       = 10;
-constexpr int   GLTextureIndexError     = -1;
+        void GLize(const Volume *data, TGLColorTable *colortable, bool interpolate, const double *origin = 0);
+        void unGLize();
 
+        int GetLoadedTexture();
+        int GetTextureIndex();
 
-class   TGLVolume :     public TGLObject
-{
-public:
-                    TGLVolume ();
+        void DrawPlaneX(GLfloat x, int quality, bool moreborder = false);
+        void DrawPlaneY(GLfloat y, int quality, bool moreborder = false);
+        void DrawPlaneZ(GLfloat z, int quality, bool moreborder = false);
 
+    protected:
+        const Volume *Data;
+        int Dim1;
+        int Dim2;
+        int Dim3;
+        double Origin[3]; // voxel for ( 0, 0, 0 )
 
-    TGLTexture3D    Texture[ GLTextureMaxNames ];
+    private:
+        TGLPrimitives Prim;
+        TGLQuadMesh QuadMesh;
+        TGLCoordinates<GLfloat> pos;
+        TGLCoordinates<GLfloat> val;
+    };
 
-
-    void            GLize ( const Volume* data, TGLColorTable* colortable, bool interpolate, const double* origin = 0 );
-    void            unGLize ();
-
-
-    int             GetLoadedTexture    ();
-    int             GetTextureIndex     ();
-
-
-    void            DrawPlaneX ( GLfloat x, int quality, bool moreborder = false );
-    void            DrawPlaneY ( GLfloat y, int quality, bool moreborder = false );
-    void            DrawPlaneZ ( GLfloat z, int quality, bool moreborder = false );
-
-
-protected:
-
-    const Volume*   Data;
-    int             Dim1;
-    int             Dim2;
-    int             Dim3;
-    double          Origin    [ 3 ];    // voxel for ( 0, 0, 0 )
-
-
-private:
-
-    TGLPrimitives           Prim;
-    TGLQuadMesh             QuadMesh;
-    TGLCoordinates<GLfloat> pos;
-    TGLCoordinates<GLfloat> val;
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

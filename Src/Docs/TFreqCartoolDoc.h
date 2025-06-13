@@ -16,139 +16,129 @@ limitations under the License.
 
 #pragma once
 
-#include    "TFreqDoc.h"
+#include "TFreqDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-//                          Frequency File Format
-//                          =====================
-//
-// Cartool Project - Denis Brunet - Functional Brain Mapping Lab, Geneva, Switzerland
-//
-
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-// 1) Header, fixed part:
-
-struct  TFreqHeader
+namespace crtl
 {
-    int             Version;                // 'FR01' or 'FR02'
-    char            Type[MaxCharFreqType];  // of analysis and data
-    int             NumChannels;            // total number of electrodes
-    int             NumFrequencies;         // written in file
-    int             NumBlocks;              // of repeated analysis, ~ time frames
-    double          SamplingFrequency;      // of data in the original file
-    double          BlockFrequency;         // frequency of repeated blocks
-    short           Year;                   // Date of the recording
-    short           Month;                  // (can be 00-00-0000 if unknown)
-    short           Day;
-    short           Hour;                   // Time of the recording
-    short           Minute;                 // (can be 00:00:00:0000 if unknown)
-    short           Second;
-    short           Millisecond;
-};
 
-// 2) Header, variable part:
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //                          Frequency File Format
+    //                          =====================
+    //
+    // Cartool Project - Denis Brunet - Functional Brain Mapping Lab, Geneva, Switzerland
+    //
 
-// Channels'names, a matrix of  NumElectrodes * sizeof ( TFreqChannel )  chars
-// To allow an easy calculation of the data origin,
-// be aware that each name ALWAYS take 8 bytes in the header, even if the string length is smaller than that.
-// The remaining part is padded with bytes set to 0, f.ex.:
-// binary values          70 112 122 00 00 00 00 00 65 70 55 00 00 00 00 00 ...
-// string equivalence      F   P   z \0              A  F  7 \0
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-struct  TFreqChannel
-{
-    char            ChannelName[8];
-};
+        // 1) Header, fixed part:
 
+        struct TFreqHeader
+    {
+        int Version;                // 'FR01' or 'FR02'
+        char Type[MaxCharFreqType]; // of analysis and data
+        int NumChannels;            // total number of electrodes
+        int NumFrequencies;         // written in file
+        int NumBlocks;              // of repeated analysis, ~ time frames
+        double SamplingFrequency;   // of data in the original file
+        double BlockFrequency;      // frequency of repeated blocks
+        short Year;                 // Date of the recording
+        short Month;                // (can be 00-00-0000 if unknown)
+        short Day;
+        short Hour;   // Time of the recording
+        short Minute; // (can be 00:00:00:0000 if unknown)
+        short Second;
+        short Millisecond;
+    };
 
-// if Version == 'FR01'
-// Frequencies multiple of SamplingFrequency
-// NumFrequencies * sizeof ( TFreqFrequency )
+    // 2) Header, variable part:
 
-struct  TFreqFrequency
-{
-    double          Frequency;
-};
+    // Channels'names, a matrix of  NumElectrodes * sizeof ( TFreqChannel )  chars
+    // To allow an easy calculation of the data origin,
+    // be aware that each name ALWAYS take 8 bytes in the header, even if the string length is smaller than that.
+    // The remaining part is padded with bytes set to 0, f.ex.:
+    // binary values          70 112 122 00 00 00 00 00 65 70 55 00 00 00 00 00 ...
+    // string equivalence      F   P   z \0              A  F  7 \0
 
+    struct TFreqChannel
+    {
+        char ChannelName[8];
+    };
 
-// or, if Version == 'FR02', simply a list of strings
+    // if Version == 'FR01'
+    // Frequencies multiple of SamplingFrequency
+    // NumFrequencies * sizeof ( TFreqFrequency )
 
-struct  TFreqFrequencyName
-{
-    char            FrequencyName[16];
-};
+    struct TFreqFrequency
+    {
+        double Frequency;
+    };
 
+    // or, if Version == 'FR02', simply a list of strings
 
-// 3) Data part:
+    struct TFreqFrequencyName
+    {
+        char FrequencyName[16];
+    };
 
-// Starting at file position:  sizeof ( TFreqHeader ) + NumElectrodes * sizeof ( TFreqChannel ) + NumFrequencies * sizeof ( TFreqFrequency )
-// Data are stored as a matrix  NumTimeFrames x NumElectrodes x NumFrequencies
-// of either float (Little Endian - PC) for DataType == FFTNorm, FFTNorm2, FFTApproximation
-// or complex for DataType == FFTComplex
+    // 3) Data part:
 
-/*                                        // These could be useful to have direct access in file on disk
-                                        // Also would be better as functions...
-LONGLONG            DataOrg     = sizeof ( TFreqHeader )
-                                + numel  * sizeof ( TFreqChannel       )
-                                + numf   * sizeof ( TFreqFrequencyName );
+    // Starting at file position:  sizeof ( TFreqHeader ) + NumElectrodes * sizeof ( TFreqChannel ) + NumFrequencies * sizeof ( TFreqFrequency )
+    // Data are stored as a matrix  NumTimeFrames x NumElectrodes x NumFrequencies
+    // of either float (Little Endian - PC) for DataType == FFTNorm, FFTNorm2, FFTApproximation
+    // or complex for DataType == FFTComplex
 
-LONGLONG            ElNamesOrg  = sizeof ( TFreqHeader );
+    /*                                        // These could be useful to have direct access in file on disk
+                                            // Also would be better as functions...
+    LONGLONG            DataOrg     = sizeof ( TFreqHeader )
+                                    + numel  * sizeof ( TFreqChannel       )
+                                    + numf   * sizeof ( TFreqFrequencyName );
 
-LONGLONG            FreqNamesOrg= sizeof ( TFreqHeader )
-                                + numel  * sizeof ( TFreqChannel );
-#define GetFreqValue(f,el,tf)   ( ifd.seekg ( DataOrg       + ( ( numel * tf + el  ) * numf + f ) * sizeof ( data ), ios::beg ), ifd.read ( (char *) &data, sizeof ( data ) ), data )
-#define GetFreqName(f)          ( ifd.seekg ( FreqNamesOrg  + f  * sizeof ( freqname ), ios::beg ),                              ifd.read ( (char *) &freqname, sizeof ( freqname ) ), freqname.FrequencyName[ MaxCharFrequencyName    - 1 ] = 0, freqname.FrequencyName )
-#define GetElName(el)           ( ifd.seekg ( ElNamesOrg    + el * sizeof ( elname ),   ios::beg ),                              ifd.read ( (char *) &elname,   sizeof ( elname   ) ), elname.ChannelName    [ sizeof ( TFreqChannel ) - 1 ] = 0, elname.ChannelName )
-*/
+    LONGLONG            ElNamesOrg  = sizeof ( TFreqHeader );
 
+    LONGLONG            FreqNamesOrg= sizeof ( TFreqHeader )
+                                    + numel  * sizeof ( TFreqChannel );
+    #define GetFreqValue(f,el,tf)   ( ifd.seekg ( DataOrg       + ( ( numel * tf + el  ) * numf + f ) * sizeof ( data ), ios::beg ), ifd.read ( (char *) &data, sizeof ( data ) ), data )
+    #define GetFreqName(f)          ( ifd.seekg ( FreqNamesOrg  + f  * sizeof ( freqname ), ios::beg ),                              ifd.read ( (char *) &freqname, sizeof ( freqname ) ), freqname.FrequencyName[ MaxCharFrequencyName    - 1 ] = 0, freqname.FrequencyName )
+    #define GetElName(el)           ( ifd.seekg ( ElNamesOrg    + el * sizeof ( elname ),   ios::beg ),                              ifd.read ( (char *) &elname,   sizeof ( elname   ) ), elname.ChannelName    [ sizeof ( TFreqChannel ) - 1 ] = 0, elname.ChannelName )
+    */
 
-EndBytePacking
+    EndBytePacking
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Files can legally be either scalar (norm, norm2 or real), or complex (2 x single float)
-class   TFreqCartoolDoc :   public  TFreqDoc
-{
-public:
-                    TFreqCartoolDoc ( owl::TDocument *parent = 0 );
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        // Files can legally be either scalar (norm, norm2 or real), or complex (2 x single float)
+        class TFreqCartoolDoc : public TFreqDoc
+    {
+    public:
+        TFreqCartoolDoc(owl::TDocument *parent = 0);
 
+        bool CanClose() final;
+        bool Close() final;
+        bool Commit(bool force = false) final;
+        bool IsOpen() final { return InputStream != 0; }
+        bool Open(int mode, const char *path = 0) final;
 
-    bool            CanClose        ()                                  final;
-    bool            Close           ()                                  final;
-    bool            Commit          ( bool force = false )              final;
-    bool            IsOpen          ()                                  final   { return InputStream != 0; }
-    bool            Open            ( int mode, const char *path = 0 )  final;
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+        void ReadRawTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0) final;
+        void ReadFrequencies(long tf1, long tf2, TSetArray2<float> &buff, int tfoffset = 0) final;
+        void ReadFrequencies(long tf1, long tf2, TSetArray2<float> &realpart, TSetArray2<float> &imagpart, int tfoffset = 0) final;
+        double GetFreqValue(long el, long tf, long f) final;
 
+    protected:
+        owl::TInStream *InputStream;
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-    void            ReadRawTracks   ( long tf1, long tf2, TArray2<float>    &buff,                                  int tfoffset = 0 )  final;
-    void            ReadFrequencies ( long tf1, long tf2, TSetArray2<float> &buff,                                  int tfoffset = 0 )  final;
-    void            ReadFrequencies ( long tf1, long tf2, TSetArray2<float> &realpart, TSetArray2<float> &imagpart, int tfoffset = 0 )  final;
-    double          GetFreqValue    ( long el, long tf, long f )                                                                        final;
+        int Version;
 
+        TArray1<float> Spectrum;
+        size_t SpectrumSize;
+        size_t AtomSize;
 
-protected:
+        bool SetArrays() final;
+    };
 
-    owl::TInStream* InputStream;
-
-    int             Version;
-
-    TArray1<float>  Spectrum;
-    size_t          SpectrumSize;
-    size_t          AtomSize;
-
-
-    bool            SetArrays       ()  final;
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

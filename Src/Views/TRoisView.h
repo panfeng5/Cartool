@@ -16,57 +16,53 @@ limitations under the License.
 
 #pragma once
 
-#include    "TBaseView.h"
-#include    "TRoisDoc.h"
+#include "TBaseView.h"
+#include "TRoisDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-enum    {
-        ROISGLVIEW_CBG_NUM  = NumBaseViewButtons
-        };
-
-
-class   TRoisView   :   public  TBaseView
+namespace crtl
 {
-public:
-                        TRoisView ( TRoisDoc& doc, owl::TWindow* parent = 0, TLinkManyDoc* group = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    static const char*  StaticName          ()          { return "&ROIs Display"; }
-    const char*         GetViewName         ()  final   { return StaticName(); }
+    enum
+    {
+        ROISGLVIEW_CBG_NUM = NumBaseViewButtons
+    };
 
-    void                CreateGadgets       ()  final;
+    class TRoisView : public TBaseView
+    {
+    public:
+        TRoisView(TRoisDoc &doc, owl::TWindow *parent = 0, TLinkManyDoc *group = 0);
 
-    void                GLPaint             ( int how, int renderingmode, TGLClipPlane *otherclipplane )    final;
+        static const char *StaticName() { return "&ROIs Display"; }
+        const char *GetViewName() final { return StaticName(); }
 
+        void CreateGadgets() final;
 
-protected:
+        void GLPaint(int how, int renderingmode, TGLClipPlane *otherclipplane) final;
 
-    TRoisDoc*           ROIDoc;
+    protected:
+        TRoisDoc *ROIDoc;
 
-    bool                ValidView           ()  final   { return true; } // ISDoc->GetNumElectrodes(); }
+        bool ValidView() final { return true; } // ISDoc->GetNumElectrodes(); }
 
-    void                Paint               ( owl::TDC& dc, bool erase, owl::TRect& rect )  final;
+        void Paint(owl::TDC &dc, bool erase, owl::TRect &rect) final;
 
-                                    // OwlNext wants explicit message handlers from derived class
-    using    TBaseView::EvGetMinMaxInfo;
-    using    TBaseView::EvSize;
-    using    TBaseView::EvKeyDown;
-    using    TBaseView::EvKeyUp;
-    using    TBaseView::EvEraseBkgnd;
-    using    TBaseView::EvSetFocus;
-    using    TBaseView::EvKillFocus;
-    using    TBaseView::VnViewDestroyed;
+        // OwlNext wants explicit message handlers from derived class
+        using TBaseView::EvEraseBkgnd;
+        using TBaseView::EvGetMinMaxInfo;
+        using TBaseView::EvKeyDown;
+        using TBaseView::EvKeyUp;
+        using TBaseView::EvKillFocus;
+        using TBaseView::EvSetFocus;
+        using TBaseView::EvSize;
+        using TBaseView::VnViewDestroyed;
 
+        DECLARE_RESPONSE_TABLE(TRoisView);
+    };
 
-    DECLARE_RESPONSE_TABLE (TRoisView);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

@@ -16,52 +16,45 @@ limitations under the License.
 
 #pragma once
 
-#include    "Strings.TStrings.h"
+#include "Strings.TStrings.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Associates string pairs, but currently used for ("integer",string) pairs, integers being stored as strings
-                                        // Uses 2 string list for storage; for a faster solution, use some std::map
-                                        // Certainly should be using some std::unordered_map
-
-                                        // Note:
-                                        // - There is no restriction to the # of pairs, and # of pairs for a given first value
-                                        // - First element is not bound to be an integer, but calling ValueToKey will convert it to an integer (probably 0)
-class               TAALRoi;
-
-
-class  TStringsMap
+namespace crtl
 {
-public:
 
-    bool            IsEmpty     ()  const       { return  Key.IsEmpty    (); }
-    bool            IsNotEmpty  ()  const       { return  Key.IsNotEmpty (); }
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Associates string pairs, but currently used for ("integer",string) pairs, integers being stored as strings
+    // Uses 2 string list for storage; for a faster solution, use some std::map
+    // Certainly should be using some std::unordered_map
 
-    int             GetNumPairs ()  const       { return    (int) Key; }
-    int             GetMaxKey   ()  const ;     // from all pairs
+    // Note:
+    // - There is no restriction to the # of pairs, and # of pairs for a given first value
+    // - First element is not bound to be an integer, but calling ValueToKey will convert it to an integer (probably 0)
+    class TAALRoi;
 
+    class TStringsMap
+    {
+    public:
+        bool IsEmpty() const { return Key.IsEmpty(); }
+        bool IsNotEmpty() const { return Key.IsNotEmpty(); }
 
-    void            Add         ( const char* file  );                  // add each line as a series of pairs "first token"-"all tokens"
-    void            Add         ( const TAALRoi* aal, int numlines );   // add from the AAL array
-    void            Add         ( int min, int max );                   // add a range of indexes
+        int GetNumPairs() const { return (int)Key; }
+        int GetMaxKey() const; // from all pairs
 
+        void Add(const char *file);                 // add each line as a series of pairs "first token"-"all tokens"
+        void Add(const TAALRoi *aal, int numlines); // add from the AAL array
+        void Add(int min, int max);                 // add a range of indexes
 
-    bool            ValueToKey  ( const char* value, int&  key   )  const;
-    char*           KeyToValue  ( int         key,   char* value )  const;
-    const char*     GetValue    ( int         key )                 const;
+        bool ValueToKey(const char *value, int &key) const;
+        char *KeyToValue(int key, char *value) const;
+        const char *GetValue(int key) const;
 
+    protected:
+        TStrings Key;
+        TStrings Value;
+    };
 
-protected:
-
-    TStrings        Key;
-    TStrings        Value;
-
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

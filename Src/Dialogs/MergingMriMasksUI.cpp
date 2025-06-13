@@ -14,102 +14,106 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "Strings.Utils.h"
-#include    "Strings.TFixedString.h"
-#include    "Dialogs.Input.h"
+#include "Strings.Utils.h"
+#include "Strings.TFixedString.h"
+#include "Dialogs.Input.h"
 
-#include    "ESI.TissuesThicknesses.h"
+#include "ESI.TissuesThicknesses.h"
 
-#include    "MergingMriMasks.h"
+#include "MergingMriMasks.h"
 
-#include    "TCartoolMdiClient.h"
+#include "TCartoolMdiClient.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-OptimizeOff
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-void    TCartoolMdiClient::MergingMriMasksUI ()
+namespace crtl
 {
-                                        // Getting all files
-static GetFileFromUser  getfilehead     ( "Full head Mask (mandatory):",                    AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfileskull    ( "Full skull Mask (mandatory):",                   AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfileskullsp  ( "Spongy skull Sub-Mask (optional):",              AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfilecsf      ( "CSF Probabilities / Mask (mandatory):",          AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfilegrey     ( "Grey Matter Probabilities / Mask (mandatory):",  AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfilewhite    ( "White Matter Probabilities / Mask (mandatory):", AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfileblood    ( "Venous sinus Mask (optional):",                  AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfileair      ( "Air sinus Mask (optional):",                     AllMriFilesFilter, 1, GetFileRead );
-static GetFileFromUser  getfileeyes     ( "Eyes Mask (optional):",                          AllMriFilesFilter, 1, GetFileRead );
 
-                                        // !head should be a global mask that wraps all other tissues!
-ShowMessage (   "Warning:"                                              NewLine 
-                NewLine 
-                "Some input volumes should be MASKS,"                   NewLine
-                "while others should be PROBABILITIES in range [0..1]," NewLine
-                "although masks could be accepted and taken as 0/1 probabilities.",
-                "Merging Masks", ShowMessageWarning );
+    OptimizeOff
 
-                                        // Mandatory volumes
-if ( ! getfilehead      .Execute () )   return;
-if ( ! getfileskull     .Execute () )   return;
-if ( ! getfilecsf       .Execute () )   return;
-if ( ! getfilegrey      .Execute () )   return;
-if ( ! getfilewhite     .Execute () )   return;
-                                        // Optional volumes
-       getfileskullsp   .Execute ();
-       getfileblood     .Execute ();
-       getfileair       .Execute ();
-       getfileeyes      .Execute ();
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
 
+        void
+        TCartoolMdiClient::MergingMriMasksUI()
+    {
+        // Getting all files
+        static GetFileFromUser getfilehead("Full head Mask (mandatory):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfileskull("Full skull Mask (mandatory):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfileskullsp("Spongy skull Sub-Mask (optional):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfilecsf("CSF Probabilities / Mask (mandatory):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfilegrey("Grey Matter Probabilities / Mask (mandatory):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfilewhite("White Matter Probabilities / Mask (mandatory):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfileblood("Venous sinus Mask (optional):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfileair("Air sinus Mask (optional):", AllMriFilesFilter, 1, GetFileRead);
+        static GetFileFromUser getfileeyes("Eyes Mask (optional):", AllMriFilesFilter, 1, GetFileRead);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // If user didn't give the spongy, maybe we can create it?
-//bool              createspongy        = (bool) fileskullsp;
-bool                createspongy        = ! (bool) getfileskullsp ? GetAnswerFromUser ( "Automatically creating the skull spongy part?", MergingMriMasksTitle, this ) : false;
-double              compactthickness    = 0;
+        // !head should be a global mask that wraps all other tissues!
+        ShowMessage("Warning:" NewLine NewLine
+                    "Some input volumes should be MASKS," NewLine
+                    "while others should be PROBABILITIES in range [0..1]," NewLine
+                    "although masks could be accepted and taken as 0/1 probabilities.",
+                    "Merging Masks", ShowMessageWarning);
 
-if ( createspongy ) {
+        // Mandatory volumes
+        if (!getfilehead.Execute())
+            return;
+        if (!getfileskull.Execute())
+            return;
+        if (!getfilecsf.Execute())
+            return;
+        if (!getfilegrey.Execute())
+            return;
+        if (!getfilewhite.Execute())
+            return;
+        // Optional volumes
+        getfileskullsp.Execute();
+        getfileblood.Execute();
+        getfileair.Execute();
+        getfileeyes.Execute();
 
-    GetValueFromUser ( "Keeping a compact table thickness of [mm]:", MergingMriMasksTitle, compactthickness, FloatToString ( SkullCompactThickness, 1 ), this );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // If user didn't give the spongy, maybe we can create it?
+        // bool              createspongy        = (bool) fileskullsp;
+        bool createspongy = !(bool)getfileskullsp ? GetAnswerFromUser("Automatically creating the skull spongy part?", MergingMriMasksTitle, this) : false;
+        double compactthickness = 0;
 
-    if ( compactthickness <= 0 ) {
-        createspongy        = false;
-        compactthickness    = 0;
+        if (createspongy)
+        {
+
+            GetValueFromUser("Keeping a compact table thickness of [mm]:", MergingMriMasksTitle, compactthickness, FloatToString(SkullCompactThickness, 1), this);
+
+            if (compactthickness <= 0)
+            {
+                createspongy = false;
+                compactthickness = 0;
+            }
         }
+
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        MergingMriMasks(
+            getfilehead,
+            getfileskull,
+            getfileskullsp,
+            getfilecsf,
+            getfilegrey,
+            getfilewhite,
+            getfileblood,
+            getfileair,
+            getfileeyes,
+            createspongy, compactthickness);
     }
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-MergingMriMasks (
-                getfilehead,
-                getfileskull,
-                getfileskullsp,
-                getfilecsf,
-                getfilegrey,
-                getfilewhite,
-                getfileblood,
-                getfileair,
-                getfileeyes,
-                createspongy,       compactthickness
-                );
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-OptimizeOn
+    OptimizeOn
 
 }

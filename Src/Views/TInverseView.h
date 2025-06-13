@@ -16,30 +16,31 @@ limitations under the License.
 
 #pragma once
 
-#include    "TTracksDoc.h"
-#include    "TVolumeDoc.h"
-#include    "TSolutionPointsDoc.h"
-#include    "TInverseMatrixDoc.h"
+#include "TTracksDoc.h"
+#include "TVolumeDoc.h"
+#include "TSolutionPointsDoc.h"
+#include "TInverseMatrixDoc.h"
 
-#include    "TSecondaryView.h"
-#include    "TBaseVolumeView.h"
-#include    "TSolutionPointsView.h"
-#include    "TVolumeView.h"
+#include "TSecondaryView.h"
+#include "TBaseVolumeView.h"
+#include "TSolutionPointsView.h"
+#include "TVolumeView.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // default window size
-constexpr double    InverseSpaceBetween         = 0.15;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // default window size
+    constexpr double InverseSpaceBetween = 0.15;
 
-constexpr int       InverseNumSavedStates       = 64;
+    constexpr int InverseNumSavedStates = 64;
 
-constexpr int       InverseNumOnionLayers       = 12;
+    constexpr int InverseNumOnionLayers = 12;
 
-
-enum    {
-        INVERSE_CBG_SEP0            = NumBaseSecondViewButtons,
+    enum
+    {
+        INVERSE_CBG_SEP0 = NumBaseSecondViewButtons,
         INVERSE_CBG_SHOW2DIS,
         INVERSE_CBG_SHOW3DIS,
         INVERSE_CBG_SHOWVECTORSIS,
@@ -48,7 +49,7 @@ enum    {
         INVERSE_CBG_SHOWSP,
         INVERSE_CBG_SEP2,
         INVERSE_CBG_NEXTROI,
-//      INVERSE_CBG_AVERAGEROIS,
+        //      INVERSE_CBG_AVERAGEROIS,
         INVERSE_CBG_SEP2A,
         INVERSE_CBG_CUTPLANECORONAL,
         INVERSE_CBG_CUTPLANETRANSVERSE,
@@ -82,13 +83,12 @@ enum    {
         INVERSE_CBG_NEXTIS,
         INVERSE_CBG_NEXTMRI,
         INVERSE_CBG_NUM
-        };
+    };
 
+    //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-
-enum    InverseRendering2D
-        {
+    enum InverseRendering2D
+    {
         InverseRendering2DNone,
         InverseRendering2DOvercast,
         InverseRendering2DTransparent,
@@ -96,12 +96,11 @@ enum    InverseRendering2D
 
         NumInverseRendering2D,
 
-        InverseRendering2DDefault       = InverseRendering2DOvercast
-        };
+        InverseRendering2DDefault = InverseRendering2DOvercast
+    };
 
-
-enum    InverseRendering3D
-        {
+    enum InverseRendering3D
+    {
         InverseRendering3DNone,
         InverseRendering3DSolPoints,
         InverseRendering3DIsosurface,
@@ -109,263 +108,245 @@ enum    InverseRendering3D
 
         NumInverseRendering3D,
 
-        InverseRendering3DDefault       = InverseRendering3DNone
-        };
+        InverseRendering3DDefault = InverseRendering3DNone
+    };
 
-
-enum    InverseRenderingVectors
-        {
+    enum InverseRenderingVectors
+    {
         InverseRenderingVectorsNone,
         InverseRenderingVectors2D,
         InverseRenderingVectors3D,
 
         NumInverseRenderingVectors,
 
-        InverseRenderingVectorsDefault  = InverseRenderingVectorsNone
-        };
+        InverseRenderingVectorsDefault = InverseRenderingVectorsNone
+    };
 
-
-enum    InverseMinMaxType
-        {
+    enum InverseMinMaxType
+    {
         InverseMinMaxNone,
         InverseMinMaxCircle,
         InverseMinMaxCross,
 
         NumInverseMinMax,
-        };
+    };
 
+    //----------------------------------------------------------------------------
+    // Class to save and restore MRI display states
+    class TInverseVolumeState
+    {
+    public:
+        TInverseVolumeState();
 
-//----------------------------------------------------------------------------
-                                        // Class to save and restore MRI display states
-class   TInverseVolumeState
-{
-public:
-                            TInverseVolumeState ();
+        InverseRendering2D Show2DIs;
+        InverseRendering3D Show3DIs;
+        InverseRenderingVectors ShowVectorsIs;
+        MriRendering Show3DMri;
+        PointsRendering ShowSp;
 
+        TGLClipPlane ClipPlane[3];
 
-    InverseRendering2D      Show2DIs;
-    InverseRendering3D      Show3DIs;
-    InverseRenderingVectors ShowVectorsIs;
-    MriRendering            Show3DMri;
-    PointsRendering         ShowSp;
+        TGLMatrix ModelRotMatrix;
+    };
 
-    TGLClipPlane            ClipPlane[ 3 ];
+    //----------------------------------------------------------------------------
+    // Class to save and restore Inverse display states
+    class TInverseState
+    {
+    public:
+        TInverseState() { Reset(); }
 
-    TGLMatrix               ModelRotMatrix;
-};
+        TDisplayScaling DisplayScaling;
+        int CurrReg;
+        double IsSpreading;
 
+        bool IsAllocated() const { return DisplayScaling.ScalingLimitMax >= 0; }
 
-//----------------------------------------------------------------------------
-                                        // Class to save and restore Inverse display states
-class   TInverseState
-{
-public:
-                            TInverseState ()        { Reset (); }
+        void Reset();
+    };
 
+    //----------------------------------------------------------------------------
+    // Class used to display the ESI / sources localization / inverse solutions
+    // It functionally borrows a lot to the plain volumes display, with additional
+    // capabilities:
+    //  - Superimposing the results as 2D layers on top of the MRI slices
+    //  - 3D display of the results, as small spheres or isosurfaces
+    //  - It depends on a master EEG view to receive some data, as per TPotentialsView
+    //  - Views can sync across others
+    class TInverseView : public TSecondaryView,
+                         public TBaseVolumeView
+    {
+    public:
+        TInverseView(TTracksDoc &doc, owl::TWindow *parent = 0, TLinkManyDoc *group = 0);
 
-    TDisplayScaling         DisplayScaling;
-    int                     CurrReg;
-    double                  IsSpreading;
+        static const char *StaticName() { return "&Sources Localization"; }
+        const char *GetViewName() final { return StaticName(); }
 
+        void CreateGadgets() final;
 
-    bool                    IsAllocated ()  const   { return  DisplayScaling.ScalingLimitMax >= 0; }
+        void GLPaint(int how, int renderingmode, TGLClipPlane *otherclipplane) final;
+        void HintsPaint() final;
+        bool IsRenderingMode(int renderingmode) final;
 
-    void                    Reset ();
-};
+        const TBaseDoc *GetGeometryDoc() const final { return MRIDocBackg ? MRIDocBackg : BaseDoc; } // ESI has no geometry info in itself, let's delegate to the background MRI instead
+        bool ModifyPickingInfo(TPointFloat &Picking, char *buff) final;
 
+    protected:
+        TSolutionPointsDoc *SPDoc;
+        TInverseResults *ISDoc;
+        TVolumeDoc *MRIDocClipp; // the mask for interpolation
+        TVolumeDoc *MRIDocBackg; // a background MRI for cosmetic effect
+        int CurrReg;
+        int CurrIs;
+        int CurrRis;
+        bool OnlyRis;
+        int CurrMri;
+        TRois *Rois;
+        int CurrRois;
 
-//----------------------------------------------------------------------------
-                                        // Class used to display the ESI / sources localization / inverse solutions
-                                        // It functionally borrows a lot to the plain volumes display, with additional
-                                        // capabilities:
-                                        //  - Superimposing the results as 2D layers on top of the MRI slices
-                                        //  - 3D display of the results, as small spheres or isosurfaces
-                                        //  - It depends on a master EEG view to receive some data, as per TPotentialsView
-                                        //  - Views can sync across others
-class   TInverseView    :   public  TSecondaryView,
-                            public  TBaseVolumeView
-{
-public:
-                            TInverseView ( TTracksDoc &doc, owl::TWindow *parent = 0, TLinkManyDoc *group=0 );
+        TVector<float> InvBuffS;
+        //  TVector<float>          InvBuffSSum;
+        TArray1<TVector3Float> InvBuffV;
+        TArray2<float> RisBuff;
+        Volume SPVol; // local volume buffer for isosurface computation
 
+        TSelection SelSP; // currently displayed solution points
+        TSelection Highlighted;
 
-    static const char*      StaticName              ()                      { return "&Sources Localization"; }
-    const char*             GetViewName             ()  final               { return StaticName(); }
+        bool IsSignedData;
+        InverseMinMaxType ShowMin;
+        InverseMinMaxType ShowMax;
+        InverseRendering2D Show2DIs;
+        InverseRendering3D Show3DIs;
+        InverseRenderingVectors ShowVectorsIs;
+        MriRendering Show3DMri;
+        PointsRendering ShowSp;
+        bool IsRoiMode;
+        bool FindMinMax;
+        double IsSpreading; // how much variation is in the data
+        TAveragingPrecedence AveragingPrecedence;
 
-    void                    CreateGadgets           ()  final;
+        int GalMinIndex;
+        int GalMaxIndex;
+        double GalMinValue;
+        double GalMaxValue;
+        TPointFloat GalMinPos;
+        TPointFloat GalMaxPos;
+        TGLMatrix AntiModelRotMatrix;
 
+        TInverseVolumeState SavedState;                    // volume display state
+        TInverseState SavedIsState[InverseNumSavedStates]; // inverse display state
 
-    void                    GLPaint                 ( int how, int renderingmode, TGLClipPlane *otherclipplane )    final;
-    void                    HintsPaint              ()                                                              final;
-    bool                    IsRenderingMode         ( int renderingmode )                                           final;
+        // OpenGL
+        TGLMaterial<GLfloat> MaterialIs;
+        TTriangleSurface SurfaceISPos[InverseNumOnionLayers];
+        TTriangleSurface SurfaceISNeg[InverseNumOnionLayers];
+        TTriangleSurfaceIsoParam IsoParam;
+        long RedoSurfaceIS;
+        //  TGLVolume               VolumeMri;  // it seems we don't need this cache variable now, we can safely call the volume display
+        TGLVolume VolumeIs;
 
+        // TDisplayScaling
+        void SetScaling(double scaling) final;
+        void SetScaling(double negv, double posv, bool forcesymetric = true) final;
+        void UpdateScaling() final;
 
-    const TBaseDoc*         GetGeometryDoc          ()  const final         { return MRIDocBackg ? MRIDocBackg : BaseDoc; }     // ESI has no geometry info in itself, let's delegate to the background MRI instead
-    bool                    ModifyPickingInfo       ( TPointFloat& Picking, char *buff )                            final;
+        bool ValidView() final;
+        inline int NumVisiblePlanes();
+        long SearchAndSetIntensity(bool precise = false); // returns the TF position
+        void SetSliceSize();
+        void SetShowSlices(bool newtype);
+        void SetTotalSlices();
+        void SetItemsInWindow();
+        void FitItemsInWindow(int numitems, owl::TSize itemsize, int &byx, int &byy, owl::TRect *winrect = 0) final;
+        void SetColorTable(AtomType datatype) final;
+        void InitMri();
+        void ReloadRoi();
+        //  void                    FilterIs                ();
+        void GetInverse(int tf1, int tf2);
 
+        void Paint(owl::TDC &dc, bool erase, owl::TRect &rect) final;
+        void SetupWindow() final;
+        void DrawMinMax(TPointFloat &pos, bool colormin, bool showminmaxcircle, double scale);
 
-protected:
+        bool VnNewTFCursor(const TTFCursor *tfcursor);
+        bool VnReloadData(int what);
+        bool VnNewHighlighted(const TSelection *sel);
+        bool VnViewUpdated(TBaseView *view);
+        bool VnSessionUpdated(void *);
 
-    TSolutionPointsDoc*     SPDoc;
-    TInverseResults*        ISDoc;
-    TVolumeDoc*             MRIDocClipp;        // the mask for interpolation
-    TVolumeDoc*             MRIDocBackg;        // a background MRI for cosmetic effect
-    int                     CurrReg;
-    int                     CurrIs;
-    int                     CurrRis;
-    bool                    OnlyRis;
-    int                     CurrMri;
-    TRois*                  Rois;
-    int                     CurrRois;
+        using TBaseView::EvKillFocus;
+        using TBaseView::EvSetFocus;
+        void EvKeyDown(owl::uint key, owl::uint repeatCount, owl::uint flags);
+        void EvKeyUp(owl::uint key, owl::uint repeatCount, owl::uint flags);
+        void EvLButtonDblClk(owl::uint, const owl::TPoint &);
+        void EvLButtonDown(owl::uint, const owl::TPoint &p);
+        void EvLButtonUp(owl::uint, const owl::TPoint &p);
+        void EvMButtonDown(owl::uint, const owl::TPoint &p);
+        void EvMButtonUp(owl::uint, const owl::TPoint &p);
+        void EvRButtonDown(owl::uint, const owl::TPoint &p);
+        void EvRButtonUp(owl::uint, const owl::TPoint &p);
+        void EvMouseMove(owl::uint, const owl::TPoint &p);
+        void EvSize(owl::uint, const owl::TSize &);
+        void EvTimer(owl::uint timerId);
+        void EvMouseWheel(owl::uint modKeys, int zDelta, const owl::TPoint &p);
 
+        using TBaseView::Cm2Object;
+        using TBaseView::CmMagnifier;
+        using TSecondaryView::CmShowSequenceLabels;
 
-    TVector<float>          InvBuffS;
-//  TVector<float>          InvBuffSSum;
-    TArray1<TVector3Float>  InvBuffV;
-    TArray2<float>          RisBuff;
-    Volume                  SPVol;              // local volume buffer for isosurface computation
+        void CmSetCutPlane(owlwparam wparam);
+        void CmShiftCutPlane(owlwparam wparam, bool forward);
+        void CmSetCutPlaneEnable(owl::TCommandEnabler &tce);
+        void CmOrient() final;
 
+        void CmSetShow2DIs(owlwparam wparam);
+        void CmSetShow3DIs();
+        void CmSetShowVectorsIs();
+        void CmSetShow3DMri();
+        double GetRegularizationRatio(int reg1, int reg2);
+        void CmReg(owlwparam w);
+        void CmNextIs();
+        void CmNextMri();
+        void CmSetSliceMode();
+        void CmSetNumSlices(owlwparam wparam);
+        void CmMoveSlice(owlwparam wparam);
+        void CmSetStepTF(owlwparam wparam) final;
+        void CmShowMinMax(owlwparam wparam);
+        void CmSetBrightness(owlwparam wparam);
+        void CmSetContrast(owlwparam wparam);
+        void CmSetManageRangeCursor(owlwparam wparam) final;
+        void CmSetScalingAdapt();
+        void CmNextColorTable();
+        void CmSetFindMinMax();
+        void CmSearchTFMax();
+        void CmSearchRegularization(owlwparam w);
+        void CmSetShowSP();
+        void CmShowAll(owlwparam w) final;
+        void CmShowColorScale() final;
+        void CmShowOrientation() final;
+        void CmSetShiftDepthRange(owlwparam wparam) final;
+        void CmSetIntensityLevelEnable(owl::TCommandEnabler &tce);
+        void CmIsEnable(owl::TCommandEnabler &tce);
+        void CmMriEnable(owl::TCommandEnabler &tce);
+        void CmNextMriEnable(owl::TCommandEnabler &tce);
+        void CmNextRegEnable(owl::TCommandEnabler &tce);
+        void CmNextIsEnable(owl::TCommandEnabler &tce);
+        void CmIsMriEnable(owl::TCommandEnabler &tce);
+        void CmSlicesEnable(owl::TCommandEnabler &tce);
+        void CmIsScalarEnable(owl::TCommandEnabler &tce);
+        void CmSliceModeEnable(owl::TCommandEnabler &tce);
+        void CmNotSliceModeEnable(owl::TCommandEnabler &tce);
+        void CmSetAveragingMode(owlwparam w);
+        void CmNextRois();
+        void CmNextRoisEnable(owl::TCommandEnabler &tce);
+        void CmPrecedenceBeforeEnable(owl::TCommandEnabler &tce);
+        void CmPrecedenceAfterEnable(owl::TCommandEnabler &tce);
 
-    TSelection              SelSP;              // currently displayed solution points
-    TSelection              Highlighted;
+        DECLARE_RESPONSE_TABLE(TInverseView);
+    };
 
-    bool                    IsSignedData;
-    InverseMinMaxType       ShowMin;
-    InverseMinMaxType       ShowMax;
-    InverseRendering2D      Show2DIs;
-    InverseRendering3D      Show3DIs;
-    InverseRenderingVectors ShowVectorsIs;
-    MriRendering            Show3DMri;
-    PointsRendering         ShowSp;
-    bool                    IsRoiMode;
-    bool                    FindMinMax;
-    double                  IsSpreading;        // how much variation is in the data
-    TAveragingPrecedence    AveragingPrecedence;
-
-
-    int                     GalMinIndex;
-    int                     GalMaxIndex;
-    double                  GalMinValue;
-    double                  GalMaxValue;
-    TPointFloat             GalMinPos;
-    TPointFloat             GalMaxPos;
-    TGLMatrix               AntiModelRotMatrix;
-
-
-    TInverseVolumeState     SavedState;                                 // volume display state
-    TInverseState           SavedIsState    [ InverseNumSavedStates ];  // inverse display state
-
-                                        // OpenGL
-    TGLMaterial<GLfloat>    MaterialIs;
-    TTriangleSurface        SurfaceISPos    [ InverseNumOnionLayers ];
-    TTriangleSurface        SurfaceISNeg    [ InverseNumOnionLayers ];
-    TTriangleSurfaceIsoParam  IsoParam;
-    long                    RedoSurfaceIS;
-//  TGLVolume               VolumeMri;  // it seems we don't need this cache variable now, we can safely call the volume display
-    TGLVolume               VolumeIs;
-
-                                        // TDisplayScaling
-    void                    SetScaling              ( double scaling )                                      final;
-    void                    SetScaling              ( double negv, double posv, bool forcesymetric = true ) final;
-    void                    UpdateScaling           ()                                                      final;
-
-    bool                    ValidView               ()                                                      final;
-    inline int              NumVisiblePlanes        ();
-    long                    SearchAndSetIntensity   ( bool precise = false ); // returns the TF position
-    void                    SetSliceSize            ();
-    void                    SetShowSlices           ( bool newtype );
-    void                    SetTotalSlices          ();
-    void                    SetItemsInWindow        ();
-    void                    FitItemsInWindow        ( int numitems, owl::TSize itemsize, int &byx, int &byy, owl::TRect *winrect = 0 )  final;
-    void                    SetColorTable           ( AtomType datatype )                                   final;
-    void                    InitMri                 ();
-    void                    ReloadRoi               ();
-//  void                    FilterIs                ();
-    void                    GetInverse              ( int tf1, int tf2 );
-
-    void                    Paint                   ( owl::TDC& dc, bool erase, owl::TRect& rect )          final;
-    void                    SetupWindow             ()                                                      final;
-    void                    DrawMinMax              ( TPointFloat& pos, bool colormin, bool showminmaxcircle, double scale );
-
-    bool                    VnNewTFCursor           ( const TTFCursor* tfcursor );
-    bool                    VnReloadData            ( int what );
-    bool                    VnNewHighlighted        ( const TSelection *sel );
-    bool                    VnViewUpdated           ( TBaseView *view );
-    bool                    VnSessionUpdated        ( void* );
-
-    using        TBaseView::EvSetFocus;
-    using        TBaseView::EvKillFocus;
-    void                    EvKeyDown               ( owl::uint key, owl::uint repeatCount, owl::uint flags );
-    void                    EvKeyUp                 ( owl::uint key, owl::uint repeatCount, owl::uint flags );
-    void                    EvLButtonDblClk         ( owl::uint, const owl::TPoint & );
-    void                    EvLButtonDown           ( owl::uint, const owl::TPoint &p );
-    void                    EvLButtonUp             ( owl::uint, const owl::TPoint &p );
-    void                    EvMButtonDown           ( owl::uint, const owl::TPoint &p );
-    void                    EvMButtonUp             ( owl::uint, const owl::TPoint &p );
-    void                    EvRButtonDown           ( owl::uint, const owl::TPoint &p );
-    void                    EvRButtonUp             ( owl::uint, const owl::TPoint &p );
-    void                    EvMouseMove             ( owl::uint, const owl::TPoint &p );
-    void                    EvSize                  ( owl::uint, const owl::TSize& );
-    void                    EvTimer                 ( owl::uint timerId );
-    void                    EvMouseWheel            ( owl::uint modKeys, int zDelta, const owl::TPoint& p );
-
-    using        TBaseView::Cm2Object;
-    using        TBaseView::CmMagnifier;
-    using   TSecondaryView::CmShowSequenceLabels;
-
-    void                    CmSetCutPlane           ( owlwparam wparam );
-    void                    CmShiftCutPlane         ( owlwparam wparam, bool forward );
-    void                    CmSetCutPlaneEnable     ( owl::TCommandEnabler &tce );
-    void                    CmOrient                ()  final;
-
-    void                    CmSetShow2DIs           ( owlwparam wparam );
-    void                    CmSetShow3DIs           ();
-    void                    CmSetShowVectorsIs      ();
-    void                    CmSetShow3DMri          ();
-    double                  GetRegularizationRatio  ( int reg1, int reg2 );
-    void                    CmReg                   ( owlwparam w );
-    void                    CmNextIs                ();
-    void                    CmNextMri               ();
-    void                    CmSetSliceMode          ();
-    void                    CmSetNumSlices          ( owlwparam wparam );
-    void                    CmMoveSlice             ( owlwparam wparam );
-    void                    CmSetStepTF             ( owlwparam wparam )    final;
-    void                    CmShowMinMax            ( owlwparam wparam );
-    void                    CmSetBrightness         ( owlwparam wparam );
-    void                    CmSetContrast           ( owlwparam wparam );
-    void                    CmSetManageRangeCursor  ( owlwparam wparam )    final;
-    void                    CmSetScalingAdapt       ();
-    void                    CmNextColorTable        ();
-    void                    CmSetFindMinMax         ();
-    void                    CmSearchTFMax           ();
-    void                    CmSearchRegularization  ( owlwparam w );
-    void                    CmSetShowSP             ();
-    void                    CmShowAll               ( owlwparam w )         final;
-    void                    CmShowColorScale        ()                      final;
-    void                    CmShowOrientation       ()                      final;
-    void                    CmSetShiftDepthRange    ( owlwparam wparam )    final;
-    void                    CmSetIntensityLevelEnable ( owl::TCommandEnabler &tce );
-    void                    CmIsEnable              ( owl::TCommandEnabler &tce );
-    void                    CmMriEnable             ( owl::TCommandEnabler &tce );
-    void                    CmNextMriEnable         ( owl::TCommandEnabler &tce );
-    void                    CmNextRegEnable         ( owl::TCommandEnabler &tce );
-    void                    CmNextIsEnable          ( owl::TCommandEnabler &tce );
-    void                    CmIsMriEnable           ( owl::TCommandEnabler &tce );
-    void                    CmSlicesEnable          ( owl::TCommandEnabler &tce );
-    void                    CmIsScalarEnable        ( owl::TCommandEnabler &tce );
-    void                    CmSliceModeEnable       ( owl::TCommandEnabler &tce );
-    void                    CmNotSliceModeEnable    ( owl::TCommandEnabler &tce );
-    void                    CmSetAveragingMode      ( owlwparam w );
-    void                    CmNextRois              ();
-    void                    CmNextRoisEnable        ( owl::TCommandEnabler &tce );
-    void                    CmPrecedenceBeforeEnable( owl::TCommandEnabler &tce );
-    void                    CmPrecedenceAfterEnable ( owl::TCommandEnabler &tce );
-
-    DECLARE_RESPONSE_TABLE (TInverseView);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

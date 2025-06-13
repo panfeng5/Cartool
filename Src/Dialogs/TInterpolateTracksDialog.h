@@ -16,178 +16,164 @@ limitations under the License.
 
 #pragma once
 
-#include    "System.h"
+#include "System.h"
 
-#include    "TInterpolateTracks.h"
+#include "TInterpolateTracks.h"
 
-#include    "TBaseDialog.h"
-#include    "TCartoolApp.h"
+#include "TBaseDialog.h"
+#include "TCartoolApp.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Predefined electrodes systems:
-enum        PredefLandmarksSystems
-            {
-            PredefClear,
-
-            Predef1010A,
-            Predef1010B,
-            PredefEGI2,
-            PredefEGI3,
-            PredefEGIHydrocel1,
-            PredefEGIHydrocel2,
-            PredefNS,
-            PredefBiosemi128,
-            PredefBiosemi192,
-            PredefBiosemi256,
-
-            NumLandmarksSystems
-            };
-
-
-constexpr char*     LandmarksDescrAutoDetect    = "10-10 System detected";
-
-                                        // Known "fiducial" electrode names for a few system
-extern const char   PredefLandmarksStrings[ NumLandmarksSystems ][ NumLandmarksInfo ][ 32 ];
-
-
-//----------------------------------------------------------------------------
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-class   TInterpolateTracksStruct
+namespace crtl
 {
-public:
-                        TInterpolateTracksStruct ();
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Predefined electrodes systems:
+    enum PredefLandmarksSystems
+    {
+        PredefClear,
 
-    TEditData           FromXyz     [ EditSizeText ];
-    TEditData           FromBadElectrodes[ EditSizeTextLong ];
-    TEditData           FromFront   [ EditSizeValue ];
-    TEditData           FromLeft    [ EditSizeValue ];
-    TEditData           FromTop     [ EditSizeValue ];
-    TEditData           FromRight   [ EditSizeValue ];
-    TEditData           FromRear    [ EditSizeValue ];
+        Predef1010A,
+        Predef1010B,
+        PredefEGI2,
+        PredefEGI3,
+        PredefEGIHydrocel1,
+        PredefEGIHydrocel2,
+        PredefNS,
+        PredefBiosemi128,
+        PredefBiosemi192,
+        PredefBiosemi256,
 
-    TRadioButtonData    SameXyz;
-    TRadioButtonData    AnotherXyz;
-    TEditData           ToXyz       [ EditSizeText ];
-    TEditData           ToFront     [ EditSizeValue ];
-    TEditData           ToLeft      [ EditSizeValue ];
-    TEditData           ToTop       [ EditSizeValue ];
-    TEditData           ToRight     [ EditSizeValue ];
-    TEditData           ToRear      [ EditSizeValue ];
-
-    TRadioButtonData    SurfaceSpline;
-    TRadioButtonData    SphericalSpline;
-    TRadioButtonData    ThreeDSpline;
-    TRadioButtonData    CDSpherical;
-    TEditData           Degree      [ EditSizeValue ];
-
-    TComboBoxData       FileTypes;
-    TCheckBoxData       CleanUp;
-    TCheckBoxData       OpenAuto;
-    TEditData           InfixFilename[ EditSizeText ];
+        NumLandmarksSystems
     };
 
+    constexpr char *LandmarksDescrAutoDetect = "10-10 System detected";
 
-class   TInterpolateTracksStructEx:   public  TInterpolateTracksStruct
-{
-public:
-                        TInterpolateTracksStructEx ();
+    // Known "fiducial" electrode names for a few system
+    extern const char PredefLandmarksStrings[NumLandmarksSystems][NumLandmarksInfo][32];
 
+    //----------------------------------------------------------------------------
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-    TSelection          BadElectrodesSelection; // set from ProcessCurrent
-    bool                FromXyzLinked;          // set from lm
+        class TInterpolateTracksStruct
+    {
+    public:
+        TInterpolateTracksStruct();
+
+        TEditData FromXyz[EditSizeText];
+        TEditData FromBadElectrodes[EditSizeTextLong];
+        TEditData FromFront[EditSizeValue];
+        TEditData FromLeft[EditSizeValue];
+        TEditData FromTop[EditSizeValue];
+        TEditData FromRight[EditSizeValue];
+        TEditData FromRear[EditSizeValue];
+
+        TRadioButtonData SameXyz;
+        TRadioButtonData AnotherXyz;
+        TEditData ToXyz[EditSizeText];
+        TEditData ToFront[EditSizeValue];
+        TEditData ToLeft[EditSizeValue];
+        TEditData ToTop[EditSizeValue];
+        TEditData ToRight[EditSizeValue];
+        TEditData ToRear[EditSizeValue];
+
+        TRadioButtonData SurfaceSpline;
+        TRadioButtonData SphericalSpline;
+        TRadioButtonData ThreeDSpline;
+        TRadioButtonData CDSpherical;
+        TEditData Degree[EditSizeValue];
+
+        TComboBoxData FileTypes;
+        TCheckBoxData CleanUp;
+        TCheckBoxData OpenAuto;
+        TEditData InfixFilename[EditSizeText];
     };
 
+    class TInterpolateTracksStructEx : public TInterpolateTracksStruct
+    {
+    public:
+        TInterpolateTracksStructEx();
 
-EndBytePacking
+        TSelection BadElectrodesSelection; // set from ProcessCurrent
+        bool FromXyzLinked;                // set from lm
+    };
 
-//----------------------------------------------------------------------------
+    EndBytePacking
 
-class       TTracksDoc;
-class       TGoF;
+        //----------------------------------------------------------------------------
 
+        class TTracksDoc;
+    class TGoF;
 
-class   TInterpolateTracksDialog    :   public  TBaseDialog
-{
-public:
-                        TInterpolateTracksDialog ( owl::TWindow* parent, owl::TResId resId, TTracksDoc* doc );
-                       ~TInterpolateTracksDialog ();
+    class TInterpolateTracksDialog : public TBaseDialog
+    {
+    public:
+        TInterpolateTracksDialog(owl::TWindow *parent, owl::TResId resId, TTracksDoc *doc);
+        ~TInterpolateTracksDialog();
 
+    protected:
+        owl::TEdit *FromXyz;
+        owl::TEdit *FromBadElectrodes;
+        owl::TEdit *FromFront;
+        owl::TEdit *FromLeft;
+        owl::TEdit *FromTop;
+        owl::TEdit *FromRight;
+        owl::TEdit *FromRear;
+        owl::TStatic *FromDescription;
 
-protected:
-    owl::TEdit          *FromXyz;
-    owl::TEdit          *FromBadElectrodes;
-    owl::TEdit          *FromFront;
-    owl::TEdit          *FromLeft;
-    owl::TEdit          *FromTop;
-    owl::TEdit          *FromRight;
-    owl::TEdit          *FromRear;
-    owl::TStatic        *FromDescription;
+        owl::TRadioButton *SameXyz;
+        owl::TRadioButton *AnotherXyz;
+        owl::TEdit *ToXyz;
+        owl::TEdit *ToFront;
+        owl::TEdit *ToLeft;
+        owl::TEdit *ToTop;
+        owl::TEdit *ToRight;
+        owl::TEdit *ToRear;
+        owl::TStatic *ToDescription;
 
-    owl::TRadioButton   *SameXyz;
-    owl::TRadioButton   *AnotherXyz;
-    owl::TEdit          *ToXyz;
-    owl::TEdit          *ToFront;
-    owl::TEdit          *ToLeft;
-    owl::TEdit          *ToTop;
-    owl::TEdit          *ToRight;
-    owl::TEdit          *ToRear;
-    owl::TStatic        *ToDescription;
+        owl::TRadioButton *SurfaceSpline;
+        owl::TRadioButton *SphericalSpline;
+        owl::TRadioButton *ThreeDSpline;
+        owl::TRadioButton *CDSpherical;
+        owl::TEdit *Degree;
 
-    owl::TRadioButton   *SurfaceSpline;
-    owl::TRadioButton   *SphericalSpline;
-    owl::TRadioButton   *ThreeDSpline;
-    owl::TRadioButton   *CDSpherical;
-    owl::TEdit          *Degree;
+        owl::TComboBox *FileTypes;
+        owl::TCheckBox *CleanUp;
+        owl::TCheckBox *OpenAuto;
+        owl::TEdit *InfixFilename;
 
-    owl::TComboBox      *FileTypes;
-    owl::TCheckBox      *CleanUp;
-    owl::TCheckBox      *OpenAuto;
-    owl::TEdit          *InfixFilename;
+        PredefLandmarksSystems FromPredef;
+        PredefLandmarksSystems ToPredef;
+        bool FromGrid;
 
+        TInterpolateTracks IT; // wrapping and handling all intermediate files and objects together
 
-    PredefLandmarksSystems  FromPredef;
-    PredefLandmarksSystems  ToPredef;
-    bool                    FromGrid;
+        void BatchProcess() final;
+        void ProcessCurrent(void *usetransfer = 0, const char *moreinfix = 0) final;
 
+        void EvDropFiles(owl::TDropInfo drop);
 
-    TInterpolateTracks  IT;                 // wrapping and handling all intermediate files and objects together
+        void CmBrowseXyzFileName(owlwparam w);
+        void CmToXyzEnable(owl::TCommandEnabler &tce);
+        void CmToLandmarksEnable(owl::TCommandEnabler &tce);
+        void CmChoiceTo(owlwparam w);
+        void CmSetTargetSpace();
+        void CmFromXyzChange();
+        void CmToXyzChange();
+        void CmPredefLandmarks(owlwparam w);
+        void CmCopyLandmarks(owlwparam w);
+        void CmSplineEnable(owl::TCommandEnabler &tce);
+        void CmSplineDegreeEnable(owl::TCommandEnabler &tce);
+        bool AreParametersOk();
+        void CmProcessCurrentEnable(owl::TCommandEnabler &tce);
+        void CmProcessBatchEnable(owl::TCommandEnabler &tce);
+        void CmFromXyzEnable(owl::TCommandEnabler &tce);
 
+        DECLARE_RESPONSE_TABLE(TInterpolateTracksDialog);
+    };
 
-    void                BatchProcess            ()                                                      final;
-    void                ProcessCurrent          ( void* usetransfer = 0, const char* moreinfix = 0 )    final;
-
-
-    void                EvDropFiles             ( owl::TDropInfo drop );
-
-    void                CmBrowseXyzFileName     ( owlwparam w );
-    void                CmToXyzEnable           ( owl::TCommandEnabler &tce );
-    void                CmToLandmarksEnable     ( owl::TCommandEnabler &tce );
-    void                CmChoiceTo              ( owlwparam w );
-    void                CmSetTargetSpace        ();
-    void                CmFromXyzChange         ();
-    void                CmToXyzChange           ();
-    void                CmPredefLandmarks       ( owlwparam w );
-    void                CmCopyLandmarks         ( owlwparam w );
-    void                CmSplineEnable          ( owl::TCommandEnabler &tce );
-    void                CmSplineDegreeEnable    ( owl::TCommandEnabler &tce );
-    bool                AreParametersOk         ();
-    void                CmProcessCurrentEnable  ( owl::TCommandEnabler &tce );
-    void                CmProcessBatchEnable    ( owl::TCommandEnabler &tce );
-    void                CmFromXyzEnable         ( owl::TCommandEnabler &tce );
-
-
-    DECLARE_RESPONSE_TABLE ( TInterpolateTracksDialog );
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

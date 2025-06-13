@@ -16,335 +16,311 @@ limitations under the License.
 
 #pragma once
 
-#include    "System.h"
-#include    "TBaseDialog.h"
+#include "System.h"
+#include "TBaseDialog.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*     NormalizeTitleOne       = "Reprocessing MRI";
-constexpr char*     NormalizeTitleMany      = "Reprocessing MRIs";
-
-
-enum        PreprocessMrisPresetsEnum
-            {
-            MriPreprocPresetOff,
-            MriPreprocPresetSep1,
-            MriPreprocPresetCleaning,
-            MriPreprocPresetResampling,
-            MriPreprocPresetReorienting,
-            MriPreprocPresetReorigin,
-            MriPreprocPresetSkullStripping,
-            MriPreprocPresetSkullStrippingGreySP,
-            MriPreprocPresetSep2,
-            MriPreprocPresetAll,
-            MriPreprocPresetInverse,
-
-            NumMriPreprocPresets,
-
-            MriPreprocPresetDefault     = MriPreprocPresetInverse,
-            };
-
-extern const char   PreprocessMrisPresetsNames[ NumMriPreprocPresets ][ 64 ];
-
-
-enum        MRISequenceType
-            {
-            MRISequenceUnknown,
-            MRISequenceT1,
-            MRISequenceT1Gad,
-//          MRISequenceT2,              // not yet
-
-            NumMRISequenceTypes,
-
-            MRISequenceDefault          = MRISequenceT1,
-            };
-
-extern const char   MRISequenceNames[ NumMRISequenceTypes ][ 16 ];
-
-
-
-enum        ResizingType
-            {
-            ResizingNone,
-            ResizingDimensions,
-            ResizingVoxels,
-            ResizingRatios,
-            };
-
-
-enum        ReorientingType
-            {
-            ReorientingNone,
-            ReorientingRAS,
-            ReorientingArbitrary,
-            };
-
-
-enum        OriginFlags
-            {
-            OriginNone          = 0x00,
-
-            OriginReset         = 0x01,
-            OriginSetAlways     = 0x02,
-            OriginSetNoDefault  = 0x04,
-            OriginHowMask       = 0x07,
-
-            OriginMniFlag       = 0x10,
-            OriginCenterFlag    = 0x20,
-            OriginArbitrary     = 0x40,
-            OriginLocationMask  = 0x70,
-            };
-
-inline  bool    IsOrigin                ( OriginFlags o )       { return  o & OriginHowMask;        }
-inline  bool    IsOriginReset           ( OriginFlags o )       { return  o & OriginReset;          }
-inline  bool    IsOriginSetAlways       ( OriginFlags o )       { return  o & OriginSetAlways;      }
-inline  bool    IsOriginSetNoDefault    ( OriginFlags o )       { return  o & OriginSetNoDefault;   }
-                                                                         
-inline  bool    IsOriginMni             ( OriginFlags o )       { return  o & OriginMniFlag;        }
-inline  bool    IsOriginCenter          ( OriginFlags o )       { return  o & OriginCenterFlag;     }
-inline  bool    IsOriginArbitrary       ( OriginFlags o )       { return  o & OriginArbitrary;      }
-
-
-enum        MriSkullStrippingPresetsEnum
-            {
-            MriSkullStrippingPresetOff,
-            MriSkullStrippingPreset1,
-            MriSkullStrippingPreset2,
-            MriSkullStrippingPreset3,
-
-            NumMriSkullStrippingPresets,
-
-            MriSkullStrippingPresetDefault  = MriSkullStrippingPreset1,
-            };
-
-
-extern const char   MriSkullStrippingPresetsNames[ NumMriSkullStrippingPresets ][ 64 ];
-
-
-enum        GreyMaskPresetsEnum
-            {
-            GreyMaskPresetOff,
-            GreyMaskPresetThin,
-            GreyMaskPresetReg,
-            GreyMaskPresetFat,
-            GreyMaskPresetWhole,
-
-            NumGreyMaskPresets,
-
-            GreyMaskPresetDefault       = GreyMaskPresetFat,
-            };
-
-
-extern const char   GreyMaskPresetsNames[ NumGreyMaskPresets ][ 32 ];
-
-
-enum        SPPresetsEnum
-            {
-            SPPresetOff,
-            SPPresetCompute,
-            SPPresetPorting,
-
-            NumSPPresets,
-
-            SPPresetDefault     = SPPresetPorting,
-            };
-
-
-extern const char   SPPresetsNames[ NumSPPresets ][ 64 ];
-
-
-//----------------------------------------------------------------------------
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-class  TPreprocessMrisStruct
+namespace crtl
 {
-public:
-                        TPreprocessMrisStruct ();
 
-        
-    TComboBoxData       Presets;
-    TComboBoxData       PresetsMriType;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    TCheckBoxData       FullHeadCleanUp;
+    constexpr char *NormalizeTitleOne = "Reprocessing MRI";
+    constexpr char *NormalizeTitleMany = "Reprocessing MRIs";
 
-    TCheckBoxData       Isotropic;
+    enum PreprocessMrisPresetsEnum
+    {
+        MriPreprocPresetOff,
+        MriPreprocPresetSep1,
+        MriPreprocPresetCleaning,
+        MriPreprocPresetResampling,
+        MriPreprocPresetReorienting,
+        MriPreprocPresetReorigin,
+        MriPreprocPresetSkullStripping,
+        MriPreprocPresetSkullStrippingGreySP,
+        MriPreprocPresetSep2,
+        MriPreprocPresetAll,
+        MriPreprocPresetInverse,
 
-    TCheckBoxData       Resizing;
-    TRadioButtonData    ResizingVoxel;
-    TRadioButtonData    ResizingRatio;
-    TEditData           ResizingVoxelValue  [ EditSizeValue ];
-    TEditData           ResizingRatioValue  [ EditSizeValue ];
+        NumMriPreprocPresets,
 
-    TCheckBoxData       Reorienting;
-    TRadioButtonData    ReorientingRas;
-    TRadioButtonData    ReorientingOther;
-    TEditData           ReorientingX        [ 2 ];
-    TEditData           ReorientingY        [ 2 ];
-    TEditData           ReorientingZ        [ 2 ];
-    TCheckBoxData       AlignSagittal;
-    TCheckBoxData       AlignTransverse;
+        MriPreprocPresetDefault = MriPreprocPresetInverse,
+    };
 
-    TCheckBoxData       SettingOrigin;
-    TRadioButtonData    SettingOriginIfNotSet;
-    TRadioButtonData    SettingOriginAlways;
-    TRadioButtonData    OriginMni;
-    TRadioButtonData    OriginCenter;
-    TRadioButtonData    OriginFixed;
-    TEditData           OriginX             [ EditSizeValue ];
-    TEditData           OriginY             [ EditSizeValue ];
-    TEditData           OriginZ             [ EditSizeValue ];
+    extern const char PreprocessMrisPresetsNames[NumMriPreprocPresets][64];
 
-    TRadioButtonData    SizeTransformed;
-    TRadioButtonData    SizeOptimal;
-    TRadioButtonData    SizeUser;
-    TEditData           SizeUserX           [ EditSizeValue ];
-    TEditData           SizeUserY           [ EditSizeValue ];
-    TEditData           SizeUserZ           [ EditSizeValue ];
+    enum MRISequenceType
+    {
+        MRISequenceUnknown,
+        MRISequenceT1,
+        MRISequenceT1Gad,
+        //          MRISequenceT2,              // not yet
 
-    TComboBoxData       PresetsSkullStripping;
-    TCheckBoxData       BFC;
+        NumMRISequenceTypes,
 
-    TComboBoxData       PresetsGrey;
+        MRISequenceDefault = MRISequenceT1,
+    };
 
-    TComboBoxData       PresetsSP;
-    TRadioButtonData    SPNumber;
-    TEditData           SPNumberEdit        [ EditSizeValue ];
-    TRadioButtonData    SPResolution;
-    TEditData           SPResolutionEdit    [ EditSizeValue ];
-    TEditData           SPFromBrain         [ EditSizeText ];
-    TEditData           SPFromSP            [ EditSizeText ];
+    extern const char MRISequenceNames[NumMRISequenceTypes][16];
 
-    TEditData           InfixFilename       [ EditSizeText ];
-    TCheckBoxData       OpenAuto;
+    enum ResizingType
+    {
+        ResizingNone,
+        ResizingDimensions,
+        ResizingVoxels,
+        ResizingRatios,
+    };
 
-};
+    enum ReorientingType
+    {
+        ReorientingNone,
+        ReorientingRAS,
+        ReorientingArbitrary,
+    };
 
+    enum OriginFlags
+    {
+        OriginNone = 0x00,
 
-EndBytePacking
+        OriginReset = 0x01,
+        OriginSetAlways = 0x02,
+        OriginSetNoDefault = 0x04,
+        OriginHowMask = 0x07,
 
-//----------------------------------------------------------------------------
+        OriginMniFlag = 0x10,
+        OriginCenterFlag = 0x20,
+        OriginArbitrary = 0x40,
+        OriginLocationMask = 0x70,
+    };
 
-class       TVolumeDoc;
+    inline bool IsOrigin(OriginFlags o) { return o & OriginHowMask; }
+    inline bool IsOriginReset(OriginFlags o) { return o & OriginReset; }
+    inline bool IsOriginSetAlways(OriginFlags o) { return o & OriginSetAlways; }
+    inline bool IsOriginSetNoDefault(OriginFlags o) { return o & OriginSetNoDefault; }
 
+    inline bool IsOriginMni(OriginFlags o) { return o & OriginMniFlag; }
+    inline bool IsOriginCenter(OriginFlags o) { return o & OriginCenterFlag; }
+    inline bool IsOriginArbitrary(OriginFlags o) { return o & OriginArbitrary; }
 
-class   TPreprocessMrisDialog   :   public  TBaseDialog
-{
-public:                
-                        TPreprocessMrisDialog ( owl::TWindow* parent, owl::TResId resId, TVolumeDoc* doc = 0 );
-                       ~TPreprocessMrisDialog ();
+    enum MriSkullStrippingPresetsEnum
+    {
+        MriSkullStrippingPresetOff,
+        MriSkullStrippingPreset1,
+        MriSkullStrippingPreset2,
+        MriSkullStrippingPreset3,
 
+        NumMriSkullStrippingPresets,
 
-protected:
-    owl::TComboBox      *Presets;
-    owl::TComboBox      *PresetsMriType;
+        MriSkullStrippingPresetDefault = MriSkullStrippingPreset1,
+    };
 
-    owl::TCheckBox      *FullHeadCleanUp;
+    extern const char MriSkullStrippingPresetsNames[NumMriSkullStrippingPresets][64];
 
-    owl::TCheckBox      *Isotropic;
+    enum GreyMaskPresetsEnum
+    {
+        GreyMaskPresetOff,
+        GreyMaskPresetThin,
+        GreyMaskPresetReg,
+        GreyMaskPresetFat,
+        GreyMaskPresetWhole,
 
-    owl::TCheckBox      *Resizing;
-    owl::TRadioButton   *ResizingVoxel;
-    owl::TRadioButton   *ResizingRatio;
-    owl::TEdit          *ResizingVoxelValue;
-    owl::TEdit          *ResizingRatioValue;
+        NumGreyMaskPresets,
 
-    owl::TCheckBox      *Reorienting;
-    owl::TRadioButton   *ReorientingRas;
-    owl::TRadioButton   *ReorientingOther;
-    owl::TEdit          *ReorientingX;
-    owl::TEdit          *ReorientingY;
-    owl::TEdit          *ReorientingZ;
-    owl::TCheckBox      *AlignSagittal;
-    owl::TCheckBox      *AlignTransverse;
+        GreyMaskPresetDefault = GreyMaskPresetFat,
+    };
 
-    owl::TCheckBox      *SettingOrigin;
-    owl::TRadioButton   *SettingOriginIfNotSet;
-    owl::TRadioButton   *SettingOriginAlways;
-    owl::TRadioButton   *OriginMni;
-    owl::TRadioButton   *OriginCenter;
-    owl::TRadioButton   *OriginFixed;
-    owl::TEdit          *OriginX;
-    owl::TEdit          *OriginY;
-    owl::TEdit          *OriginZ;
+    extern const char GreyMaskPresetsNames[NumGreyMaskPresets][32];
 
-    owl::TRadioButton   *SizeTransformed;
-    owl::TRadioButton   *SizeOptimal;
-    owl::TRadioButton   *SizeUser;
-    owl::TEdit          *SizeUserX;
-    owl::TEdit          *SizeUserY;
-    owl::TEdit          *SizeUserZ;
+    enum SPPresetsEnum
+    {
+        SPPresetOff,
+        SPPresetCompute,
+        SPPresetPorting,
 
-    owl::TComboBox      *PresetsSkullStripping;
-    owl::TCheckBox      *BFC;
+        NumSPPresets,
 
-    owl::TComboBox      *PresetsGrey;
+        SPPresetDefault = SPPresetPorting,
+    };
 
-    owl::TComboBox      *PresetsSP;
-    owl::TRadioButton   *SPNumber;
-    owl::TEdit          *SPNumberEdit;
-    owl::TRadioButton   *SPResolution;
-    owl::TEdit          *SPResolutionEdit;
-    owl::TEdit          *SPFromBrain;
-    owl::TEdit          *SPFromSP;
+    extern const char SPPresetsNames[NumSPPresets][64];
 
-    owl::TEdit          *InfixFilename;
-    owl::TCheckBox      *OpenAuto;
+    //----------------------------------------------------------------------------
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
+        class TPreprocessMrisStruct
+    {
+    public:
+        TPreprocessMrisStruct();
 
-    TVolumeDoc*         MRIDoc;             // current MRI to process
+        TComboBoxData Presets;
+        TComboBoxData PresetsMriType;
 
+        TCheckBoxData FullHeadCleanUp;
 
-    void                CmBatchProcess          ()                                                      final;
-    void                CmProcessCurrent        ()                                                      final;
-    void                BatchProcess            ()                                                      final;
-    void                ProcessCurrent          ( void *usetransfer = 0, const char *moreinfix = 0 )    final;
+        TCheckBoxData Isotropic;
 
+        TCheckBoxData Resizing;
+        TRadioButtonData ResizingVoxel;
+        TRadioButtonData ResizingRatio;
+        TEditData ResizingVoxelValue[EditSizeValue];
+        TEditData ResizingRatioValue[EditSizeValue];
 
-    void                EvDropFiles             ( owl::TDropInfo drop );
-    void                EvPresetsChange         ();
-    void                EvPresetsMriTypeChange  ();
+        TCheckBoxData Reorienting;
+        TRadioButtonData ReorientingRas;
+        TRadioButtonData ReorientingOther;
+        TEditData ReorientingX[2];
+        TEditData ReorientingY[2];
+        TEditData ReorientingZ[2];
+        TCheckBoxData AlignSagittal;
+        TCheckBoxData AlignTransverse;
 
-    void                CmAlignTransverse       ();
-    void                CmOriginMni             ();
+        TCheckBoxData SettingOrigin;
+        TRadioButtonData SettingOriginIfNotSet;
+        TRadioButtonData SettingOriginAlways;
+        TRadioButtonData OriginMni;
+        TRadioButtonData OriginCenter;
+        TRadioButtonData OriginFixed;
+        TEditData OriginX[EditSizeValue];
+        TEditData OriginY[EditSizeValue];
+        TEditData OriginZ[EditSizeValue];
 
+        TRadioButtonData SizeTransformed;
+        TRadioButtonData SizeOptimal;
+        TRadioButtonData SizeUser;
+        TEditData SizeUserX[EditSizeValue];
+        TEditData SizeUserY[EditSizeValue];
+        TEditData SizeUserZ[EditSizeValue];
 
-    bool                CmProcessEnable         ();
-    void                CmProcessCurrentEnable  ( owl::TCommandEnabler &tce );
-    void                CmProcessBatchEnable    ( owl::TCommandEnabler &tce );
+        TComboBoxData PresetsSkullStripping;
+        TCheckBoxData BFC;
 
-    void                CmResizingEnable        ( owl::TCommandEnabler &tce );
-    void                CmVoxelEnable           ( owl::TCommandEnabler &tce );
-    void                CmRatioEnable           ( owl::TCommandEnabler &tce );
-    void                CmReorientingEnable     ( owl::TCommandEnabler &tce );
-    void                CmAlignSagittalEnable   ( owl::TCommandEnabler &tce );
-    void                CmReorientingOtherEnable( owl::TCommandEnabler &tce );
-    void                CmOriginEnable          ( owl::TCommandEnabler &tce );
-    void                CmOriginOtherEnable     ( owl::TCommandEnabler &tce );
-    void                CmSizeUserEnable        ( owl::TCommandEnabler &tce );
+        TComboBoxData PresetsGrey;
 
-    void                CmSkullStrippingEnable  ( owl::TCommandEnabler &tce );
+        TComboBoxData PresetsSP;
+        TRadioButtonData SPNumber;
+        TEditData SPNumberEdit[EditSizeValue];
+        TRadioButtonData SPResolution;
+        TEditData SPResolutionEdit[EditSizeValue];
+        TEditData SPFromBrain[EditSizeText];
+        TEditData SPFromSP[EditSizeText];
 
-    void                CmBrowseSpFile          ();
-    void                SetSpFile               ( char *file );
-    void                CmBrowseBrainFile       ();
-    void                SetBrainFile            ( char *file );
-    void                CmSPPresetsEnable       ( owl::TCommandEnabler &tce );
-    void                CmSPButtonEnable        ( owl::TCommandEnabler &tce );
-    void                CmSPComputeNumEnable    ( owl::TCommandEnabler &tce );
-    void                CmSPComputeRezEnable    ( owl::TCommandEnabler &tce );
-    void                CmSPPortEnable          ( owl::TCommandEnabler &tce );
+        TEditData InfixFilename[EditSizeText];
+        TCheckBoxData OpenAuto;
+    };
 
+    EndBytePacking
 
-    DECLARE_RESPONSE_TABLE ( TPreprocessMrisDialog );
-};
+        //----------------------------------------------------------------------------
 
+        class TVolumeDoc;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    class TPreprocessMrisDialog : public TBaseDialog
+    {
+    public:
+        TPreprocessMrisDialog(owl::TWindow *parent, owl::TResId resId, TVolumeDoc *doc = 0);
+        ~TPreprocessMrisDialog();
+
+    protected:
+        owl::TComboBox *Presets;
+        owl::TComboBox *PresetsMriType;
+
+        owl::TCheckBox *FullHeadCleanUp;
+
+        owl::TCheckBox *Isotropic;
+
+        owl::TCheckBox *Resizing;
+        owl::TRadioButton *ResizingVoxel;
+        owl::TRadioButton *ResizingRatio;
+        owl::TEdit *ResizingVoxelValue;
+        owl::TEdit *ResizingRatioValue;
+
+        owl::TCheckBox *Reorienting;
+        owl::TRadioButton *ReorientingRas;
+        owl::TRadioButton *ReorientingOther;
+        owl::TEdit *ReorientingX;
+        owl::TEdit *ReorientingY;
+        owl::TEdit *ReorientingZ;
+        owl::TCheckBox *AlignSagittal;
+        owl::TCheckBox *AlignTransverse;
+
+        owl::TCheckBox *SettingOrigin;
+        owl::TRadioButton *SettingOriginIfNotSet;
+        owl::TRadioButton *SettingOriginAlways;
+        owl::TRadioButton *OriginMni;
+        owl::TRadioButton *OriginCenter;
+        owl::TRadioButton *OriginFixed;
+        owl::TEdit *OriginX;
+        owl::TEdit *OriginY;
+        owl::TEdit *OriginZ;
+
+        owl::TRadioButton *SizeTransformed;
+        owl::TRadioButton *SizeOptimal;
+        owl::TRadioButton *SizeUser;
+        owl::TEdit *SizeUserX;
+        owl::TEdit *SizeUserY;
+        owl::TEdit *SizeUserZ;
+
+        owl::TComboBox *PresetsSkullStripping;
+        owl::TCheckBox *BFC;
+
+        owl::TComboBox *PresetsGrey;
+
+        owl::TComboBox *PresetsSP;
+        owl::TRadioButton *SPNumber;
+        owl::TEdit *SPNumberEdit;
+        owl::TRadioButton *SPResolution;
+        owl::TEdit *SPResolutionEdit;
+        owl::TEdit *SPFromBrain;
+        owl::TEdit *SPFromSP;
+
+        owl::TEdit *InfixFilename;
+        owl::TCheckBox *OpenAuto;
+
+        TVolumeDoc *MRIDoc; // current MRI to process
+
+        void CmBatchProcess() final;
+        void CmProcessCurrent() final;
+        void BatchProcess() final;
+        void ProcessCurrent(void *usetransfer = 0, const char *moreinfix = 0) final;
+
+        void EvDropFiles(owl::TDropInfo drop);
+        void EvPresetsChange();
+        void EvPresetsMriTypeChange();
+
+        void CmAlignTransverse();
+        void CmOriginMni();
+
+        bool CmProcessEnable();
+        void CmProcessCurrentEnable(owl::TCommandEnabler &tce);
+        void CmProcessBatchEnable(owl::TCommandEnabler &tce);
+
+        void CmResizingEnable(owl::TCommandEnabler &tce);
+        void CmVoxelEnable(owl::TCommandEnabler &tce);
+        void CmRatioEnable(owl::TCommandEnabler &tce);
+        void CmReorientingEnable(owl::TCommandEnabler &tce);
+        void CmAlignSagittalEnable(owl::TCommandEnabler &tce);
+        void CmReorientingOtherEnable(owl::TCommandEnabler &tce);
+        void CmOriginEnable(owl::TCommandEnabler &tce);
+        void CmOriginOtherEnable(owl::TCommandEnabler &tce);
+        void CmSizeUserEnable(owl::TCommandEnabler &tce);
+
+        void CmSkullStrippingEnable(owl::TCommandEnabler &tce);
+
+        void CmBrowseSpFile();
+        void SetSpFile(char *file);
+        void CmBrowseBrainFile();
+        void SetBrainFile(char *file);
+        void CmSPPresetsEnable(owl::TCommandEnabler &tce);
+        void CmSPButtonEnable(owl::TCommandEnabler &tce);
+        void CmSPComputeNumEnable(owl::TCommandEnabler &tce);
+        void CmSPComputeRezEnable(owl::TCommandEnabler &tce);
+        void CmSPPortEnable(owl::TCommandEnabler &tce);
+
+        DECLARE_RESPONSE_TABLE(TPreprocessMrisDialog);
+    };
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

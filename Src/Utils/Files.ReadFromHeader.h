@@ -16,35 +16,34 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Utility to perform the fastest read to files, to extract useful infos like number of electrodes etc..
-                                        // It avoids running a full Open by the Doc Manager, which can take awhile
-                                        // Each derived document has to implement its own static ReadFromHeader method
-enum        ReadFromHeaderType
-            {
-            ReadNumElectrodes               = 1,
-            ReadNumAuxElectrodes,
-            ReadNumTimeFrames,
-            ReadNumFrequencies,
-            ReadSamplingFrequency,
-            ReadNumSolPoints,
-            ReadInverseScalar,
-            ReadNumRois,
-            ReadMagicNumber,
-            ReadElectrodesNames,
-            ReadNumClusters,
-            ReadOriginalSamplingFrequency,  // frequency files
-            ReadFrequencyType,              // frequency files
-            };
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   // Utility to perform the fastest read to files, to extract useful infos like number of electrodes etc..
+   // It avoids running a full Open by the Doc Manager, which can take awhile
+   // Each derived document has to implement its own static ReadFromHeader method
+   enum ReadFromHeaderType
+   {
+      ReadNumElectrodes = 1,
+      ReadNumAuxElectrodes,
+      ReadNumTimeFrames,
+      ReadNumFrequencies,
+      ReadSamplingFrequency,
+      ReadNumSolPoints,
+      ReadInverseScalar,
+      ReadNumRois,
+      ReadMagicNumber,
+      ReadElectrodesNames,
+      ReadNumClusters,
+      ReadOriginalSamplingFrequency, // frequency files
+      ReadFrequencyType,             // frequency files
+   };
 
+   bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
 
-bool        ReadFromHeader ( const char* file, ReadFromHeaderType what, void* answer );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

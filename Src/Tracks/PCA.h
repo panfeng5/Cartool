@@ -16,109 +16,98 @@ limitations under the License.
 
 #pragma once
 
-#include    "Math.Armadillo.h"
+#include "Math.Armadillo.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Math functions
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Math functions
 
-enum            PcaIcaType
-                {
-                UnknownPcaProcessing,
-                PcaProcessing,
-                IcaProcessing,
+    enum PcaIcaType
+    {
+        UnknownPcaProcessing,
+        PcaProcessing,
+        IcaProcessing,
 
-                NumPcaIcaProcessing,
-                };
+        NumPcaIcaProcessing,
+    };
 
-extern const char   PcaIcaTypeString[ NumPcaIcaProcessing ][ 32 ];
+    extern const char PcaIcaTypeString[NumPcaIcaProcessing][32];
 
+    enum
+    {
+        gaugepcamain,
+        gaugepca,
+    };
 
-enum            {
-                gaugepcamain,
-                gaugepca,
-                };
+    //----------------------------------------------------------------------------
 
-                    
-//----------------------------------------------------------------------------
+    enum PcaResultsType
+    {
+        Vt_X,
+        InvSqrtD_Vt_X,
+        V_InvSqrtD_Vt_X,
 
-enum            PcaResultsType
-                {
-                           Vt_X,
-                  InvSqrtD_Vt_X,
-                V_InvSqrtD_Vt_X,
+        PcaOnly = Vt_X,              // just applying the transform into the orthogonal space (through Vt)
+        PcaWhitened = InvSqrtD_Vt_X, // same as above + rescaling components by variance
+                                     //              PcaWhitenedBack     = V_InvSqrtD_Vt_X,  // same as above + final transform back to original space
+    };
 
-                PcaOnly             =            Vt_X,  // just applying the transform into the orthogonal space (through Vt)
-                PcaWhitened         =   InvSqrtD_Vt_X,  // same as above + rescaling components by variance
-//              PcaWhitenedBack     = V_InvSqrtD_Vt_X,  // same as above + final transform back to original space
-                };
+    constexpr int PCANumGauge = 6;
 
+    enum AtomType;
+    enum ReferenceType;
+    class TMaps;
+    class TSuperGauge;
+    class TSelection;
+    template <class>
+    class TVector;
 
-constexpr int   PCANumGauge         = 6;
+    bool PCA(TMaps &data,
+             bool covrobust,
+             bool removelasteigen,
+             PcaResultsType pcaresults,
+             TMaps &eigenvectors, TVector<float> &eigenvalues,
+             AMatrix &topca, AMatrix &towhite,
+             TMaps &pcadata,
+             TSuperGauge *gauge);
 
+    //----------------------------------------------------------------------------
+    // All the different covariances implementations
+    bool Covariance(TMaps &data,
+                    ASymmetricMatrix &Cov);
 
-enum                AtomType;
-enum                ReferenceType;
-                    class   TMaps;
-                    class   TSuperGauge;
-                    class   TSelection;
-template <class>    class   TVector;
+    bool RobustCovarianceSingleDim(TMaps &data,
+                                   double maxsd,
+                                   ASymmetricMatrix &Cov);
 
+    bool RobustCovarianceMahalanobis(TMaps &data,
+                                     TSelection &skiptracks,
+                                     double maxsd, // the max Mahalanobis distance for Covariance
+                                     ASymmetricMatrix &Cov);
 
-bool            PCA (   TMaps&              data,           
-                        bool                covrobust,
-                        bool                removelasteigen,
-                        PcaResultsType      pcaresults,
-                        TMaps&              eigenvectors,       TVector<float>&         eigenvalues,
-                        AMatrix&            topca,              AMatrix&                towhite,
-                        TMaps&              pcadata,        
-                        TSuperGauge*        gauge
-                    );
+    // void            SubtractAverage         ( TArray2<float> &data, int axis, int maxdim, int maxsamples );
 
+    //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-                                        // All the different covariances implementations
-bool            Covariance                  (   TMaps&              data,           
-                                                ASymmetricMatrix&   Cov
-                                            );
+#define PCAFileNumGauge 6
 
-bool            RobustCovarianceSingleDim   (   TMaps&              data,           
-                                                double              maxsd,
-                                                ASymmetricMatrix&   Cov 
-                                            );
+    // Whole PCA procedure on a single file - No UI
+    void PcaIcaFile(char *filename,
+                    AtomType datatype,
+                    ReferenceType dataref,
+                    bool datanormalized,
+                    bool covrobust,
+                    int cliptf,
+                    PcaIcaType processing,
+                    bool savematrix, bool savetopo, bool saveeigenvalues,
+                    bool savepcatracks, bool savepcapoints,
+                    const char *prefix,
+                    TSuperGauge *gauge = 0);
 
-bool            RobustCovarianceMahalanobis (   TMaps&              data,           
-                                                TSelection&         skiptracks,
-                                                double              maxsd,  // the max Mahalanobis distance for Covariance
-                                                ASymmetricMatrix&   Cov
-                                            );
-
-
-//void            SubtractAverage         ( TArray2<float> &data, int axis, int maxdim, int maxsamples );
-
-
-//----------------------------------------------------------------------------
-
-#define         PCAFileNumGauge     6
-
-                                        // Whole PCA procedure on a single file - No UI
-void    PcaIcaFile (    char*               filename,
-                        AtomType            datatype,
-                        ReferenceType       dataref,
-                        bool                datanormalized,
-                        bool                covrobust,
-                        int                 cliptf,
-                        PcaIcaType          processing,
-                        bool                savematrix,     bool            savetopo,           bool            saveeigenvalues,     
-                        bool                savepcatracks,  bool            savepcapoints,     
-                        const char*         prefix,
-                        TSuperGauge*        gauge       = 0
-                 );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

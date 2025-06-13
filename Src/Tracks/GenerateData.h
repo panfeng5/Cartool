@@ -16,54 +16,54 @@ limitations under the License.
 
 #pragma once
 
-#include    "Geometry.TPoints.h"
-#include    "Geometry.TDipole.h"
+#include "Geometry.TPoints.h"
+#include "Geometry.TDipole.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-constexpr char*     GenerateDataTitle       = "Generating Data";
+   constexpr char *GenerateDataTitle = "Generating Data";
 
+   enum GenerateTypeFlag
+   {
+      GenerateUnknown,
+      GenerateEeg,
+      GenerateRis,
+   };
 
-enum                GenerateTypeFlag
-                    {
-                    GenerateUnknown,
-                    GenerateEeg,
-                    GenerateRis,
-                    };
+   enum GenerateSegmentFlag
+   {
+      SeedMaps,
+      ConstantSegments,
+      HanningSegments,
+      LeakySegments,
+   };
 
-enum                GenerateSegmentFlag
-                    {
-                    SeedMaps,
-                    ConstantSegments,
-                    HanningSegments,
-                    LeakySegments,
-                    };
+   class TLeadField;
+   template <class>
+   class TTracks;
 
-class                       TLeadField;
-template <class> class      TTracks;
+   // Generate n maps which should correlate altogether within a specified range
+   void GenerateData(GenerateTypeFlag what,
+                     int nummapsmin, int nummapsmax,
+                     double correlationmin, double correlationmax, double correlationstep,
+                     double mapnoisemin, double mapnoisemax, double mapnoisestep,
+                     int segdurationmin, int segdurationmax,
+                     GenerateSegmentFlag flag,
+                     bool cyclicsegs,
+                     bool ignorepolarity,
+                     bool normalize,
+                     TLeadField &leadfield, TTracks<float> &K, int numsources,
+                     TPoints solp,
+                     int numfiles, int fileduration,
+                     const char *basefilename,
+                     bool savemaps, bool savetemplatemaps, bool savetemplateris,
+                     bool runsegmentation, int numrandtrials);
 
-                                        // Generate n maps which should correlate altogether within a specified range
-void        GenerateData (  GenerateTypeFlag    what,
-                            int                 nummapsmin,         int             nummapsmax,
-                            double              correlationmin,     double          correlationmax,     double          correlationstep,
-                            double              mapnoisemin,        double          mapnoisemax,        double          mapnoisestep,
-                            int                 segdurationmin,     int             segdurationmax,
-                            GenerateSegmentFlag flag,
-                            bool                cyclicsegs,
-                            bool                ignorepolarity,
-                            bool                normalize,
-                            TLeadField&         leadfield,          TTracks<float>& K,                  int             numsources,
-                            TPoints             solp,
-                            int                 numfiles,           int             fileduration,
-                            const char*         basefilename,
-                            bool                savemaps,           bool            savetemplatemaps,   bool            savetemplateris,
-                            bool                runsegmentation,    int             numrandtrials
-                            );
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

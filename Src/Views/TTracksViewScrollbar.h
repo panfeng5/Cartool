@@ -16,48 +16,45 @@ limitations under the License.
 
 #pragma once
 
-#include    <owl/scrollba.h>
+#include <owl/scrollba.h>
 
-#include    "Time.TAcceleration.h"
+#include "Time.TAcceleration.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr int       EegScrollbarHeight          = 12;
-constexpr long      ScrollbarMaxRange           = 0xFFFF;   // OwlNext max range - this will be up to Cartool to do any rescaling...
-
-
-class   TTracksView;
-
-                                        // Upgrading our horizontal scrollbar
-class   TTracksViewScrollbar    :   public  owl::TScrollBar,
-                                    public  TAcceleration
+namespace crtl
 {
-public:
-                    TTracksViewScrollbar ( TTracksView* eegview, owl::TWindow* parent, int id, int x, int y, int w, int h, bool isHScrollBar, owl::TModule* module = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    void            SBLineUp        ();
-    void            SBLineDown      ();
-    void            SetPosition     ( int thumbPos, bool redraw = true );
+    constexpr int EegScrollbarHeight = 12;
+    constexpr long ScrollbarMaxRange = 0xFFFF; // OwlNext max range - this will be up to Cartool to do any rescaling...
 
-    void            UpdateIt        ();
+    class TTracksView;
 
+    // Upgrading our horizontal scrollbar
+    class TTracksViewScrollbar : public owl::TScrollBar,
+                                 public TAcceleration
+    {
+    public:
+        TTracksViewScrollbar(TTracksView *eegview, owl::TWindow *parent, int id, int x, int y, int w, int h, bool isHScrollBar, owl::TModule *module = 0);
 
-private:
-    TTracksView*    EEGView;
-    double          PositionToTimeFrames;   // scaling factor data range <-> scrollbar max range
-    bool            RedrawEeg;
+        void SBLineUp();
+        void SBLineDown();
+        void SetPosition(int thumbPos, bool redraw = true);
 
-    void            EvSetFocus      ( HWND );
+        void UpdateIt();
 
-    DECLARE_RESPONSE_TABLE (TTracksViewScrollbar);
-};
+    private:
+        TTracksView *EEGView;
+        double PositionToTimeFrames; // scaling factor data range <-> scrollbar max range
+        bool RedrawEeg;
 
+        void EvSetFocus(HWND);
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        DECLARE_RESPONSE_TABLE(TTracksViewScrollbar);
+    };
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

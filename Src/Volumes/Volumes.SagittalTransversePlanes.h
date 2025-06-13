@@ -16,90 +16,82 @@ limitations under the License.
 
 #pragma once
 
-#include    "Geometry.TPoint.h"
+#include "Geometry.TPoint.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-enum    GOMethod;
-class   TVolumeDoc;
-class   TMatrix44;
+    enum GOMethod;
+    class TVolumeDoc;
+    class TMatrix44;
 
+    void SaveSagittalPlane(const TVolumeDoc *mridoc,
+                           const TMatrix44 &normtomriabs,
+                           const char *fileoriginal,
+                           const char *filetransformed);
 
-void    SaveSagittalPlane       (   const TVolumeDoc*   mridoc,
-                                    const TMatrix44&    normtomriabs,
-                                    const char*         fileoriginal,
-                                    const char*         filetransformed
-                                );
+    void SaveTransversePlane(const TVolumeDoc *mridoc,
+                             const TMatrix44 &normtomriabs,
+                             const char *fileoriginal,
+                             const char *filetransformed);
 
-void    SaveTransversePlane     (   const TVolumeDoc*   mridoc,
-                                    const TMatrix44&    normtomriabs,
-                                    const char*         fileoriginal,
-                                    const char*         filetransformed
-                                );
+    //----------------------------------------------------------------------------
+    // Doing a single search with all parameters
+    double SearchSagittalPlaneMri(const TVolumeDoc *mridoc,
+                                  const TMatrix44 &MriRel_to_MriAbs,
+                                  TMatrix44 &SagAbs_to_MriRel, // input & output
+                                  TPointDouble &center,        // input & output
+                                  GOMethod gomethod,
+                                  int how,
+                                  double precision,
+                                  const char *title = 0,
+                                  bool verbose = false);
+    // Smart search which can run multiple SearchSagittalPlaneMri and make choices about the results
+    bool SetSagittalPlaneMri(const TVolumeDoc *mridoc,
+                             const TMatrix44 &MriRel_to_MriAbs,
+                             TMatrix44 &SagAbs_to_MriRel, // input & output
+                             TPointDouble &center,        // input & output
+                             double *Q = 0,
+                             const char *title = 0);
 
-//----------------------------------------------------------------------------
-                                        // Doing a single search with all parameters
-double  SearchSagittalPlaneMri  (   const TVolumeDoc*   mridoc,
-                                    const TMatrix44&    MriRel_to_MriAbs,
-                                    TMatrix44&          SagAbs_to_MriRel,   // input & output 
-                                    TPointDouble&       center,             // input & output
-                                    GOMethod            gomethod,
-                                    int                 how,
-                                    double              precision,
-                                    const char*         title           = 0,
-                                    bool                verbose         = false
-                                );
-                                        // Smart search which can run multiple SearchSagittalPlaneMri and make choices about the results
-bool    SetSagittalPlaneMri     (   const TVolumeDoc*   mridoc,     
-                                    const TMatrix44&    MriRel_to_MriAbs,
-                                    TMatrix44&          SagAbs_to_MriRel,   // input & output
-                                    TPointDouble&       center,             // input & output
-                                    double*             Q               = 0,
-                                    const char*         title           = 0
-                                );
+    //----------------------------------------------------------------------------
+    // Doing a single search with all parameters
+    double SearchTransversePlaneMri(const TVolumeDoc *mribrain,
+                                    const TMatrix44 &MriRel_to_MriAbs, // not actually used
+                                    TMatrix44 &TraAbs_to_MriRel,       // input & output
+                                    TPointDouble &center,              // input & output
+                                    GOMethod gomethod,
+                                    int how,
+                                    double precision,
+                                    const char *title = 0,
+                                    bool verbose = false);
+    // Smart search which can run multiple SearchSagittalPlaneMri and make choices about the results
+    bool SetTransversePlaneMri(const TVolumeDoc *mribrain,
+                               const TMatrix44 &MriRel_to_MriAbs, // not actually used
+                               TMatrix44 &TraAbs_to_MriRel,       // input & output
+                               TPointDouble &center,              // input & output
+                               double *Q = 0,
+                               const char *title = 0);
 
-//----------------------------------------------------------------------------
-                                        // Doing a single search with all parameters
-double  SearchTransversePlaneMri(   const TVolumeDoc*   mribrain,
-                                    const TMatrix44&    MriRel_to_MriAbs,   // not actually used
-                                    TMatrix44&          TraAbs_to_MriRel,   // input & output 
-                                    TPointDouble&       center,             // input & output
-                                    GOMethod            gomethod,
-                                    int                 how,
-                                    double              precision,
-                                    const char*         title           = 0,
-                                    bool                verbose         = false
-                                );
-                                        // Smart search which can run multiple SearchSagittalPlaneMri and make choices about the results
-bool    SetTransversePlaneMri   (   const TVolumeDoc*   mribrain, 
-                                    const TMatrix44&    MriRel_to_MriAbs,   // not actually used
-                                    TMatrix44&          TraAbs_to_MriRel,   // input & output
-                                    TPointDouble&       center,             // input & output
-                                    double*             Q               = 0,
-                                    const char*         title           = 0
-                                );
+    //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
+    double SearchGuillotinePlane(const TVolumeDoc *mrihead,
+                                 TMatrix44 &mriabstoguillotine, // input & output
+                                 TPointDouble &center,          // input & output
+                                 GOMethod gomethod,
+                                 double precision,
+                                 const char *title = 0,
+                                 bool verbose = false);
 
-double  SearchGuillotinePlane   (   const TVolumeDoc*   mrihead,
-                                    TMatrix44&          mriabstoguillotine, // input & output 
-                                    TPointDouble&       center,             // input & output
-                                    GOMethod            gomethod,
-                                    double              precision,
-                                    const char*         title           = 0,
-                                    bool                verbose         = false
-                                );
+    bool SetGuillotinePlane(const TVolumeDoc *mrihead,
+                            TMatrix44 &mriabstoguillotine, // output
+                            double *Q = 0,
+                            const char *title = 0);
 
-bool    SetGuillotinePlane      (   const TVolumeDoc*   mrihead, 
-                                    TMatrix44&          mriabstoguillotine, // output
-                                    double*             Q               = 0,
-                                    const char*         title           = 0
-                                );
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

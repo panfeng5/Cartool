@@ -16,25 +16,24 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-class                       TGoF;
-template <class>    class   TArray1;
+   class TGoF;
+   template <class>
+   class TArray1;
 
+   void BuildTemplateElectrodes(const TGoF &filesin,
+                                const TArray1<int> czindex,
+                                const TArray1<int> fpzindex,
+                                const TArray1<int> ozindex,
+                                bool centercz,
+                                const char *filesout);
 
-void    BuildTemplateElectrodes (   const TGoF&         filesin,
-                                    const TArray1<int>  czindex,
-                                    const TArray1<int>  fpzindex,
-                                    const TArray1<int>  ozindex,
-                                    bool                centercz,
-                                    const char*         filesout
-                                );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

@@ -16,57 +16,51 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-enum    CreateRoisTypes;
-class   TRois;
-class   TBaseDoc;
-class   TVolumeDoc;
-class   TSolutionPointsDoc;
+    enum CreateRoisTypes;
+    class TRois;
+    class TBaseDoc;
+    class TVolumeDoc;
+    class TSolutionPointsDoc;
 
+    bool GenerateRois(
+        CreateRoisTypes Processing,
+        const TRois &Rois,
 
-bool    GenerateRois                    (
-                                        CreateRoisTypes             Processing,
-                                        const TRois&                Rois,
+        const TBaseDoc *BaseDoc, // mandatory - could be either tracks, electrodes or solution points doc
+        const TVolumeDoc *MRIDoc,
+        const char *RoisLabelsFile,   // optional - labels associated with MRIDoc
+        const char *GenerateRoisFile, // optional
 
-                                        const TBaseDoc*             BaseDoc,            // mandatory - could be either tracks, electrodes or solution points doc
-                                        const TVolumeDoc*           MRIDoc,
-                                        const char*                 RoisLabelsFile,     // optional - labels associated with MRIDoc
-                                        const char*                 GenerateRoisFile,   // optional
+        const char *BaseFileName);
 
-                                        const char*                 BaseFileName
-                                        );
+    bool GenerateRoisFromSpAndMri(
+        CreateRoisTypes Processing,
 
+        const TSolutionPointsDoc *SPDoc,
+        const TVolumeDoc *MRIDoc,
+        const char *RoisLabelsFile, // labels associated with MRIDoc
 
-bool    GenerateRoisFromSpAndMri        (
-                                        CreateRoisTypes             Processing,
+        const char *OptionalRoisFile, // optional files with specific ROIS - otherwise it will generate all ROIs
 
-                                        const TSolutionPointsDoc*   SPDoc,
-                                        const TVolumeDoc*           MRIDoc,
-                                        const char*                 RoisLabelsFile,     // labels associated with MRIDoc
+        const char *BaseFileName);
 
-                                        const char*                 OptionalRoisFile,   // optional files with specific ROIS - otherwise it will generate all ROIs
+    bool GenerateRoisFromSpAndTalairach(
+        CreateRoisTypes Processing,
 
-                                        const char*                 BaseFileName
-                                        );
+        const TSolutionPointsDoc *SPDoc,
+        const TVolumeDoc *MRIDoc, // optional volume
 
+        const char *GenerateRoisFile, // mandatory file with specific ROIS
 
-bool    GenerateRoisFromSpAndTalairach  (
-                                        CreateRoisTypes             Processing,
+        const char *BaseFileName);
 
-                                        const TSolutionPointsDoc*   SPDoc,
-                                        const TVolumeDoc*           MRIDoc,             // optional volume
-
-                                        const char*                 GenerateRoisFile,   // mandatory file with specific ROIS
-
-                                        const char*                 BaseFileName
-                                        );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

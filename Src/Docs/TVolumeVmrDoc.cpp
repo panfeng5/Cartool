@@ -14,362 +14,347 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "MemUtil.h"
+#include "MemUtil.h"
 
-#include    "Dialogs.TSuperGauge.h"
-#include    "Math.Utils.h"
-#include    "TExportVolume.h"
+#include "Dialogs.TSuperGauge.h"
+#include "Math.Utils.h"
+#include "TExportVolume.h"
 
-#include    "Math.Resampling.h"
+#include "Math.Resampling.h"
 
-#include    "TVolumeVmrDoc.h"
+#include "TVolumeVmrDoc.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-        TVolumeVmrDoc::TVolumeVmrDoc ( TDocument* parent )
-      : TVolumeDoc ( parent )
+namespace crtl
 {
-}
 
-
-//----------------------------------------------------------------------------
-
-bool	TVolumeVmrDoc::Commit ( bool force )
-{
-if ( ! ( IsDirty () || force ) )
-    return true;
-
-
-if ( Data.IsNotAllocated () ) {
-
-    SetDirty ( false );
-    return true;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    TVolumeVmrDoc::TVolumeVmrDoc(TDocument *parent)
+        : TVolumeDoc(parent)
+    {
     }
 
+    //----------------------------------------------------------------------------
 
-TExportVolume       expvol;
+    bool TVolumeVmrDoc::Commit(bool force)
+    {
+        if (!(IsDirty() || force))
+            return true;
 
-                                        // try to open header and image files
-StringCopy          ( expvol.Filename, GetDocPath () );
+        if (Data.IsNotAllocated())
+        {
 
-CheckMriExtension   ( expvol.Filename );
+            SetDirty(false);
+            return true;
+        }
 
-SetDocPath          ( expvol.Filename );
+        TExportVolume expvol;
 
+        // try to open header and image files
+        StringCopy(expvol.Filename, GetDocPath());
 
-bool                savingvmr       = crtl::IsExtension ( expvol.Filename, FILEEXT_MRIVMR );
+        CheckMriExtension(expvol.Filename);
 
+        SetDocPath(expvol.Filename);
 
-SetDocPath ( expvol.Filename );
+        bool savingvmr = crtl::IsExtension(expvol.Filename, FILEEXT_MRIVMR);
 
+        SetDocPath(expvol.Filename);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // don't invert the Besa-ification if saving to another format
-bool                InvertBesa      = ForceBesa && savingvmr;
-                                        // we need a copy of Data that can be un Besa-ed if needed
-Volume              SavingData;
-int                 xindex          = InvertBesa ? 1 : 0;
-int                 yindex          = InvertBesa ? 2 : 1;
-int                 zindex          = InvertBesa ? 0 : 2;
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // don't invert the Besa-ification if saving to another format
+        bool InvertBesa = ForceBesa && savingvmr;
+        // we need a copy of Data that can be un Besa-ed if needed
+        Volume SavingData;
+        int xindex = InvertBesa ? 1 : 0;
+        int yindex = InvertBesa ? 2 : 1;
+        int zindex = InvertBesa ? 0 : 2;
 
+        if (InvertBesa)
+        {
+            // permutate axis dimensions (RAS -> PIR so XYZ -> YZX)
+            int dim1o(Data.GetDim(xindex));
+            int dim2o(Data.GetDim(yindex));
+            int dim3o(Data.GetDim(zindex));
 
-if ( InvertBesa ) {
-                                        // permutate axis dimensions (RAS -> PIR so XYZ -> YZX)
-    int             dim1o ( Data.GetDim ( xindex ) );
-    int             dim2o ( Data.GetDim ( yindex ) );
-    int             dim3o ( Data.GetDim ( zindex ) );
+            // reallocate original array
+            SavingData.Resize(dim1o, dim2o, dim3o);
 
-                                        // reallocate original array
-    SavingData.Resize ( dim1o, dim2o, dim3o );
+            // redistribute the data
+            for (int x = 0; x < SavingData.GetDim1(); x++)
+                for (int y = 0; y < SavingData.GetDim2(); y++)
+                    for (int z = 0; z < SavingData.GetDim3(); z++)
 
-                                        // redistribute the data
-    for ( int x = 0; x < SavingData.GetDim1 (); x++ )
-    for ( int y = 0; y < SavingData.GetDim2 (); y++ )
-    for ( int z = 0; z < SavingData.GetDim3 (); z++ )
+                        SavingData(x, y, z) = Data(z, dim1o - 1 - x, dim2o - 1 - y);
+        }
+        else
+            SavingData = Data;
 
-        SavingData ( x, y, z )  = Data ( z, dim1o - 1 - x, dim2o - 1 - y );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+        expvol.VolumeFormat = GetVolumeAtomType(&SavingData, FilterTypeNone, InterpolateUnknown, ToExtension(expvol.Filename));
+
+        expvol.MaxValue = SavingData.GetAbsMaxValue();
+
+        expvol.Dimension.X = SavingData.GetDim1();
+        expvol.Dimension.Y = SavingData.GetDim2();
+        expvol.Dimension.Z = SavingData.GetDim3();
+
+        expvol.VoxelSize.X = VoxelSize[xindex];
+        expvol.VoxelSize.Y = VoxelSize[yindex];
+        expvol.VoxelSize.Z = VoxelSize[zindex];
+
+        expvol.Origin.X = Origin[xindex];
+        expvol.Origin.Y = Origin[yindex];
+        expvol.Origin.Z = Origin[zindex];
+
+        // Do we have some knowledge here of the type of data?
+        expvol.NiftiTransform = NiftiTransform; // ?maybe some filtering should reset that?
+
+        expvol.NiftiIntentCode = NiftiIntentCode;
+
+        StringCopy(expvol.NiftiIntentName, NiftiIntentName, NiftiIntentNameSize - 1);
+
+        // if ( KnownOrientation )               // always saving orientation?
+        OrientationToString(expvol.Orientation);
+
+        // expvol.Orientation[ 0 ] = 'P';
+        // expvol.Orientation[ 1 ] = 'I';
+        // expvol.Orientation[ 2 ] = 'R';
+
+        if (savingvmr)
+            // explicit write as to perform the LR flip
+            for (int z = 0; z < SavingData.GetDim3(); z++)
+                for (int y = 0; y < SavingData.GetDim2(); y++)
+                    for (int x = 0; x < SavingData.GetDim1(); x++)
+                        // officially, format is PIL (though some packages could be using PIR...)
+                        expvol.Write(SavingData(x, y, SavingData.GetDim3() - 1 - z));
+        else
+            expvol.Write(SavingData, ExportArrayOrderZYX);
+
+        SetDirty(false);
+
+        return true;
     }
-else
-    SavingData      = Data;
 
+    //----------------------------------------------------------------------------
+    //      There seems to be very little informations on this BrainVoyager format:
+    // Update:
+    // http://support.brainvoyager.com/installation-introduction/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html
+    //
+    // http://brainvoyager.de/BV2000OnlineHelp/BrainVoyagerWebHelp/mergedProjects/FileFormats/The_format_of_VMR_files.htm
+    // http://support.brainvoyager.com/available-tools/49-available-plugins/166-nifti-conversion-volumetric-files.html
+    // http://i2at.msstate.edu/pdf/I2AT_Brain_Voyager_Manual_Rev11.19.pdf
+    // http://support.brainvoyager.com/documents/Available_Tools/Available_Plugins/niftiplugin_manual_180610.pdf
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    bool TVolumeVmrDoc::Open(int /*mode*/, const char *path)
+    {
+        if (path)
+            SetDocPath(path);
 
-expvol.VolumeFormat     = GetVolumeAtomType ( &SavingData, FilterTypeNone, InterpolateUnknown, ToExtension ( expvol.Filename ) );
+        SetDirty(false);
 
-expvol.MaxValue         = SavingData.GetAbsMaxValue ();
+        if (GetDocPath())
+        {
 
-expvol.Dimension.X      = SavingData.GetDim1 ();
-expvol.Dimension.Y      = SavingData.GetDim2 ();
-expvol.Dimension.Z      = SavingData.GetDim3 ();
+            ifstream ifs(TFileName(GetDocPath(), TFilenameExtendedPath), ios::binary);
 
-expvol.VoxelSize.X      = VoxelSize[ xindex ];
-expvol.VoxelSize.Y      = VoxelSize[ yindex ];
-expvol.VoxelSize.Z      = VoxelSize[ zindex ];
+            if (!ifs.good())
+                return false;
 
-expvol.Origin.X         = Origin   [ xindex ];
-expvol.Origin.Y         = Origin   [ yindex ];
-expvol.Origin.Z         = Origin   [ zindex ];
+            ushort version;
+            ushort unused;
+            ushort dim1;
+            ushort dim2;
+            ushort dim3;
 
-                                        // Do we have some knowledge here of the type of data?
-expvol.NiftiTransform   = NiftiTransform;   // ?maybe some filtering should reset that?
+            ifs.read((char *)&version, sizeof(version));
 
-expvol.NiftiIntentCode  = NiftiIntentCode;
+            if (version == 0)
+                ifs.read((char *)&unused, sizeof(unused));
+            // dimension x, y ,z
+            ifs.read((char *)&dim1, sizeof(dim1));
+            ifs.read((char *)&dim2, sizeof(dim2));
+            ifs.read((char *)&dim3, sizeof(dim3));
 
-StringCopy  ( expvol.NiftiIntentName, NiftiIntentName, NiftiIntentNameSize - 1 );
+            // current version is 4, but we only have files with 0
+            if (version > 0)
+            {
+                ShowMessage("Unsupported version!\nVolume might be read incorrectly!", "VMR File", ShowMessageWarning);
+                //      return  false;
+            }
 
+            // Besa files will be internally reoriented & recentered to be consistent with the internal behavior of this program
+            //  static TStringGrep      grepbesa ( "(?i)(_ACPC|_TAL|_TAL_MASKED)\\." );
+            //  ForceBesa       = grepbesa.Matched ( GetTitle () );
+            ForceBesa = version == 0;
 
-//if ( KnownOrientation )               // always saving orientation?
-    OrientationToString ( expvol.Orientation );
+            //    DBGV ( ForceBesa, "Force BESA" );
 
-//expvol.Orientation[ 0 ] = 'P';
-//expvol.Orientation[ 1 ] = 'I';
-//expvol.Orientation[ 2 ] = 'R';
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // here we have all the header infos.
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // Filling product info
+            StringCopy(CompanyName, CompanyNameVMR);
+            StringCopy(ProductName, ProductNameVMR);
+            Version = version;
+            StringCopy(SubversionName, ForceBesa ? "Besa" : "");
 
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-if ( savingvmr )
-                                        // explicit write as to perform the LR flip
-    for ( int z = 0; z < SavingData.GetDim3 (); z++ )
-    for ( int y = 0; y < SavingData.GetDim2 (); y++ )
-    for ( int x = 0; x < SavingData.GetDim1 (); x++ )
-                                        // officially, format is PIL (though some packages could be using PIR...)
-        expvol.Write ( SavingData ( x, y, SavingData.GetDim3 () - 1 - z ) );
-else
-    expvol.Write ( SavingData, ExportArrayOrderZYX );
+            if (ForceBesa)
+            {
+                // permutate axis dimensions (PIR -> RAS so XYZ -> ZXY)
+                ushort dim1o(dim1);
+                ushort dim2o(dim2);
+                ushort dim3o(dim3);
 
+                dim1 = dim3o;
+                dim2 = dim1o;
+                dim3 = dim2o;
+            }
 
-SetDirty ( false );
+            Size.Set(0, dim1 - 1, 0, dim2 - 1, 0, dim3 - 1);
 
+            Data.Resize(dim1, dim2, dim3);
 
-return  true;
-}
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // deduce voxel size
+            //  if ( RealSize.IsNotNull () ) {
+            //      VoxelSize.X = RealSize.X / dim1;
+            //      VoxelSize.Y = RealSize.Y / dim2;
+            //      VoxelSize.Z = RealSize.Z / dim3;
+            //      }
+            //  else {
+            VoxelSize = 1;
 
+            RealSize.X = dim1;
+            RealSize.Y = dim2;
+            RealSize.Z = dim3;
+            //      }
 
-//----------------------------------------------------------------------------
-//      There seems to be very little informations on this BrainVoyager format:
-// Update:
-// http://support.brainvoyager.com/installation-introduction/23-file-formats/385-developer-guide-26-the-format-of-vmr-files.html
-//
-// http://brainvoyager.de/BV2000OnlineHelp/BrainVoyagerWebHelp/mergedProjects/FileFormats/The_format_of_VMR_files.htm
-// http://support.brainvoyager.com/available-tools/49-available-plugins/166-nifti-conversion-volumetric-files.html
-// http://i2at.msstate.edu/pdf/I2AT_Brain_Voyager_Manual_Rev11.19.pdf
-// http://support.brainvoyager.com/documents/Available_Tools/Available_Plugins/niftiplugin_manual_180610.pdf
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // format does not set the origin
+            Origin = 0.0;
 
+            if (ForceBesa)
+            {
+                // assume origin is the center, at least for now
+                Origin.X = dim1 / 2;
+                Origin.Y = dim2 / 2;
+                Origin.Z = dim3 / 2;
+            }
 
-bool	TVolumeVmrDoc::Open ( int /*mode*/, const char* path )
-{
-if ( path )
-    SetDocPath ( path );
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // default is always PIL, we set to PIR and flip the data in Z below
+            KnownOrientation = ForceBesa ? SetOrientation("RAS") : SetOrientation("PIR");
 
-SetDirty ( false );
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+            TSuperGauge Gauge;
+            Gauge.Set(MriVmrTitle, SuperGaugeLevelInter);
+            Gauge.AddPart(0, dim3, 100);
 
-if ( GetDocPath () ) {
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // Data encountered so far seem to be only unsigned byte, so there is no need for rescaling
+            if (ForceBesa)
+            {
+                // override orientation
+                for (int z = 0; z < dim1; z++)
+                {
 
-    ifstream            ifs ( TFileName ( GetDocPath (), TFilenameExtendedPath ), ios::binary );
+                    Gauge.Next(0);
 
-    if ( ! ifs.good () )
-        return  false;
-
-
-    ushort              version;
-    ushort              unused;
-    ushort              dim1;
-    ushort              dim2;
-    ushort              dim3;
-
-    ifs.read ( (char *) &version, sizeof ( version ) );
-
-    if ( version == 0 )
-        ifs.read ( (char *) &unused, sizeof ( unused ) );
-                                        // dimension x, y ,z
-    ifs.read ( (char *) &dim1, sizeof ( dim1 ) );
-    ifs.read ( (char *) &dim2, sizeof ( dim2 ) );
-    ifs.read ( (char *) &dim3, sizeof ( dim3 ) );
-
-                                        // current version is 4, but we only have files with 0
-    if ( version > 0 ) {
-        ShowMessage ( "Unsupported version!\nVolume might be read incorrectly!", "VMR File", ShowMessageWarning );
-//      return  false;
-        }
-
-                                        // Besa files will be internally reoriented & recentered to be consistent with the internal behavior of this program
-//  static TStringGrep      grepbesa ( "(?i)(_ACPC|_TAL|_TAL_MASKED)\\." );
-//  ForceBesa       = grepbesa.Matched ( GetTitle () );
-    ForceBesa       = version == 0;
-
-//    DBGV ( ForceBesa, "Force BESA" );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // here we have all the header infos.
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Filling product info
-    StringCopy ( CompanyName, CompanyNameVMR );
-    StringCopy ( ProductName, ProductNameVMR );
-    Version     = version;
-    StringCopy  ( SubversionName, ForceBesa ? "Besa" : "" );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    if ( ForceBesa ) {
-                                        // permutate axis dimensions (PIR -> RAS so XYZ -> ZXY)
-        ushort          dim1o ( dim1 );
-        ushort          dim2o ( dim2 );
-        ushort          dim3o ( dim3 );
-
-        dim1            = dim3o;
-        dim2            = dim1o;
-        dim3            = dim2o;
-        }
-
-
-    Size.Set ( 0, dim1 - 1, 0, dim2 - 1, 0, dim3 - 1 );
-
-
-    Data.Resize ( dim1, dim2, dim3 );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // deduce voxel size
-//  if ( RealSize.IsNotNull () ) {
-//      VoxelSize.X = RealSize.X / dim1;
-//      VoxelSize.Y = RealSize.Y / dim2;
-//      VoxelSize.Z = RealSize.Z / dim3;
-//      }
-//  else {
-        VoxelSize   = 1;
-
-        RealSize.X  = dim1;
-        RealSize.Y  = dim2;
-        RealSize.Z  = dim3;
-//      }
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // format does not set the origin
-    Origin  = 0.0;
-
-
-    if ( ForceBesa ) {
-                                        // assume origin is the center, at least for now
-        Origin.X    = dim1 / 2;
-        Origin.Y    = dim2 / 2;
-        Origin.Z    = dim3 / 2;
-        }
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // default is always PIL, we set to PIR and flip the data in Z below
-    KnownOrientation    = ForceBesa ? SetOrientation ( "RAS" ) : SetOrientation ( "PIR" );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    TSuperGauge         Gauge;
-    Gauge.Set           ( MriVmrTitle, SuperGaugeLevelInter );
-    Gauge.AddPart       ( 0, dim3, 100 );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Data encountered so far seem to be only unsigned byte, so there is no need for rescaling
-    if ( ForceBesa ) {
-                                        // override orientation
-        for ( int z = 0; z < dim1; z++ ) {
-
-            Gauge.Next ( 0 );
-
-            for ( int y = 0; y < dim3; y++ )
-            for ( int x = 0; x < dim2; x++ ) {
-                              // !Left!
-                Data ( dim1 - 1 - z, dim2 - 1 - x, dim3 - 1 - y )   = (uchar) ifs.get ();
+                    for (int y = 0; y < dim3; y++)
+                        for (int x = 0; x < dim2; x++)
+                        {
+                            // !Left!
+                            Data(dim1 - 1 - z, dim2 - 1 - x, dim3 - 1 - y) = (uchar)ifs.get();
+                        }
                 }
             }
-        }
-    else {
-                                        // regular file
-        for ( int z = 0; z < dim3; z++ ) {
+            else
+            {
+                // regular file
+                for (int z = 0; z < dim3; z++)
+                {
 
-            Gauge.Next ( 0 );
+                    Gauge.Next(0);
 
-            for ( int y = 0; y < dim2; y++ )
-            for ( int x = 0; x < dim1; x++ ) {
-                                    // !Left! officially, format is PIL (though some packages could be using PIR...)
-                Data ( x, y, dim3 - 1 - z ) = (uchar) ifs.get ();
+                    for (int y = 0; y < dim2; y++)
+                        for (int x = 0; x < dim1; x++)
+                        {
+                            // !Left! officially, format is PIL (though some packages could be using PIR...)
+                            Data(x, y, dim3 - 1 - z) = (uchar)ifs.get();
+                        }
                 }
             }
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            TMatrix44 transform;
+            double targetvoxelsize;
+
+            // is there any numerical difference between any directions?
+            if (!VoxelSize.IsIsotropic(0.01))
+            {
+
+                TPointDouble sourcevoxelratio(1);
+
+                // boosting to the highest resolution from any axis
+                targetvoxelsize = VoxelSize.Min();
+
+                // don't allow less than ~ 1% difference between voxel sizes
+                sourcevoxelratio.X = RoundTo(VoxelSize.X / targetvoxelsize, 0.01);
+                sourcevoxelratio.Y = RoundTo(VoxelSize.Y / targetvoxelsize, 0.01);
+                sourcevoxelratio.Z = RoundTo(VoxelSize.Z / targetvoxelsize, 0.01);
+
+                transform.Scale(sourcevoxelratio.X, sourcevoxelratio.Y, sourcevoxelratio.Z, MultiplyRight);
+
+                // manually update the origin
+                transform.Apply(Origin);
+            } // Voxel resizing
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // Will perform the most optimal reslicing
+            if (ResliceData(transform,
+                            Origin,
+                            VoxelSize,
+                            NiftiTransform, NiftiIntentCode, NiftiIntentName,
+                            MriVmrMethodTitle))
+            {
+
+                // new isotropic voxel size
+                VoxelSize = targetvoxelsize;
+
+                RealSize.X = VoxelSize.X * Data.GetDim(0);
+                RealSize.Y = VoxelSize.Y * Data.GetDim(1);
+                RealSize.Z = VoxelSize.Z * Data.GetDim(2);
+
+                Size.Set(0, Data.GetDim(0) - 1, 0, Data.GetDim(1) - 1, 0, Data.GetDim(2) - 1);
+
+                // here data has been resliced
+                //      SetDirty ( true );
+            }
+
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        }
+        else
+        {
+            return false;
         }
 
-
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    TMatrix44           transform;
-    double              targetvoxelsize;
-
-                                        // is there any numerical difference between any directions?
-    if ( ! VoxelSize.IsIsotropic ( 0.01 ) ) {
-
-        TPointDouble        sourcevoxelratio ( 1 );
-
-                                        // boosting to the highest resolution from any axis
-        targetvoxelsize     = VoxelSize.Min ();
-
-                                        // don't allow less than ~ 1% difference between voxel sizes
-        sourcevoxelratio.X  = RoundTo ( VoxelSize.X / targetvoxelsize, 0.01 );
-        sourcevoxelratio.Y  = RoundTo ( VoxelSize.Y / targetvoxelsize, 0.01 );
-        sourcevoxelratio.Z  = RoundTo ( VoxelSize.Z / targetvoxelsize, 0.01 );
-
-
-        transform.Scale ( sourcevoxelratio.X, sourcevoxelratio.Y, sourcevoxelratio.Z, MultiplyRight );
-
-                                        // manually update the origin
-        transform.Apply ( Origin );
-        } // Voxel resizing
-
-
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Will perform the most optimal reslicing
-    if (    ResliceData     (   transform,
-                                Origin,
-                                VoxelSize,
-                                NiftiTransform,     NiftiIntentCode,        NiftiIntentName,
-                                MriVmrMethodTitle ) ) {
-
-                                        // new isotropic voxel size
-        VoxelSize   = targetvoxelsize;
-
-        RealSize.X  = VoxelSize.X * Data.GetDim ( 0 );
-        RealSize.Y  = VoxelSize.Y * Data.GetDim ( 1 );
-        RealSize.Z  = VoxelSize.Z * Data.GetDim ( 2 );
-
-        Size.Set ( 0, Data.GetDim ( 0 ) - 1, 0, Data.GetDim ( 1 ) - 1, 0, Data.GetDim ( 2 ) - 1 );
-
-                                        // here data has been resliced
-//      SetDirty ( true );
-        }
-
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    }
-else {
-    return false;
+        return true;
     }
 
-
-return true;
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

@@ -14,303 +14,294 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
-#include    "TBaseDoc.h"
+#include "TBaseDoc.h"
 
-#include    "TArray1.h"
-#include    "Volumes.TTalairachOracle.h"
+#include "TArray1.h"
+#include "Volumes.TTalairachOracle.h"
 
-#include    "TPotentialsView.h"
-#include    "TInverseView.h"
+#include "TPotentialsView.h"
+#include "TInverseView.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-        TBaseDoc::TBaseDoc ( TDocument* parent )
-      : TFileDocument ( parent )
+namespace crtl
 {
-LastGroupDoc        = 0;
-DoNotClose          = false;
-GeometryTransform   = 0;
-}
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-        TBaseDoc::~TBaseDoc ()
-{
-if ( GeometryTransform ) {
-    delete GeometryTransform;
-    GeometryTransform = 0;
+    TBaseDoc::TBaseDoc(TDocument *parent)
+        : TFileDocument(parent)
+    {
+        LastGroupDoc = 0;
+        DoNotClose = false;
+        GeometryTransform = 0;
     }
-}
 
-
-//----------------------------------------------------------------------------
-bool    TBaseDoc::CanClose ()
-{
-return  CanClose ( false );
-}
-
-
-bool    TBaseDoc::CanClose ( bool silent )
-{                                       // if App is closing, ignore this test!
-
-//if ( ! CartoolApplication->Closing && (bool) UsedBy ) {
-
-if ( CartoolApplication->Closing ) {    // sauve qui peut!
-
-    return true;
-    }
-else {
-
-    if ( DoNotClose ) {                 // there is a lock on this doc
-
-//      ShowMessage ( "Can not close now..." NewLine "Finish your current process first.", "Closing", ShowMessageWarning, CartoolMainWindow );
-        return false;
+    TBaseDoc::~TBaseDoc()
+    {
+        if (GeometryTransform)
+        {
+            delete GeometryTransform;
+            GeometryTransform = 0;
         }
+    }
 
-    else if ( (bool) UsedBy ) {         // if used
+    //----------------------------------------------------------------------------
+    bool TBaseDoc::CanClose()
+    {
+        return CanClose(false);
+    }
 
-        if ( ! silent ) {
+    bool TBaseDoc::CanClose(bool silent)
+    { // if App is closing, ignore this test!
 
-            char                buff [ 1024 ];
-            char                title[ 1024 ];
+        // if ( ! CartoolApplication->Closing && (bool) UsedBy ) {
 
-            StringCopy ( buff, (int) UsedBy == 1 ? "Close this document beforehand:\n" : "Close these documents beforehand:\n" );
+        if (CartoolApplication->Closing)
+        { // sauve qui peut!
 
-            for ( int i = 0; i < (int) UsedBy; i++ )
-                StringAppend ( buff, NewLine Tab, UsedBy[ i ]->GetTitle () );
+            return true;
+        }
+        else
+        {
 
-            StringCopy  ( title, "Closing ", GetTitle () );
+            if (DoNotClose)
+            { // there is a lock on this doc
 
-            ShowMessage ( buff, title, ShowMessageWarning, CartoolMainWindow );
+                //      ShowMessage ( "Can not close now..." NewLine "Finish your current process first.", "Closing", ShowMessageWarning, CartoolMainWindow );
+                return false;
             }
 
-        return false;
-        }
-    else {
-        if ( silent ) {
-            SetDirty ( false );         // force flag to not dirty
-            return  true;               // force success
+            else if ((bool)UsedBy)
+            { // if used
+
+                if (!silent)
+                {
+
+                    char buff[1024];
+                    char title[1024];
+
+                    StringCopy(buff, (int)UsedBy == 1 ? "Close this document beforehand:\n" : "Close these documents beforehand:\n");
+
+                    for (int i = 0; i < (int)UsedBy; i++)
+                        StringAppend(buff, NewLine Tab, UsedBy[i]->GetTitle());
+
+                    StringCopy(title, "Closing ", GetTitle());
+
+                    ShowMessage(buff, title, ShowMessageWarning, CartoolMainWindow);
+                }
+
+                return false;
             }
+            else
+            {
+                if (silent)
+                {
+                    SetDirty(false); // force flag to not dirty
+                    return true;     // force success
+                }
 
-        return  TDocument::CanClose (); // the regular way
-        }
-    }
-}
-
-
-//----------------------------------------------------------------------------
-bool    TBaseDoc::CanSync ( TWindow* towin )    const
-{
-return  dynamic_cast<TPotentialsView*> ( towin )
-     || dynamic_cast<TInverseView*   > ( towin );
-//   || dynamic_cast<TTracksView*    > ( towin );   // that would make sense to implement that at some point...
-}
-
-
-//----------------------------------------------------------------------------
-void    TBaseDoc::SetFocus ( uint viewid )
-{
-if ( viewid ) {
-
-    TView*              v           = CartoolDocManager->GetView ( viewid );
-
-    if ( v )
-        v->GetWindow()->GetParentO()->SetFocus();
-    }
-}
-
-
-//----------------------------------------------------------------------------
-bool    TBaseDoc::NotifyDocViews ( int event, TParam2 item, TView* viewexclude, TDocument* docexclude )
-{
-                                        // send message to its own views firsw
-bool                globalresult    = NotifyViews ( event, item, viewexclude );
-
-                                        // .. then to all views of all docs pointing to this doc
-for ( int i = 0; i < (int) UsedBy; i++ ) {
-
-    TBaseDoc*   doc     = dynamic_cast<TBaseDoc*> ( UsedBy[ i ] );
-
-    if ( doc && doc != docexclude ) {
-
-        bool    oneresult   = doc->NotifyDocViews ( event, item, viewexclude, this );  // looks like hierarchical?
-//      bool    oneresult   = doc->NotifyViews    ( event, item );
-
-        globalresult        = globalresult || oneresult;
+                return TDocument::CanClose(); // the regular way
+            }
         }
     }
 
+    //----------------------------------------------------------------------------
+    bool TBaseDoc::CanSync(TWindow *towin) const
+    {
+        return dynamic_cast<TPotentialsView *>(towin) || dynamic_cast<TInverseView *>(towin);
+        //   || dynamic_cast<TTracksView*    > ( towin );   // that would make sense to implement that at some point...
+    }
 
-return  globalresult;
-}
+    //----------------------------------------------------------------------------
+    void TBaseDoc::SetFocus(uint viewid)
+    {
+        if (viewid)
+        {
 
+            TView *v = CartoolDocManager->GetView(viewid);
 
-//----------------------------------------------------------------------------
-bool    TBaseDoc::NotifyFriendViews  ( uint friendshipid, int event, TParam2 item, TView* viewexclude )
-{
-if ( friendshipid == 0 )
-    return  false;
+            if (v)
+                v->GetWindow()->GetParentO()->SetFocus();
+        }
+    }
 
-                                        // we aim only at TBaseView derived windows
-TBaseView*          view            = CartoolDocManager->GetView ( friendshipid );
+    //----------------------------------------------------------------------------
+    bool TBaseDoc::NotifyDocViews(int event, TParam2 item, TView *viewexclude, TDocument *docexclude)
+    {
+        // send message to its own views firsw
+        bool globalresult = NotifyViews(event, item, viewexclude);
 
-if ( view == 0 )
-    return  false;
+        // .. then to all views of all docs pointing to this doc
+        for (int i = 0; i < (int)UsedBy; i++)
+        {
 
+            TBaseDoc *doc = dynamic_cast<TBaseDoc *>(UsedBy[i]);
 
-uint                friendid        = view->FriendshipId;
-bool                globalresult    = false;
+            if (doc && doc != docexclude)
+            {
 
-for ( TBaseDoc*  doc = CartoolDocManager->DocListNext ( 0 ); doc != 0; doc = CartoolDocManager->DocListNext ( doc ) )
-for ( TBaseView* v = doc->GetViewList (); v != 0; v = doc->NextView ( v ) )
+                bool oneresult = doc->NotifyDocViews(event, item, viewexclude, this); // looks like hierarchical?
+                                                                                      //      bool    oneresult   = doc->NotifyViews    ( event, item );
 
-    if ( v->IsFriendship ( friendid ) ) {
-
-//      bool    oneresult   = doc->NotifyViews ( event, item, viewexclude );
-        bool    oneresult   = doc->QueryViews  ( event, item, viewexclude );
-
-                                    // !done this way to make sure QueryViews got called, even if result is already true - do not change that!
-        globalresult        = globalresult || oneresult;
-
-        break;                      // go to next document
+                globalresult = globalresult || oneresult;
+            }
         }
 
-
-return  globalresult;
-}
-
-
-//----------------------------------------------------------------------------
-                                        // !A side effect of dynamic_cast is that it will stop at the first non-TBaseView pointer!
-TBaseView* TBaseDoc::GetViewList () const
-{
-return  dynamic_cast<TBaseView*> ( TDocument::GetViewList() );
-}
-
-
-//----------------------------------------------------------------------------
-bool    TBaseDoc::HasView ( const TView* searchedview )
-{
-if ( TDocument::GetViewList () == 0 || searchedview == 0 )
-    return  false;
-
-                                        // check if current view really belongs to this doc
-for ( TView* view = TDocument::GetViewList(); view != 0; view = TDocument::NextView ( view ) )
-
-    if ( view == searchedview )
-    
-        return  true;
-
-
-return  false;
-}
-
-
-//----------------------------------------------------------------------------
-TBaseView* TBaseDoc::GetViewList ( TLinkManyDoc* group, bool equal )
-{
-TView*          view;
-TBaseView*      baseview;
-
-
-for ( view = GetViewList(); view != 0; view = NextView ( view ) ) {
-
-    baseview = dynamic_cast<TBaseView*> ( view );
-
-    if ( ! baseview )
-        continue;
-
-    if ( ! ( ( baseview->GODoc == group ) ^ equal ) )
-        return  baseview;
+        return globalresult;
     }
 
+    //----------------------------------------------------------------------------
+    bool TBaseDoc::NotifyFriendViews(uint friendshipid, int event, TParam2 item, TView *viewexclude)
+    {
+        if (friendshipid == 0)
+            return false;
 
-return  0;
-}
+        // we aim only at TBaseView derived windows
+        TBaseView *view = CartoolDocManager->GetView(friendshipid);
 
+        if (view == 0)
+            return false;
 
-TBaseView*  TBaseDoc::NextView ( const TView* view )
-{
-return  dynamic_cast<TBaseView*> ( TDocument::NextView ( view ) );
-}
+        uint friendid = view->FriendshipId;
+        bool globalresult = false;
 
+        for (TBaseDoc *doc = CartoolDocManager->DocListNext(0); doc != 0; doc = CartoolDocManager->DocListNext(doc))
+            for (TBaseView *v = doc->GetViewList(); v != 0; v = doc->NextView(v))
 
-TBaseView*  TBaseDoc::NextView ( const TBaseView* bview, TLinkManyDoc* group, bool equal )
-{
-TView*          view;
-TBaseView*      baseview;
+                if (v->IsFriendship(friendid))
+                {
 
+                    //      bool    oneresult   = doc->NotifyViews ( event, item, viewexclude );
+                    bool oneresult = doc->QueryViews(event, item, viewexclude);
 
-for ( view= NextView ( bview ); view != 0; view = NextView ( view ) ) {
+                    // !done this way to make sure QueryViews got called, even if result is already true - do not change that!
+                    globalresult = globalresult || oneresult;
 
-    baseview = dynamic_cast<TBaseView*> ( view );
+                    break; // go to next document
+                }
 
-    if ( !baseview )
-        continue;
-
-    if ( ! ( ( baseview->GODoc == group ) ^ equal ) )
-        return  baseview;
+        return globalresult;
     }
 
-
-return  0;
-}
-
-
-//----------------------------------------------------------------------------
-void    TBaseDoc::MinimizeViews ()
-{
-TView*              view;
-TBaseView*          baseview;
-
-
-for ( view = GetViewList (); view != 0; view = NextView ( view ) ) {
-
-    baseview = dynamic_cast< TBaseView*> ( view );
-
-    if ( baseview )
-        baseview->WindowMinimize ();
+    //----------------------------------------------------------------------------
+    // !A side effect of dynamic_cast is that it will stop at the first non-TBaseView pointer!
+    TBaseView *TBaseDoc::GetViewList() const
+    {
+        return dynamic_cast<TBaseView *>(TDocument::GetViewList());
     }
-}
 
+    //----------------------------------------------------------------------------
+    bool TBaseDoc::HasView(const TView *searchedview)
+    {
+        if (TDocument::GetViewList() == 0 || searchedview == 0)
+            return false;
 
-//----------------------------------------------------------------------------
-char*   TBaseDoc::GetBaseFileName ( char* basefilename )    const
-{
-if ( basefilename == 0 )
-    return  0;
+        // check if current view really belongs to this doc
+        for (TView *view = TDocument::GetViewList(); view != 0; view = TDocument::NextView(view))
 
-                                        // get full file name with path
-StringCopy ( basefilename, GetDocPath () );
+            if (view == searchedview)
 
-                                        // MFF files are directory, so move one dir up
-if ( IsGeodesicsMFFPath ( basefilename ) ) {
-                                        // remove the "\signal*.bin" part
-    RemoveFilename ( basefilename );
-                                        // also remove any useless .mff extension
-    if ( crtl::IsExtension ( basefilename, FILEEXT_EEGMFFDIR ) )
-        RemoveExtension ( basefilename );
+                return true;
+
+        return false;
     }
-else
-                                        // just remove the file extension
-    RemoveExtension ( basefilename );
 
+    //----------------------------------------------------------------------------
+    TBaseView *TBaseDoc::GetViewList(TLinkManyDoc *group, bool equal)
+    {
+        TView *view;
+        TBaseView *baseview;
 
-return  basefilename;
-}
+        for (view = GetViewList(); view != 0; view = NextView(view))
+        {
 
+            baseview = dynamic_cast<TBaseView *>(view);
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+            if (!baseview)
+                continue;
+
+            if (!((baseview->GODoc == group) ^ equal))
+                return baseview;
+        }
+
+        return 0;
+    }
+
+    TBaseView *TBaseDoc::NextView(const TView *view)
+    {
+        return dynamic_cast<TBaseView *>(TDocument::NextView(view));
+    }
+
+    TBaseView *TBaseDoc::NextView(const TBaseView *bview, TLinkManyDoc *group, bool equal)
+    {
+        TView *view;
+        TBaseView *baseview;
+
+        for (view = NextView(bview); view != 0; view = NextView(view))
+        {
+
+            baseview = dynamic_cast<TBaseView *>(view);
+
+            if (!baseview)
+                continue;
+
+            if (!((baseview->GODoc == group) ^ equal))
+                return baseview;
+        }
+
+        return 0;
+    }
+
+    //----------------------------------------------------------------------------
+    void TBaseDoc::MinimizeViews()
+    {
+        TView *view;
+        TBaseView *baseview;
+
+        for (view = GetViewList(); view != 0; view = NextView(view))
+        {
+
+            baseview = dynamic_cast<TBaseView *>(view);
+
+            if (baseview)
+                baseview->WindowMinimize();
+        }
+    }
+
+    //----------------------------------------------------------------------------
+    char *TBaseDoc::GetBaseFileName(char *basefilename) const
+    {
+        if (basefilename == 0)
+            return 0;
+
+        // get full file name with path
+        StringCopy(basefilename, GetDocPath());
+
+        // MFF files are directory, so move one dir up
+        if (IsGeodesicsMFFPath(basefilename))
+        {
+            // remove the "\signal*.bin" part
+            RemoveFilename(basefilename);
+            // also remove any useless .mff extension
+            if (crtl::IsExtension(basefilename, FILEEXT_EEGMFFDIR))
+                RemoveExtension(basefilename);
+        }
+        else
+            // just remove the file extension
+            RemoveExtension(basefilename);
+
+        return basefilename;
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

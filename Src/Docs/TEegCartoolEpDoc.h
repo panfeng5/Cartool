@@ -16,40 +16,35 @@ limitations under the License.
 
 #pragma once
 
-#include    "TTracksDoc.h"
+#include "TTracksDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   TEegCartoolEpDoc    :   public  TTracksDoc
+namespace crtl
 {
-public:
-                    TEegCartoolEpDoc    ( owl::TDocument *parent = 0 );
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    bool            CanClose        ()                                  override;
-    bool            IsOpen          ()                                  final       { return Tracks.IsAllocated (); }
-    bool            Open            ( int mode, const char *path = 0 )  override;
+    class TEegCartoolEpDoc : public TTracksDoc
+    {
+    public:
+        TEegCartoolEpDoc(owl::TDocument *parent = 0);
 
+        bool CanClose() override;
+        bool IsOpen() final { return Tracks.IsAllocated(); }
+        bool Open(int mode, const char *path = 0) override;
 
-    static bool     ReadFromHeader      ( const char* file, ReadFromHeaderType what, void* answer );
-    void            ReadRawTracks       ( long tf1, long tf2, TArray2<float>& buff, int tfoffset = 0 )                                  final;
-    void            SetReferenceType    ( ReferenceType ref, const char* tracks = 0, const TStrings* elnames = 0, bool verbose = true ) final;
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+        void ReadRawTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0) final;
+        void SetReferenceType(ReferenceType ref, const char *tracks = 0, const TStrings *elnames = 0, bool verbose = true) final;
 
+    protected:
+        TTracks<float> Tracks;
+        bool CreatingEP;
 
-protected:
+        bool SetArrays() override;
+    };
 
-    TTracks<float>  Tracks;
-    bool            CreatingEP;
-
-
-    bool            SetArrays           ()  override;
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

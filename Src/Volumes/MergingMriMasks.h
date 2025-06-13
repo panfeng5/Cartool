@@ -16,29 +16,27 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-constexpr char*     MergingMriMasksTitle        = "Merging Head Tissues";
+   constexpr char *MergingMriMasksTitle = "Merging Head Tissues";
 
+   void MergingMriMasks(
+       const char *filehead,
+       const char *fileskull,
+       const char *fileskullsp,
+       const char *filecsf,
+       const char *filegrey,
+       const char *filewhite,
+       const char *fileblood,
+       const char *fileair,
+       const char *fileeyes,
+       bool createspongy, double compactthickness);
 
-void    MergingMriMasks (
-                        const char*     filehead,
-                        const char*     fileskull,
-                        const char*     fileskullsp,
-                        const char*     filecsf,
-                        const char*     filegrey,
-                        const char*     filewhite,
-                        const char*     fileblood,
-                        const char*     fileair,
-                        const char*     fileeyes,
-                        bool            createspongy,       double          compactthickness
-                        );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

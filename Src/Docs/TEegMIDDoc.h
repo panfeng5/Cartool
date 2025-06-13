@@ -16,124 +16,113 @@ limitations under the License.
 
 #pragma once
 
-#include    "TTracksDoc.h"
+#include "TTracksDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-struct      TDFileHeader
+namespace crtl
 {
-    char        sign[15];               /* program signature         */
-    char        ftype;                  /* data file type            */
-    UCHAR       nchan;                  /* number of(all)channels    */
-    UCHAR       naux;                   /* number of aux channels    */
-    UINT16      fsamp;                  /* sampling frequency        */
-    UINT32      nsamp;                  /* number of samples         */
-    UCHAR       d_val;                  /* data validation mark      */
-    UCHAR       unit;                   /* æV/bin                    */
-    short       zero;                   /* value ?0 uV              */
-    UINT16      data_org;               /* data sect offset (para)   */
-    UINT16      xhdr_org;               /* extheader offset (para)   */
-};                                      /*               Total:  32  */
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-struct      TDFileExtHeaderRecord
-{
-    UINT16      mnemo;                  /* record name         */
-    UINT16      size;                   /* record length       */
-};
+        struct TDFileHeader
+    {
+        char sign[15];   /* program signature         */
+        char ftype;      /* data file type            */
+        UCHAR nchan;     /* number of(all)channels    */
+        UCHAR naux;      /* number of aux channels    */
+        UINT16 fsamp;    /* sampling frequency        */
+        UINT32 nsamp;    /* number of samples         */
+        UCHAR d_val;     /* data validation mark      */
+        UCHAR unit;      /* ï¿½V/bin                    */
+        short zero;      /* value ?0 uV              */
+        UINT16 data_org; /* data sect offset (para)   */
+        UINT16 xhdr_org; /* extheader offset (para)   */
+    }; /*               Total:  32  */
 
+    struct TDFileExtHeaderRecord
+    {
+        UINT16 mnemo; /* record name         */
+        UINT16 size;  /* record length       */
+    };
 
-struct      TDFileExtHeaderCI
-{
-    short           ncal;
-    short           ampl;
-//  float*          zero;
-//  float*          range;
-    TArray1<float>  zero;
-    TArray1<float>  range;
-} ;
+    struct TDFileExtHeaderCI
+    {
+        short ncal;
+        short ampl;
+        //  float*          zero;
+        //  float*          range;
+        TArray1<float> zero;
+        TArray1<float> range;
+    };
 
+    struct TDFileExtHeaderTT
+    {
+        UINT16 def_len;
+        UINT16 list_len;
+        ULONG def_off;
+        ULONG list_off;
+    };
 
-struct      TDFileExtHeaderTT
-{
-    UINT16      def_len;
-    UINT16      list_len;
-    ULONG       def_off;
-    ULONG       list_off;
-} ;
+    struct TDFileTagDef
+    {
+        char abrv[2];
+        UINT16 count;
+        UINT16 txtlen;
+        UINT16 txtoff;
+    };
 
+    EndBytePacking
 
-struct      TDFileTagDef
-{
-    char        abrv[2];
-    UINT16      count;
-    UINT16      txtlen;
-    UINT16      txtoff;
-} ;
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        // M&I (Czech Republic) / BrainScope (outside) company
+        class TEegMIDDoc : public TTracksDoc
+    {
+    public:
+        TEegMIDDoc(owl::TDocument *parent = 0);
 
+        bool CanClose() final;
+        bool Close() final;
+        bool IsOpen() final { return InputStream != 0; }
+        bool Open(int mode, const char *path = 0) final;
 
-EndBytePacking
+        static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
+        void ReadRawTracks(long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0) final;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // M&I (Czech Republic) / BrainScope (outside) company
-class   TEegMIDDoc  :   public  TTracksDoc
-{
-public:
-                    TEegMIDDoc      ( owl::TDocument *parent = 0 );
+        bool IsDataCalibrated() const { return DataCalibrated; }
+        bool IsXHCalibration() const { return XHCalibration; }
+        void UseCalibration(TDFileExtHeaderCI *ci = 0); // used in ReadRawTracks only
+        const char *GetDataInfo() const { return DataInfo; }
 
+    protected:
+        owl::TInStream *InputStream;
+        int BuffTFSize;
 
-    bool            CanClose        ()                                  final;
-    bool            Close           ()                                  final;
-    bool            IsOpen          ()                                  final       { return InputStream != 0; }
-    bool            Open            ( int mode, const char *path = 0 )  final;
+        bool DataCalibrated;
+        bool Polarity;
+        bool BlockStructure;
+        bool PackedDatas;
+        double Zero;
+        double Unit;
+        long ExtHeaderOrg;
+        bool XHCalibration;
 
+        TDFileExtHeaderCI XHCI;
+        TDFileExtHeaderCI *forceCI;
+        TArray1<char> DataInfo;
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
-    void            ReadRawTracks   ( long tf1, long tf2, TArray2<float> &buff, int tfoffset = 0 )  final;
+        TArray1<float> Tracks;
+        TArray1<short> FileBuff;
 
-    bool            IsDataCalibrated()  const           { return DataCalibrated; }
-    bool            IsXHCalibration ()  const           { return XHCalibration; }
-    void            UseCalibration  ( TDFileExtHeaderCI *ci = 0 ); // used in ReadRawTracks only
-    const char*     GetDataInfo     ()  const           { return DataInfo; }
+        bool SetArrays() final;
+        void ReadNativeMarkers() final;
 
+        void FileDataToMicroVolts(const TDFileExtHeaderCI *ci = 0);
+    };
 
-protected:
-
-    owl::TInStream*     InputStream;
-    int                 BuffTFSize;
-
-    bool                DataCalibrated;
-    bool                Polarity;
-    bool                BlockStructure;
-    bool                PackedDatas;
-    double              Zero;
-    double              Unit;
-    long                ExtHeaderOrg;
-    bool                XHCalibration;
-
-    TDFileExtHeaderCI   XHCI;
-    TDFileExtHeaderCI*  forceCI;
-    TArray1<char>       DataInfo;
-
-    TArray1<float>      Tracks;
-    TArray1<short>      FileBuff;
-
-
-    bool            SetArrays           ()  final;
-    void            ReadNativeMarkers   ()  final;
-
-    void            FileDataToMicroVolts ( const TDFileExtHeaderCI* ci = 0 );
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

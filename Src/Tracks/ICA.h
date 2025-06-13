@@ -16,24 +16,24 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-class           TMaps;
-class           TSuperGauge;
+   class TMaps;
+   class TSuperGauge;
 
-                                        // !NOT WORKING CORRECTLY - so not available to user!
-bool            ICA (   TMaps&              data,           
-                        bool                robust,
-                        bool                removelasteigen,
-                        TMaps&              icavectors,
-                        TMaps&              icadata,
-                        TSuperGauge*        gauge );
+   // !NOT WORKING CORRECTLY - so not available to user!
+   bool ICA(TMaps &data,
+            bool robust,
+            bool removelasteigen,
+            TMaps &icavectors,
+            TMaps &icadata,
+            TSuperGauge *gauge);
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

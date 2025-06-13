@@ -16,53 +16,49 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   owl::TModule;
-
-                                        // Reading the VERSIONINFO resource.
-class   TCartoolVersionInfo
+namespace crtl
 {
-public:
-                    TCartoolVersionInfo ( owl::TModule* module = 0 );
-                   ~TCartoolVersionInfo ();
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    bool            GetProductName      ( LPCTSTR& s )  const;
-    bool            GetBranchName       ( LPCTSTR& s )  const;
-    bool            GetProductVersion   ( LPCTSTR& s )  const;
-    bool            GetProductRevision  ( LPCTSTR& s )  const;
-    bool            GetProductDate      ( LPCTSTR& s )  const;
-    bool            GetCopyright        ( LPCTSTR& s )  const;
-    bool            GetBuild            ( LPCTSTR& s )  const;
-    bool            GetArchitecture     ( LPCTSTR& s )  const;
-    bool            GetOpenMP           ( LPCTSTR& s )  const;
-    bool            GetRunTimeLibrary   ( LPCTSTR& s )  const;
-    bool            GetInstructionSet   ( LPCTSTR& s )  const;
-    bool            GetMKL              ( LPCTSTR& s )  const;
-    bool            GetDPIAwareness     ( LPCTSTR& s )  const;
+    class owl::TModule;
 
+    // Reading the VERSIONINFO resource.
+    class TCartoolVersionInfo
+    {
+    public:
+        TCartoolVersionInfo(owl::TModule *module = 0);
+        ~TCartoolVersionInfo();
 
-protected:
+        bool GetProductName(LPCTSTR &s) const;
+        bool GetBranchName(LPCTSTR &s) const;
+        bool GetProductVersion(LPCTSTR &s) const;
+        bool GetProductRevision(LPCTSTR &s) const;
+        bool GetProductDate(LPCTSTR &s) const;
+        bool GetCopyright(LPCTSTR &s) const;
+        bool GetBuild(LPCTSTR &s) const;
+        bool GetArchitecture(LPCTSTR &s) const;
+        bool GetOpenMP(LPCTSTR &s) const;
+        bool GetRunTimeLibrary(LPCTSTR &s) const;
+        bool GetInstructionSet(LPCTSTR &s) const;
+        bool GetMKL(LPCTSTR &s) const;
+        bool GetDPIAwareness(LPCTSTR &s) const;
 
-    UCHAR*          TransBlock;
-    void*           FVData;
-    char            Revision[ 8 ];
+    protected:
+        UCHAR *TransBlock;
+        void *FVData;
+        char Revision[8];
 
-    bool            HasFileVersionInfo  ()              const   { return FVData != 0; }
+        bool HasFileVersionInfo() const { return FVData != 0; }
 
+    private:
+        // Prevent this object to be copied
+        TCartoolVersionInfo(const TCartoolVersionInfo &) {}
+        TCartoolVersionInfo &operator=(const TCartoolVersionInfo &) {}
+    };
 
-private:
-                                        // Prevent this object to be copied
-                            TCartoolVersionInfo         ( const TCartoolVersionInfo& )  {}
-    TCartoolVersionInfo&    operator                =   ( const TCartoolVersionInfo& )  {}
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

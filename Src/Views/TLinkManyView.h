@@ -16,16 +16,18 @@ limitations under the License.
 
 #pragma once
 
-#include    "TBaseView.h"
-#include    "TLinkManyDoc.h"
+#include "TBaseView.h"
+#include "TLinkManyDoc.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-enum    {
-        LMVIEW_CBG_SEP1          = NumBaseViewButtons,
+    enum
+    {
+        LMVIEW_CBG_SEP1 = NumBaseViewButtons,
         LMVIEW_CBG_GTVKEEPSIZE,
         LMVIEW_CBG_GTVSTANDSIZE,
         LMVIEW_CBG_GTVFIT,
@@ -40,57 +42,52 @@ enum    {
         LMVIEW_CBG_SEP4,
         LMVIEW_CBG_SEGMENT,
         LMVIEW_CBG_NUM
-        };
+    };
 
+    class TLinkManyView : public TBaseView
+    {
+    public:
+        TLinkManyView(TLinkManyDoc &doc, owl::TWindow *parent = 0);
 
-class   TLinkManyView : public  TBaseView
-{
-public:
-                        TLinkManyView       ( TLinkManyDoc& doc, owl::TWindow* parent = 0 );
+        static const char *StaticName() { return "LinkMany &Display"; }
+        const char *GetViewName() final { return StaticName(); }
 
+        void CreateGadgets() final;
 
-    static const char*  StaticName          ()                                          { return "LinkMany &Display"; }
-    const char*         GetViewName         ()  final                                   { return StaticName(); }
+        void SetupWindow() final;
+        void GLPaint(int how, int renderingmode, TGLClipPlane *otherclipplane) final;
 
-    void                CreateGadgets       ()  final;
+        owl::TSize GetBestSize();
 
-    void                SetupWindow         ()  final;
-    void                GLPaint             ( int how, int renderingmode, TGLClipPlane *otherclipplane )    final;
+    protected:
+        bool CanClose() final { return owl::TWindowView::CanClose(); }
 
-    owl::TSize          GetBestSize         ();
+        int GetNumLines();
+        void ViewIndexToPosition(int i, TGLCoordinates<float> &p);
+        TBaseDoc *PositionToDoc(const owl::TPoint &p);
 
+        void Paint(owl::TDC &dc, bool erase, owl::TRect &rect) final;
 
-protected:
-    bool                CanClose            ()  final                                   { return owl::TWindowView::CanClose (); }
+        using TBaseView::EvKillFocus;
+        using TBaseView::EvSetFocus;
+        void EvKeyDown(owl::uint key, owl::uint repeatCount, owl::uint flags);
+        void EvLButtonDown(owl::uint, const owl::TPoint &);
+        void EvLButtonDblClk(owl::uint, const owl::TPoint &);
+        void EvSize(owl::uint, const owl::TSize &);
 
-    int                 GetNumLines ();
-    void                ViewIndexToPosition ( int i, TGLCoordinates<float> &p );
-    TBaseDoc*           PositionToDoc       ( const owl::TPoint &p );
+        bool VnReloadData(int what);
+        bool VnSessionUpdated(void *);
 
-    void                Paint               ( owl::TDC& dc, bool erase, owl::TRect& rect )  final;
+        void CmGTV(owlwparam w);
+        void CmAddToGroup();
+        void CmSegment();
+        void CmSyncUtility(owlwparam w);
+        void CmCommandsCloning();
 
-    using    TBaseView::EvSetFocus;
-    using    TBaseView::EvKillFocus;
-    void                EvKeyDown           ( owl::uint key, owl::uint repeatCount, owl::uint flags );
-    void                EvLButtonDown       ( owl::uint, const owl::TPoint& );
-    void                EvLButtonDblClk     ( owl::uint, const owl::TPoint& );
-    void                EvSize              ( owl::uint, const owl::TSize& );
+        DECLARE_RESPONSE_TABLE(TLinkManyView);
+    };
 
-    bool                VnReloadData        ( int what );
-    bool                VnSessionUpdated    ( void* );
-
-    void                CmGTV               ( owlwparam w );
-    void                CmAddToGroup        ();
-    void                CmSegment           ();
-    void                CmSyncUtility       ( owlwparam w );
-    void                CmCommandsCloning   ();
-
-
-    DECLARE_RESPONSE_TABLE (TLinkManyView);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

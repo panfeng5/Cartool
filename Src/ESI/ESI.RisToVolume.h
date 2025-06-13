@@ -16,35 +16,34 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-enum        RisToVolumeInterpolationType;
-enum        FilterTypes;
-enum        AtomFormatType;
-enum        RisToVolumeFileType;
-class       TSolutionPointsDoc;
-class       TVolumeDoc;
-class       TGoF;
-class       TSuperGauge;
+   enum RisToVolumeInterpolationType;
+   enum FilterTypes;
+   enum AtomFormatType;
+   enum RisToVolumeFileType;
+   class TSolutionPointsDoc;
+   class TVolumeDoc;
+   class TGoF;
+   class TSuperGauge;
 
-                                        // "Renders" a RIS files, which are basically tracks, as volume(s)
-void    RisToVolume (
-                    const char*             risfile,
-                    TSolutionPointsDoc*     spdoc,          RisToVolumeInterpolationType    interpol,
-                    const TVolumeDoc*       mrigrey,
-                    int                     fromtf,         int             totf,           int             steptf,
-                    FilterTypes             merging,
-                    AtomFormatType          atomformat,     
-                    RisToVolumeFileType     filetype,       const char*     fileprefix,
-                    TGoF&                   volgof,
-                    bool                    silent
-                    );
+   // "Renders" a RIS files, which are basically tracks, as volume(s)
+   void RisToVolume(
+       const char *risfile,
+       TSolutionPointsDoc *spdoc, RisToVolumeInterpolationType interpol,
+       const TVolumeDoc *mrigrey,
+       int fromtf, int totf, int steptf,
+       FilterTypes merging,
+       AtomFormatType atomformat,
+       RisToVolumeFileType filetype, const char *fileprefix,
+       TGoF &volgof,
+       bool silent);
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

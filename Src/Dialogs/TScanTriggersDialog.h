@@ -16,156 +16,147 @@ limitations under the License.
 
 #pragma once
 
-#include    "System.h"
+#include "System.h"
 
-#include    "TBaseDialog.h"
+#include "TBaseDialog.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*         ScanningTriggersTitle   = "Scanning Markers";
-
-
-//----------------------------------------------------------------------------
-                                        // These structs / classes need to be byte-aligned for proper read/write to file
-BeginBytePacking
-
-
-class   TScanTriggersStruct
+namespace crtl
 {
-public:
-                        TScanTriggersStruct ();
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    TEditData           Channels[ EditSizeTextLong ];
-    TEditData           TimeMin [ EditSizeValue ];
-    TEditData           TimeMax [ EditSizeValue ];
-    TCheckBoxData       EndOfFile;
+    constexpr char *ScanningTriggersTitle = "Scanning Markers";
 
-    TRadioButtonData    ScanStability;
+    //----------------------------------------------------------------------------
+    // These structs / classes need to be byte-aligned for proper read/write to file
+    BeginBytePacking
 
-    TRadioButtonData    ScanExtrema;
-    TCheckBoxData       ScanMin;
-    TCheckBoxData       ScanMax;
+        class TScanTriggersStruct
+    {
+    public:
+        TScanTriggersStruct();
 
-    TRadioButtonData    ScanThreshold;
-    TCheckBoxData       ThresholdAbove;
-    TEditData           ThresholdAboveValue [ EditSizeValue ];
-    TCheckBoxData       ThresholdBelow;
-    TEditData           ThresholdBelowValue [ EditSizeValue ];
-    TRadioButtonData    ThresholdStrict;
-    TRadioButtonData    ThresholdSlope;
+        TEditData Channels[EditSizeTextLong];
+        TEditData TimeMin[EditSizeValue];
+        TEditData TimeMax[EditSizeValue];
+        TCheckBoxData EndOfFile;
 
-    TRadioButtonData    ScanTemplate;
-    TEditData           ScanTemplateFile     [ EditSizeText ];
-    TEditData           ScanTemplateThreshold[ EditSizeValue ];
+        TRadioButtonData ScanStability;
 
-    TEditData           StabMin [ EditSizeValue ];
-    TEditData           StabMax [ EditSizeValue ];
-    TEditData           Gap     [ EditSizeValue ];
+        TRadioButtonData ScanExtrema;
+        TCheckBoxData ScanMin;
+        TCheckBoxData ScanMax;
 
-    TRadioButtonData    OneMarkerPerTrack;
-    TRadioButtonData    MergeMarkers;
-    TEditData           MergeMarkersRange    [ EditSizeValue ];
+        TRadioButtonData ScanThreshold;
+        TCheckBoxData ThresholdAbove;
+        TEditData ThresholdAboveValue[EditSizeValue];
+        TCheckBoxData ThresholdBelow;
+        TEditData ThresholdBelowValue[EditSizeValue];
+        TRadioButtonData ThresholdStrict;
+        TRadioButtonData ThresholdSlope;
 
-    TCheckBoxData       PrefixMarker;
-    TEditData           PrefixMarkerString   [ EditSizeText ];
-    TCheckBoxData       TrackName;
-    TRadioButtonData    NoValue;
-    TRadioButtonData    TrackValue;
-    TRadioButtonData    TrackRelativeIndex;
-    TRadioButtonData    MergedCount;
+        TRadioButtonData ScanTemplate;
+        TEditData ScanTemplateFile[EditSizeText];
+        TEditData ScanTemplateThreshold[EditSizeValue];
+
+        TEditData StabMin[EditSizeValue];
+        TEditData StabMax[EditSizeValue];
+        TEditData Gap[EditSizeValue];
+
+        TRadioButtonData OneMarkerPerTrack;
+        TRadioButtonData MergeMarkers;
+        TEditData MergeMarkersRange[EditSizeValue];
+
+        TCheckBoxData PrefixMarker;
+        TEditData PrefixMarkerString[EditSizeText];
+        TCheckBoxData TrackName;
+        TRadioButtonData NoValue;
+        TRadioButtonData TrackValue;
+        TRadioButtonData TrackRelativeIndex;
+        TRadioButtonData MergedCount;
     };
 
+    EndBytePacking
 
-EndBytePacking
+        //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
+        class TTracksDoc;
 
-class   TTracksDoc;
+    class TScanTriggersDialog : public TBaseDialog
+    {
+    public:
+        TScanTriggersDialog(owl::TWindow *parent, owl::TResId resId, TTracksDoc *doc);
+        ~TScanTriggersDialog();
 
+        void BatchProcessCurrent() final;
+        void ProcessCurrent(void *usetransfer = 0, const char *moreinfix = 0) final;
 
-class   TScanTriggersDialog :    public  TBaseDialog
-{
-public:
-                        TScanTriggersDialog         ( owl::TWindow* parent, owl::TResId resId, TTracksDoc* doc );
-                       ~TScanTriggersDialog         ();
+    protected:
+        owl::TEdit *Channels;
+        owl::TEdit *TimeMin;
+        owl::TEdit *TimeMax;
+        owl::TCheckBox *EndOfFile;
 
+        owl::TRadioButton *ScanStability;
 
-    void                BatchProcessCurrent         ()                                                      final;
-    void                ProcessCurrent              ( void *usetransfer = 0, const char *moreinfix = 0 )    final;
+        owl::TRadioButton *ScanExtrema;
+        owl::TCheckBox *ScanMin;
+        owl::TCheckBox *ScanMax;
 
+        owl::TRadioButton *ScanThreshold;
+        owl::TCheckBox *ThresholdAbove;
+        owl::TEdit *ThresholdAboveValue;
+        owl::TCheckBox *ThresholdBelow;
+        owl::TEdit *ThresholdBelowValue;
+        owl::TRadioButton *ThresholdStrict;
+        owl::TRadioButton *ThresholdSlope;
 
-protected:
+        owl::TRadioButton *ScanTemplate;
+        owl::TEdit *ScanTemplateFile;
+        owl::TEdit *ScanTemplateThreshold;
 
-    owl::TEdit          *Channels;
-    owl::TEdit          *TimeMin;
-    owl::TEdit          *TimeMax;
-    owl::TCheckBox      *EndOfFile;
+        owl::TEdit *StabMin;
+        owl::TEdit *StabMax;
+        owl::TEdit *Gap;
 
-    owl::TRadioButton   *ScanStability;
+        owl::TRadioButton *OneMarkerPerTrack;
+        owl::TRadioButton *MergeMarkers;
+        owl::TEdit *MergeMarkersRange;
 
-    owl::TRadioButton   *ScanExtrema;
-    owl::TCheckBox      *ScanMin;
-    owl::TCheckBox      *ScanMax;
+        owl::TCheckBox *PrefixMarker;
+        owl::TEdit *PrefixMarkerString;
+        owl::TCheckBox *TrackName;
+        owl::TRadioButton *NoValue;
+        owl::TRadioButton *TrackValue;
+        owl::TRadioButton *TrackRelativeIndex;
+        owl::TRadioButton *MergedCount;
 
-    owl::TRadioButton   *ScanThreshold;
-    owl::TCheckBox      *ThresholdAbove;
-    owl::TEdit          *ThresholdAboveValue;
-    owl::TCheckBox      *ThresholdBelow;
-    owl::TEdit          *ThresholdBelowValue;
-    owl::TRadioButton   *ThresholdStrict;
-    owl::TRadioButton   *ThresholdSlope;
+        void EvDropFiles(owl::TDropInfo drop);
+        void CmBrowseTemplateFileName();
+        void SetTemplateFileName(const char *file);
 
-    owl::TRadioButton   *ScanTemplate;
-    owl::TEdit          *ScanTemplateFile;
-    owl::TEdit          *ScanTemplateThreshold;
+        bool CmProcessEnable();
+        void CmProcessCurrentEnable(owl::TCommandEnabler &tce);
+        void CmProcessBatchEnable(owl::TCommandEnabler &tce);
+        void CmNotTemplateEnable(owl::TCommandEnabler &tce);
+        void CmOneMarkerPerTrackEnable(owl::TCommandEnabler &tce);
+        void CmMergeMarkersRangeEnable(owl::TCommandEnabler &tce);
+        void CmThresholdEnable(owl::TCommandEnabler &tce);
+        void CmDurationEnable(owl::TCommandEnabler &tce);
+        void CmTemplateEnable(owl::TCommandEnabler &tce);
+        void CmThresholdAboveEnable(owl::TCommandEnabler &tce);
+        void CmThresholdBelowEnable(owl::TCommandEnabler &tce);
+        void CmExtremaEnable(owl::TCommandEnabler &tce);
+        void CmChannelsEnable(owl::TCommandEnabler &tce);
+        void CmTimeMaxEnable(owl::TCommandEnabler &tce);
+        void CmPrefixMarkerEnable(owl::TCommandEnabler &tce);
+        void EvMethodChanged();
 
-    owl::TEdit          *StabMin;
-    owl::TEdit          *StabMax;
-    owl::TEdit          *Gap;
+        DECLARE_RESPONSE_TABLE(TScanTriggersDialog);
+    };
 
-    owl::TRadioButton   *OneMarkerPerTrack;
-    owl::TRadioButton   *MergeMarkers;
-    owl::TEdit          *MergeMarkersRange;
-
-    owl::TCheckBox      *PrefixMarker;
-    owl::TEdit          *PrefixMarkerString;
-    owl::TCheckBox      *TrackName;
-    owl::TRadioButton   *NoValue;
-    owl::TRadioButton   *TrackValue;
-    owl::TRadioButton   *TrackRelativeIndex;
-    owl::TRadioButton   *MergedCount;
-
-
-    void                EvDropFiles                 ( owl::TDropInfo drop );
-    void                CmBrowseTemplateFileName    ();
-    void                SetTemplateFileName         ( const char* file );
-
-    bool                CmProcessEnable             ();
-    void                CmProcessCurrentEnable      ( owl::TCommandEnabler &tce );
-    void                CmProcessBatchEnable        ( owl::TCommandEnabler &tce );
-    void                CmNotTemplateEnable         ( owl::TCommandEnabler &tce );
-    void                CmOneMarkerPerTrackEnable   ( owl::TCommandEnabler &tce );
-    void                CmMergeMarkersRangeEnable   ( owl::TCommandEnabler &tce );
-    void                CmThresholdEnable           ( owl::TCommandEnabler &tce );
-    void                CmDurationEnable            ( owl::TCommandEnabler &tce );
-    void                CmTemplateEnable            ( owl::TCommandEnabler &tce );
-    void                CmThresholdAboveEnable      ( owl::TCommandEnabler &tce );
-    void                CmThresholdBelowEnable      ( owl::TCommandEnabler &tce );
-    void                CmExtremaEnable             ( owl::TCommandEnabler &tce );
-    void                CmChannelsEnable            ( owl::TCommandEnabler &tce );
-    void                CmTimeMaxEnable             ( owl::TCommandEnabler &tce );
-    void                CmPrefixMarkerEnable        ( owl::TCommandEnabler &tce );
-    void                EvMethodChanged             ();
-
-    DECLARE_RESPONSE_TABLE ( TScanTriggersDialog );
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

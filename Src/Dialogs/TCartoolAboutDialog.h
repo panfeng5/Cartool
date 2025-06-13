@@ -16,27 +16,26 @@ limitations under the License.
 
 #pragma once
 
-#include    "resource.h"
+#include "resource.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   owl::TWindow;
-class   owl::TModule;
-
-
-class   TCartoolAboutDialog :   public  owl::TDialog
+namespace crtl
 {
-public:
-                    TCartoolAboutDialog ( owl::TWindow* parent, owl::TResId resId = IDD_ABOUT, owl::TModule* module = 0 );
 
-    void            SetupWindow ()  final;
-};
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
+   class owl::TWindow;
+   class owl::TModule;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   class TCartoolAboutDialog : public owl::TDialog
+   {
+   public:
+      TCartoolAboutDialog(owl::TWindow *parent, owl::TResId resId = IDD_ABOUT, owl::TModule *module = 0);
+
+      void SetupWindow() final;
+   };
+
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

@@ -16,35 +16,33 @@ limitations under the License.
 
 #pragma once
 
-#include    "TElectrodesDoc.h"
+#include "TElectrodesDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   TElsDoc :   public TElectrodesDoc
+namespace crtl
 {
-public:
-                    TElsDoc ( owl::TDocument *parent = 0 );
 
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-    bool            Close	        ()                                  final;
-    bool            Commit	        ( bool force = false )              final;
-    bool            Revert	        ( bool force = false )              final;
-    bool            IsOpen	        ()                                  final   { return  NumElectrodes > 0; }
-    bool            Open 	        ( int mode, const char *path = 0 )  final;
+   class TElsDoc : public TElectrodesDoc
+   {
+   public:
+      TElsDoc(owl::TDocument *parent = 0);
 
+      bool Close() final;
+      bool Commit(bool force = false) final;
+      bool Revert(bool force = false) final;
+      bool IsOpen() final { return NumElectrodes > 0; }
+      bool Open(int mode, const char *path = 0) final;
 
-    static bool     ReadFromHeader  ( const char* file, ReadFromHeaderType what, void* answer );
+      static bool ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer);
 
-    void            ExtractToFile   ( const char* xyzfile, TSelection selection, bool removeselection )   const;
+      void ExtractToFile(const char *xyzfile, TSelection selection, bool removeselection) const;
 
-protected:
-};
+   protected:
+   };
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

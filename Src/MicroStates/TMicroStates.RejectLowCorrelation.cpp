@@ -14,48 +14,46 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    "TMicroStates.h"
+#include "TMicroStates.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Existing labeling will be clipped out
-                                        // very close to CentroidsToLabeling, but without the loop through all maps
-int     TMicroStates::RejectLowCorrelation  (   long            tfmin,      long            tfmax,
-                                                TMaps&          maps,       TLabeling&      labels,
-                                                double          limitcorr 
-                                            )
+namespace crtl
 {
-//if ( maps.IsNotAllocated () )     return;
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Existing labeling will be clipped out
+    // very close to CentroidsToLabeling, but without the loop through all maps
+    int TMicroStates::RejectLowCorrelation(long tfmin, long tfmax,
+                                           TMaps &maps, TLabeling &labels,
+                                           double limitcorr)
+    {
+        // if ( maps.IsNotAllocated () )     return;
 
-OmpParallelFor
+        OmpParallelFor
 
-for ( long tf = tfmin; tf <= tfmax; tf++ ) {
+            for (long tf = tfmin; tf <= tfmax; tf++)
+        {
 
-    if ( labels.IsUndefined ( tf ) )
-        continue;
-    
-                                         // maps are already centered and normalized
-    double          corr        = Project ( maps[ labels[ tf ] ], Data[ tf ], labels.GetPolarity ( tf ) );
-                                        // !strict test, so no labeling get reset with a limit of -1!
-    if ( corr < limitcorr )
-        labels.Reset ( tf );
+            if (labels.IsUndefined(tf))
+                continue;
 
-    } // tf
+            // maps are already centered and normalized
+            double corr = Project(maps[labels[tf]], Data[tf], labels.GetPolarity(tf));
+            // !strict test, so no labeling get reset with a limit of -1!
+            if (corr < limitcorr)
+                labels.Reset(tf);
 
+        } // tf
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // pack and get exact number of final maps
-return  labels.PackLabels ( maps );
-}
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // pack and get exact number of final maps
+        return labels.PackLabels(maps);
+    }
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

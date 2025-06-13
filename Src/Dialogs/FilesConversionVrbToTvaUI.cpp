@@ -14,51 +14,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
 #if defined(CHECKASSERT)
-#include    <assert.h>
+#include <assert.h>
 #endif
 
-#include    "Dialogs.Input.h"
-#include    "Dialogs.TSuperGauge.h"
-#include    "Files.Conversions.h"
+#include "Dialogs.Input.h"
+#include "Dialogs.TSuperGauge.h"
+#include "Files.Conversions.h"
 
-#include    "TCartoolMdiClient.h"
+#include "TCartoolMdiClient.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
-namespace crtl {
-
-OptimizeOff
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-void    TCartoolMdiClient::FilesConversionVrbToTvaUI ()
+namespace crtl
 {
-static GetFileFromUser  getfiles ( "", AllVerboseFilesFilter, 1, GetFileMulti );
 
-if ( ! getfiles.Execute () )
-    return;
+    OptimizeOff
 
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        void
+        TCartoolMdiClient::FilesConversionVrbToTvaUI()
+    {
+        static GetFileFromUser getfiles("", AllVerboseFilesFilter, 1, GetFileMulti);
 
-TSuperGauge         Gauge ( "VRB to TVA Conversion", (int) getfiles + 1 );
+        if (!getfiles.Execute())
+            return;
 
-for ( int i = 0; i < (int) getfiles; i++ ) {
+        TSuperGauge Gauge("VRB to TVA Conversion", (int)getfiles + 1);
 
-    Gauge.Next ();
+        for (int i = 0; i < (int)getfiles; i++)
+        {
 
-    FileConversionVrbToTva ( getfiles[ i ] );
+            Gauge.Next();
+
+            FileConversionVrbToTva(getfiles[i]);
+        }
+
+        Gauge.HappyEnd();
     }
 
-Gauge.HappyEnd ();
-}
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-OptimizeOn
+    OptimizeOn
 
 }

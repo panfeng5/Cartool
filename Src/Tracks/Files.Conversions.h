@@ -16,42 +16,39 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-void                FileConversionVrbToTva  ( const char* file );
-//void              SplitMatFiles           ( const char* file );
+   void FileConversionVrbToTva(const char *file);
+   // void              SplitMatFiles           ( const char* file );
 
+   //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
+   enum FrequencyAnalysisType;
+   class TGoF;
 
-enum                FrequencyAnalysisType;
-class               TGoF;
+   void MergeTracksToFreqFiles(const TGoF &gof, FrequencyAnalysisType freqtype = (FrequencyAnalysisType)0, char *returnfreqfile = 0, bool showgauge = true);
+   void MergeTracksToFreqFiles(const char *filestemplate, FrequencyAnalysisType freqtype = (FrequencyAnalysisType)0, char *returnfreqfile = 0, bool showgauge = true);
+   void SortFFTApproximation(const char *file);
 
-void                MergeTracksToFreqFiles  ( const TGoF& gof,           FrequencyAnalysisType freqtype = (FrequencyAnalysisType) 0, char *returnfreqfile = 0, bool showgauge = true );
-void                MergeTracksToFreqFiles  ( const char* filestemplate, FrequencyAnalysisType freqtype = (FrequencyAnalysisType) 0, char *returnfreqfile = 0, bool showgauge = true );
-void                SortFFTApproximation    ( const char* file );
+   //----------------------------------------------------------------------------
 
+   constexpr char *RisToPointsTitle = "RIS to Vectors";
 
-//----------------------------------------------------------------------------
+   class TSelection;
 
-constexpr char*     RisToPointsTitle        = "RIS to Vectors";
+   void RisToCloudVectors(
+       const char *risfile,
+       int tfmin, int tfmax,
+       const TSelection *spselin, const char *splist,
+       bool spontaneous, bool normalize,
+       TGoF &outgof,
+       bool showprogress);
 
-class               TSelection;
-
-void                RisToCloudVectors       (
-                                            const char*         risfile,
-                                            int                 tfmin,          int             tfmax,
-                                            const TSelection*   spselin,        const char*     splist,
-                                            bool                spontaneous,    bool            normalize,
-                                            TGoF&               outgof,
-                                            bool                showprogress
-                                            );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

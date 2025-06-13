@@ -14,88 +14,85 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    <owl/pch.h>
+#include <owl/pch.h>
 
 #if defined(CHECKASSERT)
-#include    <assert.h>
+#include <assert.h>
 #endif
 
-#include    "Dialogs.Input.h"
-#include    "Dialogs.TSuperGauge.h"
+#include "Dialogs.Input.h"
+#include "Dialogs.TSuperGauge.h"
 
-#include    "Electrodes.ExtractElectrodesFromKrios.h"
+#include "Electrodes.ExtractElectrodesFromKrios.h"
 
-#include    "TCartoolMdiClient.h"
+#include "TCartoolMdiClient.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
-namespace crtl {
-
-OptimizeOff
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-void    TCartoolMdiClient::ExtractElectrodesFromKriosUI ()
+namespace crtl
 {
-GetFileFromUser     getcsvfile ( "Provide some Krios scanner CSV files:", "CSV file" "|" FILEFILTER_CSV, 0, GetFileMulti );
 
-if ( ! getcsvfile.Execute () )
-    return;
+    OptimizeOff
 
+        //----------------------------------------------------------------------------
+        //----------------------------------------------------------------------------
+        void
+        TCartoolMdiClient::ExtractElectrodesFromKriosUI()
+    {
+        GetFileFromUser getcsvfile("Provide some Krios scanner CSV files:", "CSV file"
+                                                                            "|" FILEFILTER_CSV,
+                                   0, GetFileMulti);
 
-char                namestoskip[ KiloByte ];
+        if (!getcsvfile.Execute())
+            return;
 
-GetInputFromUser   ( "Scanner names to ignore:", KriosTitle, namestoskip, "CMS DRL COM GND" );
+        char namestoskip[KiloByte];
 
+        GetInputFromUser("Scanner names to ignore:", KriosTitle, namestoskip, "CMS DRL COM GND");
 
-GetFileFromUser     getxyzfile ( "Provide an optional target xyz file (recommended):", AllCoordinatesFilesFilter, 0, GetFileRead );
+        GetFileFromUser getxyzfile("Provide an optional target xyz file (recommended):", AllCoordinatesFilesFilter, 0, GetFileRead);
 
-getxyzfile.Execute ();
+        getxyzfile.Execute();
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        TSuperGauge Gauge;
+        Gauge.Set(KriosTitle, SuperGaugeLevelInter);
+        Gauge.AddPart(0, (int)getcsvfile + 1, 100);
 
-TSuperGauge         Gauge;
-Gauge.Set       ( KriosTitle, SuperGaugeLevelInter );
-Gauge.AddPart   ( 0,    (int) getcsvfile + 1,  100 );
+        bool oldav = CartoolApplication->AnimateViews;
+        CartoolApplication->AnimateViews = (int)getcsvfile == 1;
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-bool                oldav           = CartoolApplication->AnimateViews;
-CartoolApplication->AnimateViews    = (int) getcsvfile == 1;
+        TFileName fileout;
+        TGoF filesout;
+        bool openauto = (int)getcsvfile <= 10;
 
+        for (int fi = 0; fi < (int)getcsvfile; fi++)
+        {
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            Gauge.Next();
 
-TFileName           fileout;
-TGoF                filesout;
-bool                openauto        = (int) getcsvfile <= 10;
+            if (!ExtractElectrodesFromKrios(getcsvfile[fi], namestoskip, getxyzfile, fileout))
+                continue;
 
+            if (openauto)
+                fileout.Open();
+        }
 
-for ( int fi = 0; fi < (int) getcsvfile; fi++ ) {
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    Gauge.Next ();
+        CartoolApplication->AnimateViews = oldav;
 
-    if ( ! ExtractElectrodesFromKrios  ( getcsvfile[ fi ], namestoskip, getxyzfile, fileout ) )
-        continue;
-
-    if ( openauto )
-        fileout.Open ();
+        Gauge.FinishParts();
+        Gauge.HappyEnd();
     }
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-CartoolApplication->AnimateViews    = oldav;
-
-Gauge.FinishParts   ();
-Gauge.HappyEnd      ();
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-OptimizeOn
+    OptimizeOn
 
 }

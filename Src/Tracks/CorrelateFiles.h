@@ -16,35 +16,32 @@ limitations under the License.
 
 #pragma once
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
-enum        CorrelateFilesGaugeEnum
-            {
-            gaugecorrglobal,
-            gaugecorrfile1,
-            gaugecorrfile2,
-            };
+   enum CorrelateFilesGaugeEnum
+   {
+      gaugecorrglobal,
+      gaugecorrfile1,
+      gaugecorrfile2,
+   };
 
+   enum CorrelateType;
+   class TGoF;
+   class TSuperGauge;
 
-enum        CorrelateType;
-class       TGoF;
-class       TSuperGauge;
+   void CorrelateFiles(TGoF &filenames1, TGoF &filenames2,
+                       CorrelateType correlate,
+                       bool ignorepolarity,
+                       bool spatialfilter1, bool spatialfilter2, char *xyzfile,
+                       int cliptf,
+                       int numrand,
+                       const char *corrtitle, TSuperGauge *gauge);
 
-
-void    CorrelateFiles (    TGoF&           filenames1,     TGoF&           filenames2, 
-                            CorrelateType   correlate, 
-                            bool            ignorepolarity,
-                            bool            spatialfilter1, bool            spatialfilter2,     char*           xyzfile,
-                            int             cliptf,
-                            int             numrand,
-                            const char*     corrtitle,      TSuperGauge*    gauge 
-                         );
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
+   //----------------------------------------------------------------------------
 
 }

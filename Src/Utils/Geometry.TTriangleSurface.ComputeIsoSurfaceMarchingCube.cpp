@@ -14,48 +14,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-//#define     CHECKASSERT
+// #define     CHECKASSERT
 #if defined(CHECKASSERT)
-#include    <assert.h>
+#include <assert.h>
 #endif
 
-#include    "Geometry.TTriangleSurface.h"
+#include "Geometry.TTriangleSurface.h"
 
-#include    "CartoolTypes.h"
+#include "CartoolTypes.h"
 
-#include    "TVolume.h"
+#include "TVolume.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 
-namespace crtl {
+namespace crtl
+{
 
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
-                                        // Tables originally by Cory Gene Bloyd
-static const double CubeVertex[ 8 ][ 3 ] = {
-        {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0},
-        {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}
-        };
+    //------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
+    // Tables originally by Cory Gene Bloyd
+    static const double CubeVertex[8][3] = {
+        {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}};
 
+    static const int CubeEdge[12][2] = {
+        {0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
 
-static const int    CubeEdge[ 12 ][ 2 ] = {
-        {0,1}, {1,2}, {2,3}, {3,0},
-        {4,5}, {5,6}, {6,7}, {7,4},
-        {0,4}, {1,5}, {2,6}, {3,7}
-        };
+    static const double EdgeDirection[12][3] = {
+        {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, 1.0}};
 
-
-static const double EdgeDirection[ 12 ][ 3 ] = {
-        {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, -1.0, 0.0},
-        {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, -1.0, 0.0},
-        {0.0, 0.0, 1.0}, {0.0, 0.0, 1.0}, { 0.0, 0.0, 1.0}, {0.0,  0.0, 1.0}
-        };
-
-
-int const   CubeEdgeIntersec[ 256 ]= {
+    int const CubeEdgeIntersec[256] = {
         0x000, 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c, 0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
         0x190, 0x099, 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c, 0x99c, 0x895, 0xb9f, 0xa96, 0xd9a, 0xc93, 0xf99, 0xe90,
         0x230, 0x339, 0x033, 0x13a, 0x636, 0x73f, 0x435, 0x53c, 0xa3c, 0xb35, 0x83f, 0x936, 0xe3a, 0xf33, 0xc39, 0xd30,
@@ -71,11 +61,9 @@ int const   CubeEdgeIntersec[ 256 ]= {
         0xca0, 0xda9, 0xea3, 0xfaa, 0x8a6, 0x9af, 0xaa5, 0xbac, 0x4ac, 0x5a5, 0x6af, 0x7a6, 0x0aa, 0x1a3, 0x2a9, 0x3a0,
         0xd30, 0xc39, 0xf33, 0xe3a, 0x936, 0x83f, 0xb35, 0xa3c, 0x53c, 0x435, 0x73f, 0x636, 0x13a, 0x033, 0x339, 0x230,
         0xe90, 0xf99, 0xc93, 0xd9a, 0xa96, 0xb9f, 0x895, 0x99c, 0x69c, 0x795, 0x49f, 0x596, 0x29a, 0x393, 0x099, 0x190,
-        0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c, 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000
-        };
+        0xf00, 0xe09, 0xd03, 0xc0a, 0xb06, 0xa0f, 0x905, 0x80c, 0x70c, 0x605, 0x50f, 0x406, 0x30a, 0x203, 0x109, 0x000};
 
-
-int const   CubeTriangles[ 256 ][ 16 ] = {
+    int const CubeTriangles[256][16] = {
         {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
         {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
         {0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -331,203 +319,216 @@ int const   CubeTriangles[ 256 ][ 16 ] = {
         {1, 3, 8, 9, 1, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
         {0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
         {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
-        {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
-        };
+        {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 
-                                        // Method originally inspired by P. Bourke Marching Cube example, public domain code
-                                        // then rewritten for some optimizations and specificities.
-void    TTriangleSurface::ComputeIsoSurfaceMarchingCube (   const Volume*   data,
-                                                            double          isovalue,
-                                                            bool            smoothgradient, 
-                                                            TVertex**       listvert,       int             pointsperblock,     int&    currlistblock 
-                                                        )
-{
-                    currlistblock   = 0;
-int                 currlistindex   = 0;
+    // Method originally inspired by P. Bourke Marching Cube example, public domain code
+    // then rewritten for some optimizations and specificities.
+    void TTriangleSurface::ComputeIsoSurfaceMarchingCube(const Volume *data,
+                                                         double isovalue,
+                                                         bool smoothgradient,
+                                                         TVertex **listvert, int pointsperblock, int &currlistblock)
+    {
+        currlistblock = 0;
+        int currlistindex = 0;
 
-listvert[ currlistblock ] = new TVertex [ pointsperblock ];
+        listvert[currlistblock] = new TVertex[pointsperblock];
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Optimizing access from 1 voxel to all others 7 meighbors by computing their linear memory distances
+        int to8neigh[8];
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Optimizing access from 1 voxel to all others 7 meighbors by computing their linear memory distances
-int                 to8neigh[ 8 ];
+        to8neigh[0] = 0;
+        to8neigh[1] = data->IndexesToLinearIndex(1, 0, 0) - data->IndexesToLinearIndex(0, 0, 0);
+        to8neigh[2] = data->IndexesToLinearIndex(1, 1, 0) - data->IndexesToLinearIndex(0, 0, 0);
+        to8neigh[3] = data->IndexesToLinearIndex(0, 1, 0) - data->IndexesToLinearIndex(0, 0, 0);
+        to8neigh[4] = data->IndexesToLinearIndex(0, 0, 1) - data->IndexesToLinearIndex(0, 0, 0);
+        to8neigh[5] = data->IndexesToLinearIndex(1, 0, 1) - data->IndexesToLinearIndex(0, 0, 0);
+        to8neigh[6] = data->IndexesToLinearIndex(1, 1, 1) - data->IndexesToLinearIndex(0, 0, 0);
+        to8neigh[7] = data->IndexesToLinearIndex(0, 1, 1) - data->IndexesToLinearIndex(0, 0, 0);
 
-to8neigh[ 0 ]   = 0;
-to8neigh[ 1 ]   = data->IndexesToLinearIndex ( 1, 0, 0 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
-to8neigh[ 2 ]   = data->IndexesToLinearIndex ( 1, 1, 0 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
-to8neigh[ 3 ]   = data->IndexesToLinearIndex ( 0, 1, 0 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
-to8neigh[ 4 ]   = data->IndexesToLinearIndex ( 0, 0, 1 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
-to8neigh[ 5 ]   = data->IndexesToLinearIndex ( 1, 0, 1 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
-to8neigh[ 6 ]   = data->IndexesToLinearIndex ( 1, 1, 1 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
-to8neigh[ 7 ]   = data->IndexesToLinearIndex ( 0, 1, 1 ) - data->IndexesToLinearIndex ( 0, 0, 0 );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Picking the requested gradient function: regular or smoothed
+        void (Volume::*getgradient)(int x, int y, int z, TPointFloat &g, int d) const;
 
+        getgradient = smoothgradient ? &Volume::GetGradientSmoothed : &Volume::GetGradient;
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Picking the requested gradient function: regular or smoothed
-void            (Volume::*getgradient)  ( int x, int y, int z, TPointFloat& g, int d )    const;
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // Parallel optimization does actually work fine - Problem is triangles will appear all mixed up in transparency, so until output triangles are properly sorted, it is turned off
+        // OmpParallelBegin
 
-getgradient     = smoothgradient ? & Volume::GetGradientSmoothed : & Volume::GetGradient;
+        MriType v[8];       // values at 8 vertices
+        TVector3Float g[8]; // gradients    "
+        TVertex VNOfEdge[12];
 
+        // OmpFor
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Parallel optimization does actually work fine - Problem is triangles will appear all mixed up in transparency, so until output triangles are properly sorted, it is turned off
-//OmpParallelBegin
+        for (int x = 1; x < data->GetDim1() - 1; x++)
+            for (int y = 1; y < data->GetDim2() - 1; y++)
+                for (int z = 1; z < data->GetDim3() - 1; z++)
+                {
 
-MriType             v       [ 8 ];      // values at 8 vertices
-TVector3Float       g       [ 8 ];      // gradients    "
-TVertex             VNOfEdge[ 12 ];
+                    // Getting the 8 voxels values
+                    const MriType *tovoxel = &(*data)(x, y, z);
 
-//OmpFor
+                    v[0] = *tovoxel;
+                    v[1] = *(tovoxel + to8neigh[1]);
+                    v[2] = *(tovoxel + to8neigh[2]);
+                    v[3] = *(tovoxel + to8neigh[3]);
+                    v[4] = *(tovoxel + to8neigh[4]);
+                    v[5] = *(tovoxel + to8neigh[5]);
+                    v[6] = *(tovoxel + to8neigh[6]);
+                    v[7] = *(tovoxel + to8neigh[7]);
 
-for ( int x = 1; x < data->GetDim1() - 1; x++ )
-for ( int y = 1; y < data->GetDim2() - 1; y++ )
-for ( int z = 1; z < data->GetDim3() - 1; z++ ) {
+                    // Building the edge case according to each vertex
+                    int cases = (v[0] >= isovalue) | ((v[1] >= isovalue) << 1) | ((v[2] >= isovalue) << 2) | ((v[3] >= isovalue) << 3) | ((v[4] >= isovalue) << 4) | ((v[5] >= isovalue) << 5) | ((v[6] >= isovalue) << 6) | ((v[7] >= isovalue) << 7);
 
-                                        // Getting the 8 voxels values
-    const MriType*  tovoxel     = & (*data) ( x, y, z );
+                    // totally empty or totally full voxel? -> no isosurface there
+                    if (cases == 0 || cases == 0xff)
+                        continue;
 
-    v[ 0 ] = *  tovoxel;
-    v[ 1 ] = *( tovoxel + to8neigh[ 1 ] );
-    v[ 2 ] = *( tovoxel + to8neigh[ 2 ] );
-    v[ 3 ] = *( tovoxel + to8neigh[ 3 ] );
-    v[ 4 ] = *( tovoxel + to8neigh[ 4 ] );
-    v[ 5 ] = *( tovoxel + to8neigh[ 5 ] );
-    v[ 6 ] = *( tovoxel + to8neigh[ 6 ] );
-    v[ 7 ] = *( tovoxel + to8neigh[ 7 ] );
+                    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    // Use look-up table to retrieve the list of edges according to vertices configuration
+                    int edgeFlags = CubeEdgeIntersec[cases];
 
-                                        // Building the edge case according to each vertex
-    int     cases   =   ( v[ 0 ] >= isovalue )
-                    | ( ( v[ 1 ] >= isovalue ) << 1 )
-                    | ( ( v[ 2 ] >= isovalue ) << 2 )
-                    | ( ( v[ 3 ] >= isovalue ) << 3 )
-                    | ( ( v[ 4 ] >= isovalue ) << 4 )
-                    | ( ( v[ 5 ] >= isovalue ) << 5 )
-                    | ( ( v[ 6 ] >= isovalue ) << 6 )
-                    | ( ( v[ 7 ] >= isovalue ) << 7 );
+                    // Flag all gradients as 'not computed'
+                    g[0].Reset();
+                    g[1].Reset();
+                    g[2].Reset();
+                    g[3].Reset();
+                    g[4].Reset();
+                    g[5].Reset();
+                    g[6].Reset();
+                    g[7].Reset();
 
-                                        // totally empty or totally full voxel? -> no isosurface there
-    if ( cases == 0 || cases == 0xff )
-        continue;
+                    // For each edge
+                    for (int edge = 0, edgepow2 = 1; edge < 12; edge++, edgepow2 <<= 1)
+                    {
 
+                        if (!(edgeFlags & edgepow2))
+                            continue;
 
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Use look-up table to retrieve the list of edges according to vertices configuration
-    int     edgeFlags   = CubeEdgeIntersec[ cases ];
+                        // Edge -> 2 vertices
+                        int x0 = CubeEdge[edge][0];
+                        int x1 = CubeEdge[edge][1];
 
-                                        // Flag all gradients as 'not computed'
-    g[ 0 ].Reset ();    g[ 1 ].Reset ();    g[ 2 ].Reset ();    g[ 3 ].Reset ();    
-    g[ 4 ].Reset ();    g[ 5 ].Reset ();    g[ 6 ].Reset ();    g[ 7 ].Reset ();    
+                        // Compute only the necessary gradients - this could be expensive to compute
+                        if ((x0 == 0 || x1 == 0) && g[0].IsNull())
+                            (data->*getgradient)(x, y, z, g[0], 1);
+                        if ((x0 == 1 || x1 == 1) && g[1].IsNull())
+                            (data->*getgradient)(x + 1, y, z, g[1], 1);
+                        if ((x0 == 2 || x1 == 2) && g[2].IsNull())
+                            (data->*getgradient)(x + 1, y + 1, z, g[2], 1);
+                        if ((x0 == 3 || x1 == 3) && g[3].IsNull())
+                            (data->*getgradient)(x, y + 1, z, g[3], 1);
+                        if ((x0 == 4 || x1 == 4) && g[4].IsNull())
+                            (data->*getgradient)(x, y, z + 1, g[4], 1);
+                        if ((x0 == 5 || x1 == 5) && g[5].IsNull())
+                            (data->*getgradient)(x + 1, y, z + 1, g[5], 1);
+                        if ((x0 == 6 || x1 == 6) && g[6].IsNull())
+                            (data->*getgradient)(x + 1, y + 1, z + 1, g[6], 1);
+                        if ((x0 == 7 || x1 == 7) && g[7].IsNull())
+                            (data->*getgradient)(x, y + 1, z + 1, g[7], 1);
 
+                        // Cutting position between the 2 vertices
+                        double intersection = (double)(isovalue - v[x0]) / (v[x1] - v[x0]);
 
-                                        // For each edge
-    for ( int edge = 0, edgepow2 = 1; edge < 12; edge++, edgepow2 <<= 1 ) {
+                        TVertex *tovn = &VNOfEdge[edge];
 
-        if ( ! ( edgeFlags & edgepow2 ) )
-            continue;
+                        // Computing location
+                        tovn->Vertex.X = x + CubeVertex[x0][0] + intersection * EdgeDirection[edge][0];
+                        tovn->Vertex.Y = y + CubeVertex[x0][1] + intersection * EdgeDirection[edge][1];
+                        tovn->Vertex.Z = z + CubeVertex[x0][2] + intersection * EdgeDirection[edge][2];
 
-                                        // Edge -> 2 vertices
-        int     x0      = CubeEdge[ edge ][ 0 ];
-        int     x1      = CubeEdge[ edge ][ 1 ];
+                        // Gradient -> normal
+                        tovn->Normal.X = g[x0][0] + intersection * (g[x1][0] - g[x0][0]);
+                        tovn->Normal.Y = g[x0][1] + intersection * (g[x1][1] - g[x0][1]);
+                        tovn->Normal.Z = g[x0][2] + intersection * (g[x1][2] - g[x0][2]);
 
+                        // Inverting Gradient for positive isosurface (maybe due to our choice of rendering)
+                        if (isovalue >= 0)
+                            tovn->Normal.Invert();
 
-                                        // Compute only the necessary gradients - this could be expensive to compute
-        if ( ( x0 == 0 || x1 == 0 ) && g[ 0 ].IsNull () )   (data->*getgradient) ( x,   y,   z,   g[ 0 ], 1 );
-        if ( ( x0 == 1 || x1 == 1 ) && g[ 1 ].IsNull () )   (data->*getgradient) ( x+1, y,   z,   g[ 1 ], 1 );
-        if ( ( x0 == 2 || x1 == 2 ) && g[ 2 ].IsNull () )   (data->*getgradient) ( x+1, y+1, z,   g[ 2 ], 1 );
-        if ( ( x0 == 3 || x1 == 3 ) && g[ 3 ].IsNull () )   (data->*getgradient) ( x,   y+1, z,   g[ 3 ], 1 );
-        if ( ( x0 == 4 || x1 == 4 ) && g[ 4 ].IsNull () )   (data->*getgradient) ( x,   y,   z+1, g[ 4 ], 1 );
-        if ( ( x0 == 5 || x1 == 5 ) && g[ 5 ].IsNull () )   (data->*getgradient) ( x+1, y,   z+1, g[ 5 ], 1 );
-        if ( ( x0 == 6 || x1 == 6 ) && g[ 6 ].IsNull () )   (data->*getgradient) ( x+1, y+1, z+1, g[ 6 ], 1 );
-        if ( ( x0 == 7 || x1 == 7 ) && g[ 7 ].IsNull () )   (data->*getgradient) ( x,   y+1, z+1, g[ 7 ], 1 );
+                        // Finally, normalize gradient for faster rendering
+                        tovn->Normalize();
+                    } // for edge
 
-                                        // Cutting position between the 2 vertices
-        double              intersection    = (double) ( isovalue - v[ x0 ] ) / ( v[ x1 ] - v[ x0 ] );
+                    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    // Generating the actual triangles
+                    for (int triangle = 0, triangle3 = 0; triangle < 5; triangle++)
+                    {
 
+                        if (CubeTriangles[cases][triangle3] < 0)
+                            break;
 
-        TVertex*            tovn            = &VNOfEdge[ edge ];
+                        // get the 3 vertices of current triangle
+                        const TVertex *tovn1 = &VNOfEdge[CubeTriangles[cases][triangle3++]];
+                        const TVertex *tovn2 = &VNOfEdge[CubeTriangles[cases][triangle3++]];
+                        const TVertex *tovn3 = &VNOfEdge[CubeTriangles[cases][triangle3++]];
 
-                                        // Computing location
-        tovn->Vertex.X = x + CubeVertex[ x0 ][ 0 ] + intersection * EdgeDirection[ edge ][ 0 ];
-        tovn->Vertex.Y = y + CubeVertex[ x0 ][ 1 ] + intersection * EdgeDirection[ edge ][ 1 ];
-        tovn->Vertex.Z = z + CubeVertex[ x0 ][ 2 ] + intersection * EdgeDirection[ edge ][ 2 ];
+                        // don't insert triangles with collapsed edge
+                        if (tovn1->SamePosition(tovn2) || tovn1->SamePosition(tovn3) || tovn2->SamePosition(tovn3))
 
-                                        // Gradient -> normal
-        tovn->Normal.X =              g[ x0 ][ 0 ] + intersection * ( g[ x1 ][ 0 ] - g[ x0 ][ 0 ] );
-        tovn->Normal.Y =              g[ x0 ][ 1 ] + intersection * ( g[ x1 ][ 1 ] - g[ x0 ][ 1 ] );
-        tovn->Normal.Z =              g[ x0 ][ 2 ] + intersection * ( g[ x1 ][ 2 ] - g[ x0 ][ 2 ] );
+                            continue;
 
-                                        // Inverting Gradient for positive isosurface (maybe due to our choice of rendering)
-        if ( isovalue >= 0 )
-            tovn->Normal.Invert ();
+                        // Insertion is of course a critical section, as we update all the pointers from the same structure
+                        //        OmpCriticalBegin (TTriangleSurface)
+                        // use the vertices computed before
+                        if (isovalue >= 0)
+                        {
+                            listvert[currlistblock][currlistindex] = *tovn1;
+                            currlistindex++;
+                            NumPoints++;
+                            listvert[currlistblock][currlistindex] = *tovn2;
+                            currlistindex++;
+                            NumPoints++;
+                            listvert[currlistblock][currlistindex] = *tovn3;
+                            currlistindex++;
+                            NumPoints++;
+                        }
+                        else
+                        {
+                            // invert triangle orders for negative isosurface
+                            listvert[currlistblock][currlistindex] = *tovn1;
+                            currlistindex++;
+                            NumPoints++;
+                            listvert[currlistblock][currlistindex] = *tovn3;
+                            currlistindex++;
+                            NumPoints++;
+                            listvert[currlistblock][currlistindex] = *tovn2;
+                            currlistindex++;
+                            NumPoints++;
+                        }
 
-                                        // Finally, normalize gradient for faster rendering
-        tovn->Normalize ();
-        } // for edge
+                        // end of current block?
+                        if (currlistindex >= pointsperblock)
+                        {
 
+                            currlistblock++;
 
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // Generating the actual triangles
-    for ( int triangle = 0, triangle3 = 0; triangle < 5; triangle++ ) {
+                            currlistindex = 0; // create new block
 
-        if ( CubeTriangles[ cases ][ triangle3 ] < 0 )
-            break;
+                            // no more!
+                            if (currlistblock >= MaxBlocksOfVertice)
+                            {
+                                ShowMessage("You reached the maximum number of triangles!", "Surface Triangulation", ShowMessageWarning);
+                                //              return;     // not allowed anymore with OpenMP
+                                exit(1);
+                            }
 
-                                        // get the 3 vertices of current triangle
-        const TVertex*        tovn1           = &VNOfEdge[ CubeTriangles[ cases ][ triangle3++ ] ];
-        const TVertex*        tovn2           = &VNOfEdge[ CubeTriangles[ cases ][ triangle3++ ] ];
-        const TVertex*        tovn3           = &VNOfEdge[ CubeTriangles[ cases ][ triangle3++ ] ];
+                            listvert[currlistblock] = new TVertex[pointsperblock];
+                        }
 
-                                        // don't insert triangles with collapsed edge
-        if ( tovn1->SamePosition ( tovn2 )
-          || tovn1->SamePosition ( tovn3 )
-          || tovn2->SamePosition ( tovn3 ) )
+                        //        OmpCriticalEnd
 
-            continue;
+                    } // for triangle
 
-                                        // Insertion is of course a critical section, as we update all the pointers from the same structure
-//        OmpCriticalBegin (TTriangleSurface)
-                                        // use the vertices computed before
-        if ( isovalue >= 0 ) {
-            listvert[ currlistblock ][ currlistindex ]  = *tovn1;   currlistindex++;    NumPoints++;
-            listvert[ currlistblock ][ currlistindex ]  = *tovn2;   currlistindex++;    NumPoints++;
-            listvert[ currlistblock ][ currlistindex ]  = *tovn3;   currlistindex++;    NumPoints++;
-            }
-        else {
-                                        // invert triangle orders for negative isosurface
-            listvert[ currlistblock ][ currlistindex ]  = *tovn1;   currlistindex++;    NumPoints++;
-            listvert[ currlistblock ][ currlistindex ]  = *tovn3;   currlistindex++;    NumPoints++;
-            listvert[ currlistblock ][ currlistindex ]  = *tovn2;   currlistindex++;    NumPoints++;
-            }
+                } // for x, y, z
 
-                                        // end of current block?
-        if ( currlistindex >= pointsperblock ) {
+        // OmpParallelEnd
 
-            currlistblock++;
+    } // ComputeIsoSurfaceMarchingCube
 
-            currlistindex = 0;          // create new block
-
-                                        // no more!
-            if ( currlistblock >= MaxBlocksOfVertice ) {
-                ShowMessage ( "You reached the maximum number of triangles!", "Surface Triangulation", ShowMessageWarning );
-//              return;     // not allowed anymore with OpenMP
-                exit ( 1 );
-                }
-
-            listvert[ currlistblock ] = new TVertex [ pointsperblock ];
-            }
-
-//        OmpCriticalEnd
-
-        } // for triangle
-
-    } // for x, y, z
-
-//OmpParallelEnd
-
-} // ComputeIsoSurfaceMarchingCube
-
-
-//----------------------------------------------------------------------------
-//------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //------------------------------------------------------------------------------
 
 }

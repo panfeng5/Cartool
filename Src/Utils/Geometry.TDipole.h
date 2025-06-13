@@ -16,43 +16,54 @@ limitations under the License.
 
 #pragma once
 
-#include    "MemUtil.h"
-#include    "Geometry.TPoint.h"
+#include "MemUtil.h"
+#include "Geometry.TPoint.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-class   TDipole
+namespace crtl
 {
-public:
-                    TDipole         ()                          {   Reset ();   }
 
-    void            Reset           ()                          {   Position .Reset ();
-                                                                    Direction.Reset ();
-                                                                    SolPointIndex   = -1;
-                                                                    Power           = 0;
-                                                                    Frequency       = 0;
-                                                                    Phase           = 0;
-                                                                }
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-    TPointFloat     Position;
-    TVector3Float   Direction;
-    int             SolPointIndex;
-    double          Power;
-    double          Frequency;
-    double          Phase;
+    class TDipole
+    {
+    public:
+        TDipole() { Reset(); }
 
-                                        // Setting up direction toward an electrode
-    void            SetDirection    ( const TPointFloat& electrodepos )     {   Direction   = electrodepos - Position;  Direction.Normalize (); }
+        void Reset()
+        {
+            Position.Reset();
+            Direction.Reset();
+            SolPointIndex = -1;
+            Power = 0;
+            Frequency = 0;
+            Phase = 0;
+        }
 
-    TDipole                         ( const TDipole& op  )      {   CopyVirtualMemory ( this, &op,  sizeof ( TDipole ) ); }
-    TDipole&        operator    =   ( const TDipole& op2 )      {   if ( &op2 != this )     CopyVirtualMemory ( this, &op2, sizeof ( TDipole ) );   return *this; }
-};
+        TPointFloat Position;
+        TVector3Float Direction;
+        int SolPointIndex;
+        double Power;
+        double Frequency;
+        double Phase;
 
+        // Setting up direction toward an electrode
+        void SetDirection(const TPointFloat &electrodepos)
+        {
+            Direction = electrodepos - Position;
+            Direction.Normalize();
+        }
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+        TDipole(const TDipole &op) { CopyVirtualMemory(this, &op, sizeof(TDipole)); }
+        TDipole &operator=(const TDipole &op2)
+        {
+            if (&op2 != this)
+                CopyVirtualMemory(this, &op2, sizeof(TDipole));
+            return *this;
+        }
+    };
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

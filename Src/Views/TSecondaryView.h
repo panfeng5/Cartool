@@ -16,32 +16,34 @@ limitations under the License.
 
 #pragma once
 
-#include    "TBaseView.h"
-#include    "TTFCursor.h"
+#include "TBaseView.h"
+#include "TTFCursor.h"
 
-namespace crtl {
+namespace crtl
+{
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // default window size
-constexpr double    BASESECONDVIEW_COLORSCALEPOSV   = 0.88;
-constexpr double    BASESECONDVIEW_COLORSCALEWIDTH  = 0.4;
-constexpr double    BASESECONDVIEW_COLORSCALEHEIGHT = 0.025;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // default window size
+    constexpr double BASESECONDVIEW_COLORSCALEPOSV = 0.88;
+    constexpr double BASESECONDVIEW_COLORSCALEWIDTH = 0.4;
+    constexpr double BASESECONDVIEW_COLORSCALEHEIGHT = 0.025;
 
+    enum
+    {
+        MRCAverage = 0x1,
+        MRCSequence = 0x2,
+        MRCSequenceOverlay = 0x4,
+        MRCAnySequence = MRCSequence | MRCSequenceOverlay,
+        MRCAnimation = 0x8
+    };
 
-enum    {
-        MRCAverage          = 0x1,
-        MRCSequence         = 0x2,
-        MRCSequenceOverlay  = 0x4,
-        MRCAnySequence      = MRCSequence | MRCSequenceOverlay,
-        MRCAnimation        = 0x8
-        };
+    constexpr int MRCStepInit = 8;
 
-constexpr int       MRCStepInit                 = 8;
-
-                                        // common buttons
-enum    {
-        BaseSecondViewButtonSeparatorA  = NumBaseViewButtons,
+    // common buttons
+    enum
+    {
+        BaseSecondViewButtonSeparatorA = NumBaseViewButtons,
         BaseSecondViewButtonSyncViews,
         BaseSecondViewButtonSeparatorB,
         BaseSecondViewButtonRangeAverage,
@@ -52,69 +54,61 @@ enum    {
         BaseSecondViewButtonRangeStepDec,
 
         NumBaseSecondViewButtons
-        };
+    };
 
+    //----------------------------------------------------------------------------
+    // Secondary views depends on a primary EEG view that will feed them some data to display
+    // Currently secondary views are potentials (maps) or ESI / Inverse
+    // These views also have extended synchronization capabilities, they can be all synced
+    // within a group of documents (through TLMDoc), or even between any arbitrary (secondary) windows
+    class TTracksView;
 
-//----------------------------------------------------------------------------
-                                        // Secondary views depends on a primary EEG view that will feed them some data to display
-                                        // Currently secondary views are potentials (maps) or ESI / Inverse
-                                        // These views also have extended synchronization capabilities, they can be all synced
-                                        // within a group of documents (through TLMDoc), or even between any arbitrary (secondary) windows
-class   TTracksView;
+    class TSecondaryView : public TBaseView
+    {
+    public:
+        TSecondaryView(TTracksDoc &doc, owl::TWindow *parent = 0, TLinkManyDoc *group = 0);
 
+        bool VnViewSync(const TTFCursor *tfcursor);
 
-class   TSecondaryView  :   public  TBaseView
-{
-public:
-                        TSecondaryView          ( TTracksDoc& doc, owl::TWindow* parent = 0, TLinkManyDoc* group = 0 );
+        TTracksView *GetEegView(); // dynamically returns the current associated eeg view
 
+    protected:
+        TTracksDoc *EEGDoc;
 
-    bool                VnViewSync              ( const TTFCursor* tfcursor );
-                                                
-    TTracksView*        GetEegView              ();     // dynamically returns the current associated eeg view
+        TTFCursor TFCursor;
+        TTFCursor SavedTFCursor;
+        int ManageRangeCursor;
+        int MRCNumTF;
+        int MRCStepTF;
+        bool MRCSequenceOrder;
+        bool MRCDoAnimation;
+        bool ShowSequenceLabels;
 
+        inline bool IsMRCSequence() const { return (ManageRangeCursor & MRCAnySequence); }
 
-protected:
+        void UpdateCaption(); // with time of cursor
+        void CreateBaseGadgets();
 
-    TTracksDoc*         EEGDoc;
+        void EvKeyDown(owl::uint key, owl::uint repeatCount, owl::uint flags);
+        void EvSetFocus(HWND);
+        using TBaseView::EvKillFocus;
+        void EvPaletteChanged(HWND);
+        void EvLButtonDown(owl::uint, const owl::TPoint &p);
 
-    TTFCursor           TFCursor;
-    TTFCursor           SavedTFCursor;
-    int                 ManageRangeCursor;
-    int                 MRCNumTF;
-    int                 MRCStepTF;
-    bool                MRCSequenceOrder;
-    bool                MRCDoAnimation;
-    bool                ShowSequenceLabels;
+        void CmSyncViews();
+        virtual void CmSetManageRangeCursor(owlwparam wparam) = 0;
+        virtual void CmSetStepTF(owlwparam wparam);
+        void CmSpecifyScaling();
+        void CmShowSequenceLabels();
 
+        // Transmitting messages to the EegView - not used anymore(?)
+        //  void                CmToEeg                 ()                              { CartoolDocManager->GetView ( LinkedViewId )->ForwardMessage ( false ); }
+        //  void                CmToEegEnable           ( owl::TCommandEnabler &tce )   { CartoolDocManager->GetView ( LinkedViewId )->EvCommandEnable (tce); }
 
-    inline bool         IsMRCSequence           ()  const           { return ( ManageRangeCursor & MRCAnySequence ); }
+        DECLARE_RESPONSE_TABLE(TSecondaryView);
+    };
 
-
-    void                UpdateCaption           ();     // with time of cursor
-    void                CreateBaseGadgets       ();
-
-    void                EvKeyDown               ( owl::uint key, owl::uint repeatCount, owl::uint flags );
-    void                EvSetFocus              ( HWND);
-    using    TBaseView::EvKillFocus;
-    void                EvPaletteChanged        ( HWND );
-    void                EvLButtonDown           ( owl::uint, const owl::TPoint& p );
-
-    void                CmSyncViews             ();
-    virtual void        CmSetManageRangeCursor  ( owlwparam wparam ) = 0;
-    virtual void        CmSetStepTF             ( owlwparam wparam );
-    void                CmSpecifyScaling        ();
-    void                CmShowSequenceLabels    ();
-
-                                        // Transmitting messages to the EegView - not used anymore(?)
-//  void                CmToEeg                 ()                              { CartoolDocManager->GetView ( LinkedViewId )->ForwardMessage ( false ); }
-//  void                CmToEegEnable           ( owl::TCommandEnabler &tce )   { CartoolDocManager->GetView ( LinkedViewId )->EvCommandEnable (tce); }
-
-    DECLARE_RESPONSE_TABLE(TSecondaryView);
-};
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

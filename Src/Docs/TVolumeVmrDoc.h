@@ -16,34 +16,32 @@ limitations under the License.
 
 #pragma once
 
-#include    "TVolumeDoc.h"
+#include "TVolumeDoc.h"
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-constexpr char*     MriVmrTitle         = "Opening VMR MRI";
-constexpr char*     MriVmrMethodTitle   = "Reslicing VMR MRI";
-
-                                        // !NOT a full implementation, but only the minimum needed for BESA interface!
-class   TVolumeVmrDoc   : public  TVolumeDoc
+namespace crtl
 {
-public:
-                    TVolumeVmrDoc ( owl::TDocument *parent = 0 );
 
-                                            // owl::TDocument
-    bool            Commit  ( bool force = false )              final;
-    bool            Open    ( int mode, const char *path = 0 )  final;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
+    constexpr char *MriVmrTitle = "Opening VMR MRI";
+    constexpr char *MriVmrMethodTitle = "Reslicing VMR MRI";
 
-protected:
-    bool            ForceBesa;
+    // !NOT a full implementation, but only the minimum needed for BESA interface!
+    class TVolumeVmrDoc : public TVolumeDoc
+    {
+    public:
+        TVolumeVmrDoc(owl::TDocument *parent = 0);
 
-};
+        // owl::TDocument
+        bool Commit(bool force = false) final;
+        bool Open(int mode, const char *path = 0) final;
 
+    protected:
+        bool ForceBesa;
+    };
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

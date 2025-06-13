@@ -14,104 +14,100 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    "TMatrixSpinvDoc.h"
+#include "TMatrixSpinvDoc.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 using namespace arma;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-        TMatrixSpinvDoc::TMatrixSpinvDoc ( TDocument *parent )
-      : TInverseMatrixDoc ( parent )
+namespace crtl
 {
-}
 
-
-bool    TMatrixSpinvDoc::ReadFromHeader ( const char* file, ReadFromHeaderType what, void* answer )
-{
-ifstream        ifs ( TFileName ( file, TFilenameExtendedPath ), ios::binary );
-if ( ifs.fail() ) return false;
-
-float               f;
-
-
-switch ( what ) {
-    case ReadNumSolPoints :
-        ifs.read ( (char *) &f,  sizeof ( f ) );
-        *((int *)answer) = f;
-        return   true ;
-
-    case ReadNumElectrodes :
-        ifs.seekg ( sizeof ( float ), ios::cur );
-        ifs.read ( (char *) &f,  sizeof ( f ) );
-        *((int *)answer) = f;
-        return   true;
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    TMatrixSpinvDoc::TMatrixSpinvDoc(TDocument *parent)
+        : TInverseMatrixDoc(parent)
+    {
     }
 
+    bool TMatrixSpinvDoc::ReadFromHeader(const char *file, ReadFromHeaderType what, void *answer)
+    {
+        ifstream ifs(TFileName(file, TFilenameExtendedPath), ios::binary);
+        if (ifs.fail())
+            return false;
 
-return false;
-}
+        float f;
 
+        switch (what)
+        {
+        case ReadNumSolPoints:
+            ifs.read((char *)&f, sizeof(f));
+            *((int *)answer) = f;
+            return true;
 
-bool    TMatrixSpinvDoc::Open ( int /*mode*/, const char* path )
-{
-if ( path )
-    SetDocPath ( path );
+        case ReadNumElectrodes:
+            ifs.seekg(sizeof(float), ios::cur);
+            ifs.read((char *)&f, sizeof(f));
+            *((int *)answer) = f;
+            return true;
+        }
 
-
-if ( GetDocPath () ) {
-
-    TInStream*          is              = InStream ( ofRead | ofBinary );
-
-    if ( ! is ) return false;
-
-
-    SetDirty ( false );
-
-
-    float               f;
-
-    is->read ( (char *) &f,  sizeof ( f ) );
-    NumSolPoints        = f;
-
-    is->read ( (char *) &f,  sizeof ( f ) );
-    NumElectrodes       = f;
-
-    SetAtomType ( AtomTypeVector );
-    NumRegularizations  = 0;
-    SetDefaultVariables ();
-
-                                        // matrix allocation
-    M.resize ( 1 );
-
-    M[ 0 ].Resize ( GetNumLines (), NumElectrodes );
-
-                                        // read data
-    is->read ( (char *) M[ 0 ].GetArray (), SingleMatrixMemorySize () );
-
-
-    delete is;
-    }
-else {                                  // create a IS file
-    SetDirty ( false );
-    return  false;
+        return false;
     }
 
+    bool TMatrixSpinvDoc::Open(int /*mode*/, const char *path)
+    {
+        if (path)
+            SetDocPath(path);
 
-//char    buff[ 256 ];
-//DBGM2 ( GetContentTypeName ( buff ), GetAtomTypeName ( AtomTypeUseCurrent ), "Content Type,  Atom Type" );
+        if (GetDocPath())
+        {
 
-return true;
-}
+            TInStream *is = InStream(ofRead | ofBinary);
 
+            if (!is)
+                return false;
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+            SetDirty(false);
+
+            float f;
+
+            is->read((char *)&f, sizeof(f));
+            NumSolPoints = f;
+
+            is->read((char *)&f, sizeof(f));
+            NumElectrodes = f;
+
+            SetAtomType(AtomTypeVector);
+            NumRegularizations = 0;
+            SetDefaultVariables();
+
+            // matrix allocation
+            M.resize(1);
+
+            M[0].Resize(GetNumLines(), NumElectrodes);
+
+            // read data
+            is->read((char *)M[0].GetArray(), SingleMatrixMemorySize());
+
+            delete is;
+        }
+        else
+        { // create a IS file
+            SetDirty(false);
+            return false;
+        }
+
+        // char    buff[ 256 ];
+        // DBGM2 ( GetContentTypeName ( buff ), GetAtomTypeName ( AtomTypeUseCurrent ), "Content Type,  Atom Type" );
+
+        return true;
+    }
+
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

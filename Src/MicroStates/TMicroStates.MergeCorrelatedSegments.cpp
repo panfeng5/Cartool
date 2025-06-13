@@ -14,99 +14,89 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    "TMicroStates.h"
+#include "TMicroStates.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-int     TMicroStates::MergeCorrelatedSegments   (   int             nclusters,
-                                                    TMaps&          maps,           TLabeling&          labels,
-                                                    PolarityType    polarity,       
-                                                    CentroidType    centroid,
-                                                    bool            ranking,
-                                                    double          corrthresh 
-                                                )
+namespace crtl
 {
-                                        // nothing to do?
-if ( nclusters <= 1 )
-    return  nclusters;
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    int TMicroStates::MergeCorrelatedSegments(int nclusters,
+                                              TMaps &maps, TLabeling &labels,
+                                              PolarityType polarity,
+                                              CentroidType centroid,
+                                              bool ranking,
+                                              double corrthresh)
+    {
+        // nothing to do?
+        if (nclusters <= 1)
+            return nclusters;
 
-double              highestcorr;
-LabelType           index1;
-LabelType           index2;
-TMap                map12 ( NumRows );
+        double highestcorr;
+        LabelType index1;
+        LabelType index2;
+        TMap map12(NumRows);
 
+        do
+        {
+            // index1 < index2
+            highestcorr = maps.GetClosestPair(nclusters, polarity, index1, index2);
 
+            // max correlation of any pair of maps below threshold?
+            if (highestcorr < corrthresh)
+                break; // we're done
 
-do {
-                                        // index1 < index2
-    highestcorr     = maps.GetClosestPair ( nclusters, polarity, index1, index2 );
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // anticipate the averaging of the 2 labeling
+            // by averaging their 2 prototype maps (an approximation)
+            map12 = maps[index1];
 
-                                        // max correlation of any pair of maps below threshold?
-    if ( highestcorr < corrthresh )
-        break;                          // we're done
+            map12.Cumulate(maps[index2], polarity == PolarityEvaluate && map12.IsOppositeDirection(maps[index2]));
 
+            map12.Normalize();
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // anticipate the averaging of the 2 labeling
-                                        // by averaging their 2 prototype maps (an approximation)
-    map12  =         maps[ index1 ];
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // update labeling
+            OmpParallelFor
 
-    map12.Cumulate ( maps[ index2 ], polarity == PolarityEvaluate && map12.IsOppositeDirection ( maps[ index2 ] ) );
+                for (long tf = 0; tf < NumTimeFrames; tf++)
+            {
 
-    map12.Normalize ();
+                if (labels[tf] == index1 || labels[tf] == index2)
+                    // merge index2 into index1 (the smallest index value)
+                    labels.SetLabel(tf, index1, polarity == PolarityEvaluate && map12.IsOppositeDirection(Data[tf]) ? PolarityInvert : PolarityDirect);
 
+                if (labels[tf] > index2)
+                    labels[tf]--; // shift labels after index2
+            }
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // update labeling
-    OmpParallelFor
+            // already done for index1 / index2
+            //  labels.UpdatePolarities ( Data, 0, NumTimeFrames - 1, maps, polarity );
 
-    for ( long tf = 0; tf < NumTimeFrames; tf++ ) {
+            //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            // labels -> maps
+            maps.Reset(nclusters);
 
-        if ( labels[ tf ] == index1 || labels[ tf ] == index2 )
-                                        // merge index2 into index1 (the smallest index value)
-            labels.SetLabel ( tf, index1, polarity == PolarityEvaluate && map12.IsOppositeDirection ( Data[ tf ] ) ? PolarityInvert : PolarityDirect );
+            // here, one less cluster here
+            nclusters--;
 
+            maps.LabelingToCentroids(
+                Data, &ToData,
+                nclusters,
+                labels,
+                polarity, centroid, ranking);
 
-        if ( labels[ tf ] > index2 )
-            labels[ tf ]--;             // shift labels after index2
-        }
+        } while (nclusters > 1);
 
-                                        // already done for index1 / index2
-//  labels.UpdatePolarities ( Data, 0, NumTimeFrames - 1, maps, polarity );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // pack and get exact number of final maps
+        return labels.PackLabels(maps);
+    }
 
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // labels -> maps
-    maps.Reset ( nclusters );
-
-                                        // here, one less cluster here
-    nclusters--;
-
-
-    maps.LabelingToCentroids    ( 
-                                Data,       &ToData, 
-                                nclusters, 
-                                labels, 
-                                polarity,   centroid,   ranking 
-                                );
-
-
-    } while ( nclusters > 1 );
-
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                                        // pack and get exact number of final maps
-return  labels.PackLabels ( maps );
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }

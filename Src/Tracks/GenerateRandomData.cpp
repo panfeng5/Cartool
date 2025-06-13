@@ -14,65 +14,62 @@ See the License for the specific language governing permissions and
 limitations under the License.
 \************************************************************************/
 
-#include    "GenerateRandomData.h"
+#include "GenerateRandomData.h"
 
-#include    "Files.TFileName.h"
-#include    "TMaps.h"
+#include "Files.TFileName.h"
+#include "TMaps.h"
 
-#pragma     hdrstop
+#pragma hdrstop
 //-=-=-=-=-=-=-=-=-
 
 using namespace std;
 using namespace owl;
 
-namespace crtl {
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-                                        // Basically a wrapper around TMaps.Random
-void    GenerateRandomData      (   int                 numel,
-                                    int                 fileduration,       double          samplingfrequency,
-                                    const char*         basefilename,       char*           outputfile
-                                )
+namespace crtl
 {
-                                        // base directory & file names
-TFileName           BaseDir;
-TFileName           BaseFileName;
-TFileName           fileoutprefix;
-TFileName           buff;
-TFileName           filename;
 
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    // Basically a wrapper around TMaps.Random
+    void GenerateRandomData(int numel,
+                            int fileduration, double samplingfrequency,
+                            const char *basefilename, char *outputfile)
+    {
+        // base directory & file names
+        TFileName BaseDir;
+        TFileName BaseFileName;
+        TFileName fileoutprefix;
+        TFileName buff;
+        TFileName filename;
 
-StringCopy      ( BaseDir,          basefilename                            );
+        StringCopy(BaseDir, basefilename);
 
-StringCopy      ( fileoutprefix,    ToFileName ( basefilename ) );
+        StringCopy(fileoutprefix, ToFileName(basefilename));
 
-StringCopy      ( BaseFileName,     BaseDir,     "\\",   fileoutprefix );
+        StringCopy(BaseFileName, BaseDir, "\\", fileoutprefix);
 
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        TMaps eegmaps(fileduration, numel);
 
-TMaps               eegmaps    ( fileduration, numel    );
+        eegmaps.Random(-1.0, 1.0);
 
-eegmaps.Random ( -1.0, 1.0 );
+        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+        StringCopy(filename, BaseFileName);
+        StringAppend(filename, "."
+                               "White Noise");
+        AddExtension(filename, FILEEXT_EEGSEF);
 
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        // CheckNoOverwrite    ( filename );
 
-StringCopy          ( filename,     BaseFileName );
-StringAppend        ( filename,     "." "White Noise" );
-AddExtension        ( filename,     FILEEXT_EEGSEF );
+        eegmaps.WriteFile(filename, false, samplingfrequency);
 
-//CheckNoOverwrite    ( filename );
+        if (outputfile)
+            StringCopy(outputfile, filename);
+    }
 
-eegmaps.WriteFile   ( filename, false, samplingfrequency );
-
-if ( outputfile )
-    StringCopy ( outputfile, filename );
-}
-
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
 }
